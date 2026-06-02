@@ -26,7 +26,7 @@ const { project } = Astro.props;
     </h1>
     <p class="detail-meta">
       <span>{project.year}</span>
-      {project.status === 'wip' && <span class="tag">wip</span>}
+      {project.status === 'wip' && <span class="wip">in&nbsp;progress</span>}
     </p>
     <p class="detail-placeholder">Coming soon.</p>
   </section>
@@ -78,13 +78,20 @@ const { project } = Astro.props;
     align-items: center;
     margin: 0 0 64px;
   }
-  .detail-meta .tag {
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    color: var(--accent);
-    padding: 2px 8px;
-    border: 1px solid currentColor;
+  /* warm "in progress" pill — matches the landing list */
+  .detail-meta .wip {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--mustard);
+    background: var(--pale);
+    padding: 3px 8px;
     border-radius: 999px;
+  }
+  :global(html.dark) .detail-meta .wip {
+    background: rgba(248, 198, 102, 0.12);
+    color: var(--yellow);
   }
   .detail-placeholder {
     font-family: var(--font-display);
