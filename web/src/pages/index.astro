@@ -1,70 +1,623 @@
 ---
-import Layout from '../layouts/Layout.astro';
+/**
+ * Landing — Warm Organic Minimalism applied to the portal.
+ *
+ * Self-contained page: no shared Layout import, so the warm design system
+ * (vellum bg, moss type, Manrope, acid-green animated underline) governs
+ * everything top-to-bottom without competing with the existing tokens.css.
+ *
+ * Content (titles, subtitle, nav links, section label, footer) is the same
+ * as the previous landing — only the design language has changed.
+ *
+ * Motion: one perpetual element (an acid-green hand-drawn underline that
+ * redraws under "Monkey business"), plus a quiet "marginalia" skier that
+ * glides across a thin curve between the hero and the project list, with
+ * long gaps so it feels like a discovered detail rather than a focal point.
+ */
 import { projects } from '../data/projects';
 ---
 
-<Layout>
-  <section class="hero">
-    <h1 class="hero-title">
-      <span class="line"><span>Alex</span></span>
-      <span class="line"><span><em>Monkey business</em>.</span></span>
-    </h1>
-    <p class="hero-sub">Small experiments, side projects and ideas</p>
-    <div class="illo" aria-hidden="true"></div>
-  </section>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Alex Monkey Business</title>
+    <meta
+      name="description"
+      content="A portal to the things I'm tinkering with."
+    />
 
-  <section class="projects-wrap" id="projects">
-    <span class="projects-label">
-      Projects · {String(projects.length).padStart(2, '0')}
-    </span>
-    <ul class="projects">
-      {
-        projects.map((p, i) => {
-          const href = p.url ?? `/projects/${p.slug}`;
-          const external = Boolean(p.url);
-          return (
-            <li style={`--i:${i}`}>
-              <a
-                href={href}
-                class={external ? 'is-external' : undefined}
-                target={external ? '_blank' : undefined}
-                rel={external ? 'noopener noreferrer' : undefined}
-              >
-                <span class="title">
-                  {p.title}
-                  {p.titleEm && (
-                    <>
-                      {' '}
-                      <em>{p.titleEm}</em>
-                    </>
-                  )}
-                  {p.status === 'wip' && <span class="tag">wip</span>}
-                  {external && <span class="ext" aria-hidden="true">↗</span>}
-                </span>
-                {p.subtitle && <span class="subtitle">{p.subtitle}</span>}
-                <span class="year">{p.year}</span>
-              </a>
-            </li>
-          );
-        })
-      }
-    </ul>
-  </section>
-</Layout>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap"
+    />
 
-<script>
-  const obs = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-in');
-          obs.unobserve(e.target);
+    <script is:inline>
+      // restore theme before paint so the warm/dark choice doesn't flash
+      try {
+        if (localStorage.getItem('mb-theme') === 'dark') {
+          document.documentElement.classList.add('dark');
         }
+      } catch (_) {}
+    </script>
+  </head>
+  <body>
+    <div class="page" id="top">
+      <header class="masthead">
+        <a href="/#top" class="brand" aria-label="home">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 21 L9 5 L12 13 L15 5 L21 21" />
+          </svg>
+          <span>alex&nbsp;monkey&nbsp;business</span>
+        </a>
+
+        <nav class="nav">
+          <a href="#projects">Projects</a>
+          <a href="/about">About</a>
+          <a href="mailto:alexander.samnoy@gmail.com">Email</a>
+          <button
+            class="theme-toggle"
+            id="theme-toggle"
+            type="button"
+            aria-label="Toggle dark mode"
+          >
+            <svg
+              class="icon-moon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <svg
+              class="icon-sun"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            </svg>
+          </button>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <h1 class="display">
+          <span class="line">Alex</span>
+          <span class="line">
+            <span class="word-wrap">
+              <em>Monkey business</em>
+              <svg
+                class="underline"
+                viewBox="0 0 240 14"
+                preserveAspectRatio="none"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M2 9 C 40 2, 80 12, 120 6 S 200 2, 238 8"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </span><span class="period">.</span>
+          </span>
+        </h1>
+        <p class="lede">A portal to the things I'm tinkering with.</p>
+      </section>
+
+      <!-- ===== marginalia: a quiet skier on a thin curve =====
+           viewBox is wide and short so the curve reads as a single
+           gesture in the whitespace, not a feature. -->
+      <div class="margin-skier" aria-hidden="true">
+        <svg
+          class="ms-svg"
+          viewBox="0 0 420 64"
+          fill="none"
+          preserveAspectRatio="xMinYMid meet"
+        >
+          <defs>
+            <path
+              id="ms-curve"
+              d="M 14 38 C 80 16, 130 54, 200 30 S 320 46, 406 22"
+            />
+          </defs>
+
+          <!-- the carve line itself, always present but barely there -->
+          <use href="#ms-curve" class="ms-trace" />
+
+          <!-- the freerider; rides the curve, fades in/out at the ends -->
+          <g class="ms-skier">
+            <g class="ms-fig" stroke-linecap="round" stroke-linejoin="round">
+              <!-- skis (a touch of acid as the only accent) -->
+              <path class="ms-ski" d="M -10 4.5 L 10 3.5" />
+              <path class="ms-ski" d="M -10 6 L 10 5" />
+              <!-- boots → knees → hips, tucked -->
+              <path d="M -1 4.5 L 1.5 1 L -2 -2.5" />
+              <!-- torso leaning into the fall line -->
+              <path d="M -2 -2.5 L -5 -7" />
+              <!-- trailing arm + pole -->
+              <path d="M -3.5 -4.5 L 1 -3 L 3.5 1" />
+              <!-- helmet -->
+              <circle cx="-6" cy="-8.5" r="2.2" />
+            </g>
+            <!-- traversal: linger at start, glide across, linger at end -->
+            <animateMotion
+              dur="22s"
+              repeatCount="indefinite"
+              rotate="auto"
+              calcMode="linear"
+              keyPoints="0;0;1;1"
+              keyTimes="0;0.22;0.78;1"
+            >
+              <mpath href="#ms-curve" />
+            </animateMotion>
+            <!-- fade so the loop reset doesn't read as a jump-cut -->
+            <animate
+              attributeName="opacity"
+              values="0;0;1;1;0;0"
+              keyTimes="0;0.20;0.28;0.72;0.80;1"
+              dur="22s"
+              repeatCount="indefinite"
+            />
+          </g>
+        </svg>
+      </div>
+
+      <section class="projects" id="projects">
+        <span class="section-label">
+          Projects&nbsp;·&nbsp;{String(projects.length).padStart(2, '0')}
+        </span>
+
+        <ul class="list">
+          {projects.map((p) => {
+            const href = p.url ?? `/projects/${p.slug}`;
+            const external = Boolean(p.url);
+            return (
+              <li>
+                <a
+                  href={href}
+                  target={external ? '_blank' : undefined}
+                  rel={external ? 'noopener noreferrer' : undefined}
+                  class="item"
+                >
+                  <span class="row">
+                    <span class="title">
+                      {p.title}
+                      {p.titleEm && <span class="title-em">{' '}{p.titleEm}</span>}
+                      {p.status === 'wip' && <span class="wip">in&nbsp;progress</span>}
+                    </span>
+                    <span class="year">{p.year}</span>
+                  </span>
+                  {p.subtitle && <span class="subtitle">{p.subtitle}</span>}
+                  {external && (
+                    <svg
+                      class="ext"
+                      viewBox="0 0 24 24"
+                      width="14"
+                      height="14"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.4"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M7 17 L 17 7" />
+                      <path d="M9 7 H 17 V 15" />
+                    </svg>
+                  )}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <footer class="foot">
+        <span>Oslo</span>
+        <span>Alex&nbsp;·&nbsp;2026</span>
+      </footer>
+    </div>
+
+    <script>
+      const t = document.getElementById('theme-toggle');
+      t?.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        try { localStorage.setItem('mb-theme', isDark ? 'dark' : 'light'); } catch (_) {}
       });
-    },
-    { threshold: 0.2 }
-  );
-  document
-    .querySelectorAll('ul.projects li')
-    .forEach((li) => obs.observe(li));
-</script>
+
+      // SMIL ignores prefers-reduced-motion; pause the skier ourselves.
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const applyMotion = () => {
+        document.querySelectorAll<SVGSVGElement>('.ms-svg').forEach((svg) => {
+          if (mq.matches) svg.pauseAnimations();
+          else svg.unpauseAnimations();
+        });
+      };
+      applyMotion();
+      mq.addEventListener('change', applyMotion);
+    </script>
+
+    <style is:global>
+      :root {
+        /* ----- palette (warm_organic_minimalistic.md) ----- */
+        --vellum:   #eeeae3;
+        --foam:     #e9ebe2;
+        --ghost:    #f7f5f1;
+        --moss:     #3c402b;
+        --elephant: #656461;
+        --pewter:   #c9c5bf;
+        --acid:     #c4e456;
+        --olive:    #a4b55b;
+        --mustard:  #d6971e;
+        --pale:     #ffe8dc;
+        --rust:     #92543b;
+        --earth:    #825b61;
+        --border-card: rgba(60, 64, 43, 0.18);
+
+        --bg:        var(--vellum);
+        --bg-soft:   var(--ghost);
+        --fg:        var(--moss);
+        --fg-soft:   var(--elephant);
+        --rule:      var(--border-card);
+
+        --font-sans: 'Manrope', -apple-system, 'system-ui', 'Segoe UI', Roboto, sans-serif;
+        --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      }
+
+      /* dark variant — kept restrained, using the md's dark tokens */
+      html.dark {
+        --bg:      #2e321f;   /* darkgreen */
+        --bg-soft: #343330;   /* stone     */
+        --fg:      #eeeae3;   /* vellum    */
+        --fg-soft: #c9c5bf;   /* pewter    */
+        --rule:    rgba(238, 234, 227, 0.16);
+      }
+
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font-sans);
+        font-size: 16px;
+        line-height: 1.6;
+        font-weight: 400;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        transition: background 320ms ease, color 320ms ease;
+      }
+      a { color: inherit; text-decoration: none; }
+
+      .page {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 36px 40px 96px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      @media (max-width: 640px) {
+        .page { padding: 26px 22px 64px; }
+      }
+
+      /* ----- masthead ----- */
+      .masthead {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--fg-soft);
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--fg);
+      }
+      .brand svg { color: var(--fg); }
+      .nav {
+        display: inline-flex;
+        align-items: center;
+        gap: 22px;
+      }
+      .nav a {
+        color: var(--fg-soft);
+        position: relative;
+        padding: 4px 0;
+        transition: color 180ms ease;
+      }
+      .nav a:hover { color: var(--fg); }
+      .nav a::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: var(--acid);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .nav a:hover::after { transform: scaleX(1); }
+
+      .theme-toggle {
+        background: transparent;
+        border: 1px solid var(--rule);
+        border-radius: 999px;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        cursor: pointer;
+        color: var(--fg-soft);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 4px;
+        transition: color 160ms ease, border-color 160ms ease;
+      }
+      .theme-toggle:hover {
+        color: var(--fg);
+        border-color: var(--fg-soft);
+      }
+      .theme-toggle svg { width: 13px; height: 13px; }
+      .theme-toggle .icon-sun { display: none; }
+      html.dark .theme-toggle .icon-sun { display: block; }
+      html.dark .theme-toggle .icon-moon { display: none; }
+
+      @media (max-width: 640px) {
+        .nav { gap: 16px; font-size: 12px; }
+        .brand span { display: none; } /* keep just the M-mark */
+      }
+
+      /* ----- hero ----- */
+      .hero {
+        margin-top: 18vh;
+        max-width: 760px;
+      }
+      .display {
+        font-family: var(--font-sans);
+        font-size: clamp(42px, 10.8vw, 96px);
+        font-weight: 300;
+        line-height: 1.02;
+        letter-spacing: -0.024em;
+        margin: 0;
+        color: var(--fg);
+      }
+      @media (max-width: 640px) {
+        /* allow Monkey business to break as a fallback if the viewport
+           gets narrower than the type can shrink for. */
+        .word-wrap { white-space: normal; }
+      }
+      .display .line {
+        display: block;
+      }
+      .display em {
+        font-style: normal;
+        color: var(--rust);
+      }
+      .display .period {
+        color: var(--rust);
+      }
+      html.dark .display em,
+      html.dark .display .period {
+        /* rust reads muddy on darkgreen — shift to a warmer earth */
+        color: #d99a78;
+      }
+
+      .word-wrap {
+        display: inline-block;
+        position: relative;
+        white-space: nowrap;
+      }
+      .underline {
+        position: absolute;
+        left: -1%;
+        right: -1%;
+        bottom: -0.04em;
+        width: 102%;
+        height: 0.2em;
+        color: var(--acid);
+        pointer-events: none;
+      }
+      .underline path {
+        stroke-dasharray: 460;
+        stroke-dashoffset: 460;
+        animation: u-draw 6.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) 700ms infinite;
+      }
+      @keyframes u-draw {
+        0%   { stroke-dashoffset: 460; }
+        38%  { stroke-dashoffset: 0; }
+        72%  { stroke-dashoffset: 0; }
+        100% { stroke-dashoffset: -460; }
+      }
+
+      .lede {
+        margin-top: 32px;
+        max-width: 44ch;
+        font-size: 17px;
+        line-height: 1.62;
+        color: var(--fg-soft);
+        font-weight: 400;
+      }
+
+      /* ----- marginalia: subtle skier ----- */
+      .margin-skier {
+        margin-top: 11vh;
+        margin-bottom: 5vh;
+        max-width: 460px;
+        opacity: 0.9;
+      }
+      .ms-svg {
+        width: 100%;
+        height: 64px;
+        display: block;
+        overflow: visible;
+      }
+      .ms-trace {
+        fill: none;
+        stroke: var(--pewter);
+        stroke-width: 1.3;
+        stroke-linecap: round;
+        opacity: 0.7;
+        vector-effect: non-scaling-stroke;
+      }
+      html.dark .ms-trace { stroke: var(--fg-soft); opacity: 0.4; }
+      .ms-fig {
+        fill: none;
+        stroke: var(--fg);
+        stroke-width: 1.3;
+        vector-effect: non-scaling-stroke;
+      }
+      .ms-ski { stroke: var(--olive); stroke-width: 1.5; }
+
+      @media (max-width: 640px) {
+        .margin-skier { max-width: 320px; margin-top: 8vh; }
+      }
+
+      /* ----- projects ----- */
+      .projects { margin-top: 2vh; }
+      .section-label {
+        display: inline-block;
+        font-size: 12px;
+        color: var(--fg-soft);
+        font-family: var(--font-mono);
+        margin-bottom: 22px;
+      }
+
+      .list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--rule);
+      }
+      .list li { border-bottom: 1px solid var(--rule); }
+
+      .item {
+        display: block;
+        position: relative;
+        padding: 22px 60px 22px 4px;
+        transition: background 220ms ease, padding 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .item::before {
+        content: '';
+        position: absolute;
+        left: -40px;
+        top: 50%;
+        width: 0;
+        height: 1px;
+        background: var(--acid);
+        transform: translateY(-50%);
+        transition: width 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .item:hover {
+        background: var(--bg-soft);
+        padding-left: 28px;
+      }
+      .item:hover::before { width: 22px; }
+
+      .row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      .title {
+        font-size: 22px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: var(--fg);
+        display: inline-flex;
+        align-items: baseline;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .title-em {
+        font-weight: 300;
+        color: var(--rust);
+      }
+      html.dark .title-em { color: #d99a78; }
+      .wip {
+        font-family: var(--font-mono);
+        font-size: 10.5px;
+        letter-spacing: 0.02em;
+        color: var(--mustard);
+        background: var(--pale);
+        padding: 3px 8px;
+        border-radius: 999px;
+        transform: translateY(-2px);
+      }
+      html.dark .wip {
+        background: rgba(248, 198, 102, 0.12);
+        color: #f8c666;
+      }
+      .year {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--fg-soft);
+        flex-shrink: 0;
+      }
+      .subtitle {
+        display: block;
+        margin-top: 6px;
+        font-size: 15px;
+        color: var(--fg-soft);
+        max-width: 60ch;
+      }
+      .ext {
+        position: absolute;
+        right: 18px;
+        top: 26px;
+        color: var(--fg-soft);
+        opacity: 0.7;
+        transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1), color 200ms ease;
+      }
+      .item:hover .ext {
+        color: var(--fg);
+        transform: translate(2px, -2px);
+      }
+
+      /* ----- footer ----- */
+      .foot {
+        margin-top: auto;
+        padding-top: 64px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--fg-soft);
+        font-family: var(--font-mono);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .underline path { animation: none; stroke-dashoffset: 0; }
+        .item, .item::before, .ext, .nav a::after { transition: none; }
+      }
+    </style>
+  </body>
+</html>
