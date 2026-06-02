@@ -3,23 +3,21 @@ import '../styles/global.css';
 import '../styles/landing.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
-import SplashOverlay from '../components/SplashOverlay.astro';
 
 interface Props {
   title?: string;
   description?: string;
+  /** Override --accent on this page only (e.g. project pages with their own hue). */
   accent?: string;
 }
 
 const {
   title = 'Alex Monkey Business',
-  description = 'Small experiments, side projects and ideas',
+  description = "A portal to the things I'm tinkering with.",
   accent,
 } = Astro.props;
 
-const htmlStyle = accent
-  ? `--accent: ${accent}; --coral-500: ${accent};`
-  : undefined;
+const htmlStyle = accent ? `--accent: ${accent};` : undefined;
 ---
 
 <!doctype html>
@@ -34,8 +32,8 @@ const htmlStyle = accent
     <link rel="icon" type="image/png" sizes="32x32" href="/brand/icons/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/brand/icons/favicon-16.png" />
     <link rel="apple-touch-icon" href="/brand/icons/apple-touch-icon.png" />
-    <link rel="mask-icon" href="/brand/icons/mask-icon.svg" color="#C85E87" />
-    <meta name="theme-color" content="#C85E87" />
+    <link rel="mask-icon" href="/brand/icons/mask-icon.svg" color="#3c402b" />
+    <meta name="theme-color" content="#eeeae3" />
 
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -45,21 +43,17 @@ const htmlStyle = accent
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content="/brand/social-og-image.png" />
+
     <script is:inline>
+      // restore theme before paint so dark/light doesn't flash
       try {
         if (localStorage.getItem('mb-theme') === 'dark') {
           document.documentElement.classList.add('dark');
         }
       } catch (_) {}
-      try {
-        if (sessionStorage.getItem('mb-splash-seen') === '1') {
-          document.documentElement.classList.add('splash-seen');
-        }
-      } catch (_) {}
     </script>
   </head>
   <body>
-    <SplashOverlay />
     <Nav />
     <main id="top">
       <slot />

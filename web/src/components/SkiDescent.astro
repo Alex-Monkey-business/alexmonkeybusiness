@@ -1,0 +1,240 @@
+---
+/**
+ * SkiDescent — the hero's perpetual motion: a freerider drops a cliff.
+ *
+ * A clean mountain silhouette with a snow cap. A ski trace carves down
+ * the left face, **stops at a cliff edge**, leaves a gap in the line
+ * (the air), then resumes at the landing zone and rides out to the base.
+ *
+ * The freerider follows that whole arc on a single CSS keyframe track
+ * (translate + rotate). They carve, pop off the cliff lip, throw a clean
+ * 360° backflip in the gap, land, and continue. Powder is gated so it
+ * doesn't fly in the air. The whole figure fades in/out at the loop ends
+ * so the reset never reads as a jump cut.
+ *
+ * Designed as a placeholder for a richer asset (3D PNG, hand-drawn) —
+ * keep the wrapper API stable so it can be swapped in place later.
+ *
+ * Pure SVG + CSS. A tiny script pauses motion for prefers-reduced-motion.
+ */
+---
+
+<div class="ski-descent" aria-hidden="true">
+  <svg
+    class="sd-svg"
+    viewBox="0 0 480 220"
+    fill="none"
+    preserveAspectRatio="xMidYMid meet"
+  >
+    <!-- ===== mountain ===== -->
+    <g class="sd-mountain">
+      <!-- subtle filled massif so the peak reads as mass, not just an outline -->
+      <path
+        class="sd-mass"
+        d="M 18 210 L 200 100 L 250 124 L 340 30 L 462 210 Z"
+      />
+      <path
+        class="sd-ridge"
+        d="M 18 210 L 200 100 L 250 124 L 340 30 L 462 210"
+      />
+      <!-- snow cap on the summit, rust strokes for warmth -->
+      <path class="sd-snowcap" d="M 318 50 L 332 36 L 340 48 L 350 28 L 362 50" />
+    </g>
+
+    <!-- ===== ski trace — two segments with a gap at the cliff ===== -->
+    <path
+      class="sd-trace"
+      d="M 332 52 C 290 92, 320 130, 268 162"
+    />
+    <path
+      class="sd-trace"
+      d="M 220 197 C 175 202, 130 212, 60 217"
+    />
+    <!-- cliff lip mark + landing crosshair, both subtle -->
+    <circle class="sd-tick" cx="268" cy="162" r="1.8" />
+    <circle class="sd-tick" cx="220" cy="197" r="1.8" />
+
+    <!-- ===== the freerider rig ===== -->
+    <g class="sd-pos">
+      <g class="sd-powder">
+        <circle cx="9" cy="6" r="1.5" />
+        <circle cx="13" cy="3" r="1.1" />
+        <circle cx="14" cy="9" r="0.9" />
+        <circle cx="17" cy="5" r="0.8" />
+      </g>
+      <g class="sd-spin">
+        <g class="sd-fig" stroke-linecap="round" stroke-linejoin="round">
+          <!-- skis — single accent of olive, the only colored line -->
+          <path class="sd-ski" d="M -14 7 L 11 5" />
+          <path class="sd-ski" d="M -14 10 L 11 8" />
+          <!-- boots → knees → hips, tucked -->
+          <path d="M -2 7.5 L 2 2 L -3 -2" />
+          <!-- torso leaning into the fall line -->
+          <path d="M -3 -2 L -8 -8" />
+          <!-- trailing arm + pole -->
+          <path d="M -5 -5 L 2 -2 L 6 3" />
+          <!-- helmet -->
+          <circle cx="-10" cy="-10.5" r="3.2" />
+          <!-- goggle -->
+          <path class="sd-goggle" d="M -12.5 -11 L -7.8 -11.5" />
+        </g>
+      </g>
+    </g>
+  </svg>
+</div>
+
+<script>
+  // SMIL? none here — CSS only. But the CSS animations still pause for
+  // prefers-reduced-motion via the @media query below.
+</script>
+
+<style>
+  .ski-descent {
+    margin: 8vh auto 6vh;
+    max-width: 600px;
+    padding: 0 40px;
+  }
+  @media (max-width: 640px) {
+    .ski-descent { margin: 5vh auto 4vh; padding: 0 22px; max-width: 420px; }
+  }
+  .sd-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+    aspect-ratio: 480 / 220;
+  }
+
+  /* ===== mountain ===== */
+  .sd-mass {
+    fill: var(--fg1);
+    opacity: 0.045;
+  }
+  .sd-ridge {
+    stroke: var(--fg1);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    fill: none;
+    opacity: 0.42;
+    vector-effect: non-scaling-stroke;
+  }
+  .sd-snowcap {
+    stroke: var(--rust);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    opacity: 0.7;
+    vector-effect: non-scaling-stroke;
+  }
+  :global(html.dark) .sd-mass { opacity: 0.08; }
+  :global(html.dark) .sd-ridge { stroke: var(--fg2); opacity: 0.55; }
+  :global(html.dark) .sd-snowcap { stroke: #d99a78; }
+
+  /* ===== ski trace ===== */
+  .sd-trace {
+    fill: none;
+    stroke: var(--fg1);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    opacity: 0.22;
+    vector-effect: non-scaling-stroke;
+  }
+  .sd-tick {
+    fill: var(--fg1);
+    opacity: 0.3;
+  }
+  :global(html.dark) .sd-trace { stroke: var(--fg2); opacity: 0.35; }
+  :global(html.dark) .sd-tick { fill: var(--fg2); }
+
+  /* ===== freerider ===== */
+  .sd-fig {
+    fill: none;
+    stroke: var(--fg1);
+    stroke-width: 1.6;
+    vector-effect: non-scaling-stroke;
+  }
+  .sd-ski {
+    stroke: var(--olive);
+    stroke-width: 2.2;
+  }
+  .sd-goggle {
+    stroke: var(--olive);
+    stroke-width: 1.6;
+  }
+
+  /* position track — translates the rig along the route, fades at ends */
+  .sd-pos {
+    transform-box: view-box;
+    animation:
+      sd-pos 14s linear infinite,
+      sd-fade 14s linear infinite;
+  }
+  /* spin track — carving lean → straighten → full backflip in the air */
+  .sd-spin {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: sd-spin 14s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  }
+  .sd-powder {
+    transform-box: view-box;
+    animation: sd-powder-show 14s linear infinite;
+  }
+  .sd-powder circle {
+    fill: var(--fg1);
+    opacity: 0.32;
+    animation: sd-puff 0.9s var(--ease-out) infinite;
+  }
+  .sd-powder circle:nth-child(2) { animation-delay: 0.12s; }
+  .sd-powder circle:nth-child(3) { animation-delay: 0.06s; }
+  .sd-powder circle:nth-child(4) { animation-delay: 0.18s; }
+
+  @keyframes sd-pos {
+    0%   { transform: translate(335px, 52px); }    /* near summit */
+    12%  { transform: translate(305px, 88px); }
+    22%  { transform: translate(318px, 125px); }
+    30%  { transform: translate(290px, 152px); }
+    35%  { transform: translate(268px, 162px); }   /* cliff lip */
+    42%  { transform: translate(242px, 132px); }   /* rising */
+    47%  { transform: translate(216px, 122px); }   /* apex */
+    52%  { transform: translate(205px, 150px); }
+    55%  { transform: translate(220px, 197px); }   /* landing */
+    66%  { transform: translate(160px, 207px); }
+    80%  { transform: translate(100px, 215px); }
+    100% { transform: translate(40px, 220px); }    /* ride out, off the bottom-left */
+  }
+  @keyframes sd-spin {
+    0%,  30% { transform: rotate(-8deg); }
+    35%      { transform: rotate(2deg); }       /* pop, straighten */
+    47%      { transform: rotate(-180deg); }    /* upside down mid-flip */
+    55%      { transform: rotate(-360deg); }    /* landed the rotation */
+    66%,100% { transform: rotate(-368deg); }    /* ≡ -8° riding out */
+  }
+  @keyframes sd-fade {
+    0%, 3%   { opacity: 0; }
+    8%       { opacity: 1; }
+    92%      { opacity: 1; }
+    97%, 100% { opacity: 0; }
+  }
+  @keyframes sd-powder-show {
+    0%, 30%  { opacity: 1; }
+    34%      { opacity: 0; }
+    60%      { opacity: 0; }
+    66%, 100% { opacity: 1; }
+  }
+  @keyframes sd-puff {
+    0%   { opacity: 0.35; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0;    transform: translate(6px, 5px) scale(0.4); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sd-pos, .sd-spin, .sd-powder, .sd-powder circle {
+      animation: none;
+    }
+    /* park the freerider mid-descent so the still scene still reads */
+    .sd-pos { transform: translate(285px, 144px); }
+    .sd-spin { transform: rotate(-8deg); }
+    .sd-powder { display: none; }
+  }
+</style>

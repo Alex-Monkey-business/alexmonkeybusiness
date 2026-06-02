@@ -85,7 +85,7 @@ html.dark .hg-page {
   margin: 0 0 28px;
   color: var(--fg1);
 }
-.hg-title em { font-style: italic; color: var(--accent); }
+.hg-title em { font-style: italic; color: var(--em-color); }
 
 .hg-lede {
   font-family: var(--font-display);
@@ -815,7 +815,7 @@ html.dark .hg-page {
   margin: 0 0 18px;
   color: var(--fg1);
 }
-.hg-feature-copy h2 em { font-style: italic; color: var(--accent); }
+.hg-feature-copy h2 em { font-style: italic; color: var(--em-color); }
 .hg-feature-copy p {
   font-size: 16px;
   line-height: 1.5;
@@ -873,7 +873,7 @@ html.dark .hg-page {
   color: var(--fg1);
   letter-spacing: -0.012em;
 }
-.hg-list .text em { font-style: italic; color: var(--accent); }
+.hg-list .text em { font-style: italic; color: var(--em-color); }
 
 /* ============ STACK ============ */
 .hg-stack {

@@ -96,7 +96,7 @@
 }
 .about-title em {
   font-style: italic;
-  color: var(--accent);
+  color: var(--em-color);
 }
 
 .about-body {
@@ -111,7 +111,7 @@
 }
 .about-body em {
   font-style: italic;
-  color: var(--accent);
+  color: var(--em-color);
 }
 .about-body .line + .line {
   margin-top: 6px;
