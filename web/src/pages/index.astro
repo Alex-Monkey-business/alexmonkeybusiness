@@ -5,11 +5,6 @@ import { projects } from '../data/projects';
 
 <Layout>
   <section class="hero">
-    <div class="hero-meta">
-      <span class="tag">N&deg;&nbsp;00 — Portal</span>
-      <span class="tag">Viksfjord · 2026</span>
-    </div>
-
     <h1 class="display">
       <span class="line">Alex</span>
       <span class="line">Monkey</span>
@@ -65,25 +60,6 @@ import { projects } from '../data/projects';
   }
   @media (max-width: 640px) {
     .hero { padding: 16vh 18px 4vh; }
-  }
-
-  .hero-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 12px;
-    margin-bottom: 28px;
-    border-bottom: 2px solid var(--border);
-  }
-  .tag {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: var(--tr-wide);
-    text-transform: uppercase;
-    color: var(--fg3);
-  }
-  @media (max-width: 460px) {
-    .hero-meta .tag:last-child { display: none; }
   }
 
   .display {
