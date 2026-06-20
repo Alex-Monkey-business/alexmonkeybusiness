@@ -13,7 +13,7 @@ interface Props {
 
 const {
   title = 'Alex Monkey Business',
-  description = "A portal to the things I'm tinkering with.",
+  description = 'Small experiments, side projects and ideas — built in the open.',
   accent,
 } = Astro.props;
 
@@ -32,8 +32,8 @@ const htmlStyle = accent ? `--accent: ${accent};` : undefined;
     <link rel="icon" type="image/png" sizes="32x32" href="/brand/icons/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/brand/icons/favicon-16.png" />
     <link rel="apple-touch-icon" href="/brand/icons/apple-touch-icon.png" />
-    <link rel="mask-icon" href="/brand/icons/mask-icon.svg" color="#3c402b" />
-    <meta name="theme-color" content="#eeeae3" />
+    <link rel="mask-icon" href="/brand/icons/mask-icon.svg" color="#121211" />
+    <meta name="theme-color" content="#f4f4f1" />
 
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

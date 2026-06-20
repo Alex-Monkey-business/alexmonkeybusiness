@@ -27,16 +27,9 @@ a {
   color: inherit;
 }
 
-:root {
-  --accent: var(--amb-pink);
-  --coral-500: var(--amb-pink);
-}
+/* Variant B owns its palette + dark mode entirely in tokens.css. */
 
-html.dark {
-  --bg: #1a1815;
-  --fg1: #f3eada;
-  --fg2: #c9bfae;
-  --fg3: #9a907f;
-  --fg4: #6b6354;
-  --border: #2e2a24;
+::selection {
+  background: var(--vermilion);
+  color: #fff;
 }

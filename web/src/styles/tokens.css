@@ -1,74 +1,69 @@
 /* ============================================================
-   Monkey Business — Warm Organic Minimalism
-   Vellum on moss. Manrope. Acid-green accent. Rust for emphasis.
-   See: alt_design/warm_organic_minimalistic.md
+   Monkey Business — VARIANT B · Swiss Brutalist / Editorial
+   Paper + ink. Space Grotesk. Vermilion accent. Hard rules,
+   index numbers, square corners, offset shadows.
+   The cold, structured antithesis of variant A (warm organic).
    ============================================================ */
 
 /* ---------- Fonts ----------
-   Display + UI: Manrope (geometric sans with organic warmth, italic incl.)
-   Mono:         JetBrains Mono (project IDs, code, metadata)
-   Hand:         Caveat (sparing — handwritten asides)
+   Display + UI: Space Grotesk (techy geometric grotesk, heavy range)
+   Mono:         JetBrains Mono (indices, metadata, labels)
 */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 :root {
   /* ============================================================
-     PALETTE — raw tones, used to compose semantic tokens below
+     PALETTE — neutral paper + true ink, one hot accent
      ============================================================ */
-  --vellum:   #eeeae3;
-  --foam:     #e9ebe2;
-  --ghost:    #f7f5f1;
-  --moss:     #3c402b;
-  --elephant: #656461;
-  --pewter:   #c9c5bf;
-  --acid:     #c4e456;
-  --olive:    #a4b55b;
-  --mustard:  #d6971e;
-  --yellow:   #f8c666;
-  --rust:     #92543b;
-  --earth:    #825b61;
-  --blush:    #f2cbd1;
-  --pale:     #ffe8dc;
-  --orange:   #ff8e51;
-  --slate:    #3e3d3a;
-  --stone:    #343330;
-  --darkgreen: #2e321f;
-  --deepgreen: #1f2310;
+  --paper:    #f4f4f1;   /* cool off-white, deliberately NOT warm vellum */
+  --paper-2:  #ebebe7;   /* sunken panels */
+  --paper-3:  #ffffff;   /* raised cards */
+  --ink:      #121211;   /* near-black */
+  --ink-2:    #54534e;   /* secondary text */
+  --ink-3:    #8a887f;   /* meta / captions */
+  --ink-4:    #b9b7ad;   /* disabled */
+
+  --vermilion:  #ff3b1f; /* the single accent — hot, Swiss-poster red */
+  --vermilion-d:#e02a10;
+  --vermilion-t:#ffe4de; /* tint */
 
   /* ============================================================
-     SEMANTIC TOKENS — always reference these, not the raw palette
+     SEMANTIC TOKENS — always reference these
      ============================================================ */
-  --bg:          var(--vellum);
-  --bg-elevated: var(--ghost);
-  --bg-sunken:   var(--foam);
-  --bg-paper:    var(--ghost);
+  --bg:          var(--paper);
+  --bg-elevated: var(--paper-3);
+  --bg-sunken:   var(--paper-2);
+  --bg-paper:    var(--paper-3);
+  --bg-invert:   var(--ink);
 
-  --fg1: var(--moss);      /* headings, key UI */
-  --fg2: var(--elephant);  /* body */
-  --fg3: var(--elephant);  /* captions, meta — paired with opacity at the site */
-  --fg4: var(--pewter);    /* disabled, placeholders */
+  --fg1: var(--ink);
+  --fg2: var(--ink-2);
+  --fg3: var(--ink-3);
+  --fg4: var(--ink-4);
+  --fg-invert: var(--paper);
 
-  --border:        rgba(60, 64, 43, 0.18);
-  --border-strong: rgba(60, 64, 43, 0.42);
-  --border-ink:    var(--moss);
+  --border:        var(--ink);                 /* brutalist: borders are INK, full strength */
+  --border-strong: var(--ink);
+  --border-hair:   rgba(18, 18, 17, 0.16);     /* the rare soft rule */
+  --border-ink:    var(--ink);
 
-  --accent:        var(--acid);          /* CTA / interactive highlight */
-  --accent-hover:  var(--olive);
-  --accent-soft:   #e6f4a5;              /* tinted acid for soft backgrounds */
-  --accent-tint:   #f4fae0;
-  --on-accent:     var(--moss);          /* text on acid */
+  --accent:        var(--vermilion);
+  --accent-hover:  var(--vermilion-d);
+  --accent-soft:   var(--vermilion-t);
+  --accent-tint:   var(--vermilion-t);
+  --on-accent:     #ffffff;
 
-  --em-color:      var(--rust);          /* semantic <em> emphasis */
+  --em-color:      var(--vermilion);
 
-  --focus-ring: 0 0 0 3px var(--accent-soft), 0 0 0 4.5px var(--olive);
+  --focus-ring: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink);
 
   /* ============================================================
      TYPE
      ============================================================ */
-  --font-display: 'Manrope', -apple-system, 'system-ui', 'Segoe UI', Roboto, sans-serif;
-  --font-ui:      'Manrope', -apple-system, 'system-ui', 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Space Grotesk', -apple-system, 'system-ui', 'Segoe UI', Roboto, sans-serif;
+  --font-ui:      'Space Grotesk', -apple-system, 'system-ui', 'Segoe UI', Roboto, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --font-hand:    'Caveat', 'Comic Sans MS', cursive;
+  --font-hand:    'JetBrains Mono', ui-monospace, monospace; /* no handwriting in B */
 
   /* Type scale */
   --t-12: 12px;
@@ -84,20 +79,20 @@
   --t-88: 88px;
 
   /* Line heights */
-  --lh-tight:  1.05;
-  --lh-snug:   1.2;
-  --lh-normal: 1.6;
-  --lh-loose:  1.65;
+  --lh-tight:  0.92;
+  --lh-snug:   1.08;
+  --lh-normal: 1.55;
+  --lh-loose:  1.62;
 
-  /* Tracking — warm style runs slightly tighter than the old serif system */
-  --tr-tight:  -0.024em;
-  --tr-snug:   -0.01em;
+  /* Tracking — brutalist runs tight on display, wide on mono labels */
+  --tr-tight:  -0.04em;
+  --tr-snug:   -0.02em;
   --tr-normal: 0;
-  --tr-wide:   0.06em;
-  --tr-caps:   0.18em;
+  --tr-wide:   0.08em;
+  --tr-caps:   0.22em;
 
   /* ============================================================
-     SPACING & RADII
+     SPACING & RADII — square. corners are a sin here.
      ============================================================ */
   --s-1: 4px;
   --s-2: 8px;
@@ -111,50 +106,59 @@
   --s-16: 64px;
   --s-20: 80px;
 
-  --r-xs: 4px;
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 18px;
-  --r-xl: 24px;
-  --r-pill: 999px;
+  --r-xs: 0;
+  --r-sm: 0;
+  --r-md: 0;
+  --r-lg: 0;
+  --r-xl: 0;
+  --r-pill: 0;
 
   /* ============================================================
-     SHADOWS — soft, warm, never harsh
+     SHADOWS — hard offset blocks, never soft blur
      ============================================================ */
-  --shadow-1: 0 1px 0 rgba(31, 27, 22, 0.04), 0 1px 2px rgba(31, 27, 22, 0.06);
-  --shadow-2: 0 1px 0 rgba(31, 27, 22, 0.04), 0 4px 10px -2px rgba(31, 27, 22, 0.08);
-  --shadow-3: 0 2px 0 rgba(31, 27, 22, 0.04), 0 12px 24px -6px rgba(31, 27, 22, 0.12);
-  --shadow-pop: 0 3px 0 var(--moss);
-  --shadow-pop-sm: 0 2px 0 var(--moss);
+  --shadow-1: 2px 2px 0 var(--ink);
+  --shadow-2: 4px 4px 0 var(--ink);
+  --shadow-3: 6px 6px 0 var(--ink);
+  --shadow-pop: 4px 4px 0 var(--ink);
+  --shadow-pop-sm: 2px 2px 0 var(--ink);
 
-  /* Motion */
-  --ease-out:    cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-in:     cubic-bezier(0.6, 0, 0.8, 0.2);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-fast:    120ms;
-  --dur-base:    200ms;
-  --dur-slow:    360ms;
+  /* Motion — snappy, no spring */
+  --ease-out:    cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in:     cubic-bezier(0.6, 0, 0.9, 0.3);
+  --ease-spring: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast:    90ms;
+  --dur-base:    150ms;
+  --dur-slow:    260ms;
 }
 
 /* ============================================================
-   DARK MODE — warm-organic dark, not "tech-cold dark"
+   DARK MODE — invert to ink canvas, paper ink, accent holds
    ============================================================ */
 html.dark {
-  --bg:          var(--darkgreen);
-  --bg-elevated: var(--stone);
-  --bg-sunken:   var(--deepgreen);
-  --bg-paper:    var(--slate);
+  --bg:          #0e0e0d;
+  --bg-elevated: #1a1a18;
+  --bg-sunken:   #060605;
+  --bg-paper:    #1a1a18;
+  --bg-invert:   var(--paper);
 
-  --fg1: var(--vellum);
-  --fg2: var(--pewter);
-  --fg3: #a8a39b;
-  --fg4: #6f6c66;
+  --fg1: #f1f0ea;
+  --fg2: #b7b5ab;
+  --fg3: #8a887f;
+  --fg4: #5a584f;
+  --fg-invert: var(--ink);
 
-  --border:        rgba(238, 234, 227, 0.16);
-  --border-strong: rgba(238, 234, 227, 0.40);
+  --border:        #f1f0ea;
+  --border-strong: #f1f0ea;
+  --border-hair:   rgba(241, 240, 234, 0.18);
+  --border-ink:    #f1f0ea;
 
-  --em-color: #d99a78;  /* rust mudded out on darkgreen; warmer earth instead */
-  --on-accent: var(--moss);
+  --on-accent: #ffffff;
+
+  --shadow-1: 2px 2px 0 #f1f0ea;
+  --shadow-2: 4px 4px 0 #f1f0ea;
+  --shadow-3: 6px 6px 0 #f1f0ea;
+  --shadow-pop: 4px 4px 0 #f1f0ea;
+  --shadow-pop-sm: 2px 2px 0 #f1f0ea;
 }
 
 /* ============================================================
@@ -168,7 +172,7 @@ html, body {
   line-height: var(--lh-normal);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  transition: background 320ms var(--ease-out), color 320ms var(--ease-out);
+  transition: background 240ms var(--ease-out), color 240ms var(--ease-out);
 }
 
 .h-display {
@@ -176,7 +180,7 @@ html, body {
   font-size: var(--t-88);
   line-height: var(--lh-tight);
   letter-spacing: var(--tr-tight);
-  font-weight: 300;
+  font-weight: 700;
   color: var(--fg1);
 }
 .h1 {
@@ -184,27 +188,27 @@ html, body {
   font-size: var(--t-64);
   line-height: var(--lh-tight);
   letter-spacing: var(--tr-tight);
-  font-weight: 300;
+  font-weight: 700;
 }
 .h2 {
   font-family: var(--font-display);
   font-size: var(--t-48);
   line-height: var(--lh-snug);
   letter-spacing: var(--tr-snug);
-  font-weight: 400;
+  font-weight: 600;
 }
 .h3 {
   font-family: var(--font-ui);
   font-size: var(--t-28);
   line-height: var(--lh-snug);
   letter-spacing: var(--tr-snug);
-  font-weight: 500;
+  font-weight: 600;
 }
 .h4 {
   font-family: var(--font-ui);
   font-size: var(--t-22);
   line-height: var(--lh-snug);
-  font-weight: 500;
+  font-weight: 600;
 }
 .p {
   font-family: var(--font-ui);
@@ -222,6 +226,7 @@ html, body {
   color: var(--fg3);
 }
 .eyebrow {
+  font-family: var(--font-mono);
   font-size: var(--t-12);
   letter-spacing: var(--tr-caps);
   text-transform: uppercase;
@@ -233,12 +238,12 @@ html, body {
   font-size: 0.9em;
   background: var(--bg-sunken);
   padding: 1px 6px;
-  border-radius: var(--r-xs);
+  border: 1px solid var(--border-hair);
   color: var(--fg2);
 }
 .hand {
-  font-family: var(--font-hand);
-  font-size: var(--t-28);
-  color: var(--rust);
+  font-family: var(--font-mono);
+  font-size: var(--t-16);
+  color: var(--vermilion);
   line-height: var(--lh-snug);
 }

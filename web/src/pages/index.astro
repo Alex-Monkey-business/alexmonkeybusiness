@@ -1,45 +1,32 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { projects } from '../data/projects';
-import SkiDescent from '../components/SkiDescent.astro';
 ---
 
 <Layout>
   <section class="hero">
+    <div class="hero-meta">
+      <span class="tag">N&deg;&nbsp;00 — Portal</span>
+      <span class="tag">Viksfjord · 2026</span>
+    </div>
+
     <h1 class="display">
       <span class="line">Alex</span>
-      <span class="line">
-        <span class="word-wrap">
-          <em>Monkey business</em>
-          <svg
-            class="underline"
-            viewBox="0 0 240 14"
-            preserveAspectRatio="none"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M2 9 C 40 2, 80 12, 120 6 S 200 2, 238 8"
-              stroke="currentColor"
-              stroke-width="2.2"
-              stroke-linecap="round"
-            />
-          </svg>
-        </span><span class="period">.</span>
-      </span>
+      <span class="line">Monkey</span>
+      <span class="line accent">Business<span class="period">.</span></span>
     </h1>
-    <p class="lede">A portal to the things I'm tinkering with.</p>
+
+    <p class="lede">Small experiments, side projects and ideas — built in the open.</p>
   </section>
 
-  <SkiDescent />
-
   <section class="projects" id="projects">
-    <span class="section-label">
-      Projects&nbsp;·&nbsp;{String(projects.length).padStart(2, '0')}
-    </span>
+    <div class="section-head">
+      <span class="section-label">Index</span>
+      <span class="section-count">{String(projects.length).padStart(2, '0')}&nbsp;entries</span>
+    </div>
 
     <ul class="list">
-      {projects.map((p) => {
+      {projects.map((p, i) => {
         const href = p.url ?? `/projects/${p.slug}`;
         const external = Boolean(p.url);
         return (
@@ -50,32 +37,17 @@ import SkiDescent from '../components/SkiDescent.astro';
               rel={external ? 'noopener noreferrer' : undefined}
               class="item"
             >
-              <span class="row">
+              <span class="num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="body">
                 <span class="title">
                   {p.title}
                   {p.titleEm && <span class="title-em">{' '}{p.titleEm}</span>}
-                  {p.status === 'wip' && <span class="wip">in&nbsp;progress</span>}
+                  {p.status === 'wip' && <span class="wip">WIP</span>}
                 </span>
-                <span class="year">{p.year}</span>
+                {p.subtitle && <span class="subtitle">{p.subtitle}</span>}
               </span>
-              {p.subtitle && <span class="subtitle">{p.subtitle}</span>}
-              {external && (
-                <svg
-                  class="ext"
-                  viewBox="0 0 24 24"
-                  width="14"
-                  height="14"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.4"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M7 17 L 17 7" />
-                  <path d="M9 7 H 17 V 15" />
-                </svg>
-              )}
+              <span class="year">{p.year}</span>
+              <span class="arrow" aria-hidden="true">{external ? '↗' : '→'}</span>
             </a>
           </li>
         );
@@ -87,182 +59,195 @@ import SkiDescent from '../components/SkiDescent.astro';
 <style>
   /* ===== hero ===== */
   .hero {
-    max-width: 880px;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 22vh 40px 4vh;
+    padding: 20vh 32px 6vh;
   }
   @media (max-width: 640px) {
-    .hero { padding: 18vh 22px 2vh; }
+    .hero { padding: 16vh 18px 4vh; }
+  }
+
+  .hero-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    margin-bottom: 28px;
+    border-bottom: 2px solid var(--border);
+  }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: var(--tr-wide);
+    text-transform: uppercase;
+    color: var(--fg3);
+  }
+  @media (max-width: 460px) {
+    .hero-meta .tag:last-child { display: none; }
   }
 
   .display {
     font-family: var(--font-display);
-    font-size: clamp(42px, 10.8vw, 96px);
-    font-weight: 300;
-    line-height: 1.02;
-    letter-spacing: -0.024em;
+    font-size: clamp(56px, 17vw, 168px);
+    font-weight: 700;
+    line-height: 0.86;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
     margin: 0;
     color: var(--fg1);
   }
   .display .line { display: block; }
-  .display em {
-    font-style: normal;
-    color: var(--em-color);
-  }
-  .display .period { color: var(--em-color); }
-
-  .word-wrap {
-    display: inline-block;
-    position: relative;
-    white-space: nowrap;
-  }
-  @media (max-width: 640px) {
-    /* allow Monkey business to break as a fallback on tight viewports */
-    .word-wrap { white-space: normal; }
-  }
-  .underline {
-    position: absolute;
-    left: -1%;
-    right: -1%;
-    bottom: -0.04em;
-    width: 102%;
-    height: 0.2em;
-    color: var(--acid);
-    pointer-events: none;
-  }
-  .underline path {
-    stroke-dasharray: 460;
-    stroke-dashoffset: 460;
-    animation: u-draw 6.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) 700ms infinite;
-  }
-  @keyframes u-draw {
-    0%   { stroke-dashoffset: 460; }
-    38%  { stroke-dashoffset: 0; }
-    72%  { stroke-dashoffset: 0; }
-    100% { stroke-dashoffset: -460; }
-  }
+  .display .accent { color: var(--accent); }
+  .display .period { color: var(--fg1); }
 
   .lede {
-    margin-top: 32px;
-    max-width: 44ch;
-    font-size: 17px;
-    line-height: 1.62;
+    margin: 34px 0 0;
+    max-width: 40ch;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+    letter-spacing: 0.01em;
     color: var(--fg2);
-    font-weight: 400;
   }
 
   /* ===== projects ===== */
   .projects {
-    max-width: 880px;
+    max-width: 1080px;
     margin: 0 auto;
-    padding: 2vh 40px 4vh;
+    padding: 6vh 32px 8vh;
   }
   @media (max-width: 640px) {
-    .projects { padding: 2vh 22px 4vh; }
+    .projects { padding: 4vh 18px 6vh; }
   }
-  .section-label {
-    display: inline-block;
-    font-size: 12px;
-    color: var(--fg3);
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0;
+  }
+  .section-label,
+  .section-count {
     font-family: var(--font-mono);
-    margin-bottom: 22px;
+    font-size: 12px;
+    letter-spacing: var(--tr-wide);
+    text-transform: uppercase;
+    color: var(--fg3);
+    padding-bottom: 10px;
   }
 
   .list {
     list-style: none;
     margin: 0;
     padding: 0;
-    border-top: 1px solid var(--border);
+    border-top: 2px solid var(--border);
   }
   .list li { border-bottom: 1px solid var(--border); }
+  .list li:last-child { border-bottom: 2px solid var(--border); }
 
   .item {
-    display: block;
-    position: relative;
-    padding: 22px 60px 22px 4px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    column-gap: 28px;
+    padding: 26px 8px;
     color: var(--fg1);
     text-decoration: none;
-    transition: background 220ms ease, padding 360ms var(--ease-out);
-  }
-  .item::before {
-    content: '';
-    position: absolute;
-    left: -40px;
-    top: 50%;
-    width: 0;
-    height: 1px;
-    background: var(--acid);
-    transform: translateY(-50%);
-    transition: width 360ms var(--ease-out);
+    transition: background var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out),
+                padding var(--dur-base) var(--ease-out);
   }
   .item:hover {
-    background: var(--bg-elevated);
-    padding-left: 28px;
+    background: var(--ink);
+    color: var(--fg-invert);
+    padding-left: 20px;
+    padding-right: 20px;
   }
-  .item:hover::before { width: 22px; }
+  :global(html.dark) .item:hover {
+    background: var(--fg1);
+    color: var(--bg);
+  }
 
-  .row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 24px;
-  }
-  .title {
-    font-size: 22px;
+  .num {
+    font-family: var(--font-mono);
+    font-size: 13px;
     font-weight: 500;
-    letter-spacing: -0.01em;
-    color: var(--fg1);
+    color: var(--fg3);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .item:hover .num { color: var(--accent); }
+
+  .body { min-width: 0; }
+  .title {
+    font-family: var(--font-display);
+    font-size: clamp(24px, 4.4vw, 40px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.02;
     display: inline-flex;
     align-items: baseline;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
   }
   .title-em {
-    font-weight: 300;
-    color: var(--em-color);
+    font-weight: 400;
+    color: var(--accent);
   }
+  .item:hover .title-em { color: inherit; }
   .wip {
     font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.02em;
-    color: var(--mustard);
-    background: var(--pale);
-    padding: 3px 8px;
-    border-radius: 999px;
-    transform: translateY(-2px);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    border: 1px solid currentColor;
+    padding: 2px 6px;
+    transform: translateY(-4px);
   }
-  :global(html.dark) .wip {
-    background: rgba(248, 198, 102, 0.12);
-    color: var(--yellow);
+  .subtitle {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    color: var(--fg3);
+    text-transform: lowercase;
   }
+  .item:hover .subtitle { color: var(--fg-invert); opacity: 0.7; }
+  :global(html.dark) .item:hover .subtitle { color: var(--bg); }
+
   .year {
     font-family: var(--font-mono);
     font-size: 13px;
     color: var(--fg3);
-    flex-shrink: 0;
+    transition: color var(--dur-fast) var(--ease-out);
   }
-  .subtitle {
-    display: block;
-    margin-top: 6px;
-    font-size: 15px;
-    color: var(--fg2);
-    max-width: 60ch;
-  }
-  .ext {
-    position: absolute;
-    right: 18px;
-    top: 26px;
+  .item:hover .year { color: var(--fg-invert); }
+  :global(html.dark) .item:hover .year { color: var(--bg); }
+
+  .arrow {
+    font-size: 22px;
+    line-height: 1;
     color: var(--fg3);
-    opacity: 0.7;
-    transition: transform 240ms var(--ease-out), color 200ms ease;
+    transition: transform var(--dur-base) var(--ease-out), color var(--dur-fast) var(--ease-out);
   }
-  .item:hover .ext {
-    color: var(--fg1);
-    transform: translate(2px, -2px);
+  .item:hover .arrow {
+    color: var(--accent);
+    transform: translate(4px, -4px);
+  }
+
+  @media (max-width: 640px) {
+    .item {
+      grid-template-columns: auto 1fr auto;
+      column-gap: 16px;
+      row-gap: 4px;
+    }
+    .year { display: none; }
+    .subtitle { font-size: 12px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .underline path { animation: none; stroke-dashoffset: 0; }
-    .item, .item::before, .ext { transition: none; }
+    .item, .arrow, .num, .year { transition: none; }
+    .item:hover .arrow { transform: none; }
   }
 </style>

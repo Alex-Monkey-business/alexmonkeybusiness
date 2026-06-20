@@ -1,6 +1,7 @@
 /* ============================================================
-   Shared layout chrome — Nav + Footer.
-   Page-specific hero / projects styling lives scoped inside each page.
+   VARIANT B — Shared chrome: Nav + Footer (Swiss brutalist)
+   Hard ink rules, uppercase mono labels, square everything.
+   Page-specific hero / projects styling lives inside each page.
    ============================================================ */
 
 /* ============ NAV ============ */
@@ -10,22 +11,17 @@
   left: 0;
   right: 0;
   z-index: 50;
-  padding: 22px 40px;
+  padding: 16px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: color-mix(in oklab, var(--bg) 78%, transparent);
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
-  border-bottom: 1px solid transparent;
-  transition: border-color 300ms var(--ease-out), background 320ms var(--ease-out);
-}
-.nav.is-scrolled {
-  border-bottom-color: var(--border);
+  background: var(--bg);
+  border-bottom: 2px solid var(--border);
+  transition: background 240ms var(--ease-out);
 }
 @media (max-width: 640px) {
   .nav {
-    padding: 18px 22px;
+    padding: 12px 18px;
   }
 }
 
@@ -33,106 +29,94 @@
   display: inline-flex;
   align-items: center;
   color: var(--fg1);
-  transition: color 280ms var(--ease-out);
+  transition: transform 120ms var(--ease-out);
   text-decoration: none;
 }
-.nav-home:hover { color: var(--accent-hover); }
+.nav-home:hover {
+  transform: translate(1px, 1px);
+}
 
 .nav .mark {
-  height: 26px;
+  height: 24px;
   width: auto;
   display: block;
-  transition: transform 480ms var(--ease-spring);
 }
-.nav-home:hover .mark {
-  transform: rotate(-3deg) scale(1.05);
-}
-
-/* stroke-redraw on hover — Nav.astro paths set pathLength=1 + --i index */
+/* B is hard-edged: no stroke-redraw flourish */
 .nav .mark path {
-  stroke-dasharray: 1;
+  stroke-dasharray: none;
   stroke-dashoffset: 0;
-}
-.nav-home:hover .mark path {
-  animation: amb-redraw 820ms var(--ease-out) forwards;
-  animation-delay: calc(var(--i, 0) * 60ms);
-}
-@keyframes amb-redraw {
-  0%   { stroke-dashoffset: 1; }
-  100% { stroke-dashoffset: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .nav .mark { transition: none !important; }
-  .nav-home:hover .mark { transform: none !important; }
-  .nav-home:hover .mark path { animation: none !important; }
 }
 
 .nav ul {
   display: flex;
-  gap: 28px;
+  gap: 0;
   list-style: none;
   margin: 0;
   padding: 0;
-  align-items: center;
+  align-items: stretch;
+}
+.nav ul li {
+  display: flex;
 }
 .nav ul a {
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 12px;
   font-weight: 500;
+  letter-spacing: var(--tr-wide);
+  text-transform: uppercase;
   color: var(--fg2);
   text-decoration: none;
   position: relative;
-  padding: 4px 0;
-  transition: color 160ms var(--ease-out);
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  border-left: 1px solid var(--border-hair);
+  transition: background 120ms var(--ease-out), color 120ms var(--ease-out);
 }
-.nav ul a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: var(--acid);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 300ms var(--ease-out);
+.nav ul li:first-child a {
+  border-left: none;
 }
 .nav ul a:hover {
-  color: var(--fg1);
+  background: var(--ink);
+  color: var(--fg-invert);
 }
-.nav ul a:hover::after {
-  transform: scaleX(1);
+:global(html.dark) .nav ul a:hover {
+  background: var(--fg1);
+  color: var(--bg);
 }
 @media (max-width: 640px) {
-  .nav ul {
-    gap: 18px;
-  }
   .nav ul a {
-    font-size: 12px;
+    font-size: 11px;
+    padding: 6px 10px;
   }
 }
 
 .theme-toggle {
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  width: 28px;
-  height: 28px;
-  padding: 0;
+  border: none;
+  border-left: 1px solid var(--border-hair);
+  border-radius: 0;
+  width: 38px;
+  align-self: stretch;
+  padding: 0 12px;
   cursor: pointer;
   color: var(--fg2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+  transition: background 120ms var(--ease-out), color 120ms var(--ease-out);
 }
 .theme-toggle:hover {
-  color: var(--fg1);
-  border-color: var(--border-strong);
+  background: var(--ink);
+  color: var(--fg-invert);
+}
+:global(html.dark) .theme-toggle:hover {
+  background: var(--fg1);
+  color: var(--bg);
 }
 .theme-toggle svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
 }
 .theme-toggle .icon-sun {
   display: none;
@@ -146,18 +130,24 @@ html.dark .theme-toggle .icon-moon {
 
 /* ============ FOOTER ============ */
 .site-footer {
-  max-width: 880px;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 0 40px 5vh;
+  padding: 28px 32px 6vh;
+  border-top: 2px solid var(--border);
   font-family: var(--font-mono);
   font-size: 12px;
+  text-transform: uppercase;
   color: var(--fg3);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tr-wide);
   display: flex;
   justify-content: space-between;
 }
 @media (max-width: 640px) {
   .site-footer {
-    padding: 0 22px 5vh;
+    padding: 22px 18px 6vh;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-home, .nav ul a, .theme-toggle { transition: none; }
 }
