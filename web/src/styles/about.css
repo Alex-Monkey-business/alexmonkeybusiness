@@ -37,11 +37,15 @@
   width: 100%;
   max-width: 360px;
   aspect-ratio: 1;
-  border-radius: 20px;
+  border-radius: 0;            /* B is square */
   overflow: hidden;
   transform: translateY(14px) scale(0.985);
   opacity: 0;
   animation: about-portrait-in 900ms var(--ease-out) 120ms forwards;
+  /* Dissolve the black sweater into the page (any theme), the way it
+     already melts into the canvas in dark mode. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 44%, transparent 92%);
+          mask-image: linear-gradient(to bottom, #000 44%, transparent 92%);
 }
 .about-portrait img {
   width: 100%;
