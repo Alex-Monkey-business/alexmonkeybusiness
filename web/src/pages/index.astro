@@ -15,11 +15,6 @@ import { projects } from '../data/projects';
   </section>
 
   <section class="projects" id="projects">
-    <div class="section-head">
-      <span class="section-label">Index</span>
-      <span class="section-count">{String(projects.length).padStart(2, '0')}&nbsp;entries</span>
-    </div>
-
     <ul class="list">
       {projects.map((p, i) => {
         const href = p.url ?? `/projects/${p.slug}`;
@@ -94,22 +89,6 @@ import { projects } from '../data/projects';
   }
   @media (max-width: 640px) {
     .projects { padding: 4vh 18px 6vh; }
-  }
-
-  .section-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 0;
-  }
-  .section-label,
-  .section-count {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: var(--tr-wide);
-    text-transform: uppercase;
-    color: var(--fg3);
-    padding-bottom: 10px;
   }
 
   .list {

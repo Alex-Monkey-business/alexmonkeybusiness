@@ -132,20 +132,11 @@ html.dark .theme-toggle .icon-moon {
 .site-footer {
   max-width: 1080px;
   margin: 0 auto;
-  padding: 28px 32px 6vh;
-  border-top: 2px solid var(--border);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  text-transform: uppercase;
-  color: var(--fg3);
-  letter-spacing: var(--tr-wide);
-  display: flex;
-  justify-content: space-between;
+  padding: 0 32px 7vh;
+  /* meta text dropped — pages close on their own content / rules */
 }
 @media (max-width: 640px) {
-  .site-footer {
-    padding: 22px 18px 6vh;
-  }
+  .site-footer { padding: 0 18px 7vh; }
 }
 
 @media (prefers-reduced-motion: reduce) {

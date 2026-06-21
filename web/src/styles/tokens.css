@@ -15,9 +15,9 @@
   /* ============================================================
      PALETTE — neutral paper + true ink, one hot accent
      ============================================================ */
-  --paper:    #f4f4f1;   /* cool off-white, deliberately NOT warm vellum */
-  --paper-2:  #ebebe7;   /* sunken panels */
-  --paper-3:  #ffffff;   /* raised cards */
+  --paper:    #e9e2df;   /* modern greige with a whisper of pink — not stark white */
+  --paper-2:  #ded5d1;   /* sunken panels */
+  --paper-3:  #f1ecea;   /* raised cards — warm near-white */
   --ink:      #121211;   /* near-black */
   --ink-2:    #54534e;   /* secondary text */
   --ink-3:    #8a887f;   /* meta / captions */
