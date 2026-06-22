@@ -53,7 +53,7 @@
   --accent-tint:   var(--vermilion-t);
   --on-accent:     #ffffff;
 
-  --em-color:      var(--vermilion);
+  --em-color:      var(--fg1);          /* emphasis stays monochrome; vermilion is hero-only */
 
   --focus-ring: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink);
 

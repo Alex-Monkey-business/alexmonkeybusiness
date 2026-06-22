@@ -130,7 +130,7 @@ import { projects } from '../data/projects';
     color: var(--fg3);
     transition: color var(--dur-fast) var(--ease-out);
   }
-  .item:hover .num { color: var(--accent); }
+  .item:hover .num { color: var(--fg-invert); }
 
   .body { min-width: 0; }
   .title {
@@ -146,19 +146,20 @@ import { projects } from '../data/projects';
   }
   .title-em {
     font-weight: 400;
-    color: var(--accent);
+    color: var(--fg3);
   }
-  .item:hover .title-em { color: inherit; }
+  .item:hover .title-em { color: inherit; opacity: 0.65; }
   .wip {
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.12em;
-    color: var(--accent);
+    color: var(--fg3);
     border: 1px solid currentColor;
     padding: 2px 6px;
     transform: translateY(-4px);
   }
+  .item:hover .wip { color: var(--fg-invert); }
   .subtitle {
     display: block;
     margin-top: 8px;
@@ -187,7 +188,7 @@ import { projects } from '../data/projects';
     transition: transform var(--dur-base) var(--ease-out), color var(--dur-fast) var(--ease-out);
   }
   .item:hover .arrow {
-    color: var(--accent);
+    color: var(--fg-invert);
     transform: translate(4px, -4px);
   }
 

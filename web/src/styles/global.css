@@ -30,6 +30,6 @@ a {
 /* Variant B owns its palette + dark mode entirely in tokens.css. */
 
 ::selection {
-  background: var(--vermilion);
-  color: #fff;
+  background: var(--fg1);
+  color: var(--bg);
 }
