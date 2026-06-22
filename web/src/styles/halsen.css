@@ -89,8 +89,8 @@
 /* ============ FEATURE SECTIONS ============ */
 .case-feature {
   display: grid;
-  grid-template-columns: 1fr minmax(0, 300px);
-  gap: 64px;
+  grid-template-columns: 1fr minmax(0, 360px);
+  gap: 72px;
   align-items: center;
   padding: 12vh 0;
   border-bottom: 1px solid var(--border-hair);
@@ -99,7 +99,7 @@
   transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
 }
 .case-feature.is-in { opacity: 1; transform: none; }
-.case-feature.flipped { grid-template-columns: minmax(0, 300px) 1fr; }
+.case-feature.flipped { grid-template-columns: minmax(0, 360px) 1fr; }
 .case-feature.flipped .case-feature-copy { order: 2; }
 @media (max-width: 860px) {
   .case-feature,
@@ -220,12 +220,12 @@
   --phone-bezel: #15140f;
 
   position: relative;
-  width: 286px;
-  max-width: 80vw;
-  aspect-ratio: 286 / 600;
+  width: 340px;
+  max-width: 86vw;
+  aspect-ratio: 390 / 844;
   background: var(--phone-bezel);
-  padding: 7px;
-  border-radius: 44px;
+  padding: 8px;
+  border-radius: 50px;
   box-shadow: 0 24px 50px -18px rgba(18, 18, 17, 0.32), 0 5px 14px -7px rgba(18, 18, 17, 0.20);
   display: flex;
   flex-direction: column;
@@ -322,7 +322,7 @@ html.dark .phone {
   height: 100%;
   object-fit: cover;
   object-position: top;
-  border-radius: 37px;
+  border-radius: 42px;
   display: block;
   background: #ffffff;
 }
