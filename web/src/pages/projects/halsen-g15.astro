@@ -1,361 +1,271 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import PhoneDashboard from '../../components/halsen/PhoneDashboard.astro';
+import PhoneHome from '../../components/halsen/PhoneHome.astro';
 import PhoneMatch from '../../components/halsen/PhoneMatch.astro';
-import PhoneSeason from '../../components/halsen/PhoneSeason.astro';
+import PhoneLoan from '../../components/halsen/PhoneLoan.astro';
+import PhoneTraining from '../../components/halsen/PhoneTraining.astro';
+import PhoneParent from '../../components/halsen/PhoneParent.astro';
 import '../../styles/halsen.css';
 ---
 
 <Layout title="BenchBoss — Alex Monkey Business">
-  <div class="hg-page">
-    <section class="hg-hero">
-      <a href="/#projects" class="hg-back">← Back</a>
+  <div class="case">
+    <a href="/#projects" class="case-back">← Back</a>
 
-      <div>
-        <span class="hg-eyebrow">Case · Halsen G15</span>
-        <h1 class="hg-title">Bench<em>Boss</em></h1>
-        <p class="hg-lede">
-          Full control of your team. Most of it on autopilot.
+    <section class="case-hero">
+      <span class="case-eyebrow">Case — Halsen G2015</span>
+      <h1 class="case-title">Bench<span class="em">Boss</span></h1>
+      <p class="case-lede">Full control of the team. Most of it on autopilot.</p>
+      <p class="case-stackline">Vue 3 · Vite · Pinia · Supabase · Netlify · Vipps · NFF</p>
+    </section>
+
+    <section class="case-feature">
+      <div class="case-feature-copy">
+        <span class="ft-num">01</span>
+        <h2 class="ft-h">Opens to what's next.</h2>
+        <p class="ft-p">
+          Every coach lands on a page that already knows the day — next match, next
+          session, and the three things still on them: squad, referee, loan players.
+          Nothing to hunt for.
         </p>
-        <div class="hg-stackinfo">
-          <span class="hg-stackinfo-label">Stack</span>
-          <span class="hg-stackinfo-value">Vue 3 · Vite · Pinia · Supabase · Netlify · Vipps · NFF</span>
-        </div>
       </div>
-
-      <div class="hg-stage">
-        <div class="phone-secondary"><PhoneSeason /></div>
-        <div class="phone-primary"><PhoneDashboard /></div>
-      </div>
+      <div class="case-feature-stage"><PhoneHome /></div>
     </section>
 
-    <section class="hg-features">
-      <div class="hg-feature">
-        <div class="hg-feature-copy">
-          <span class="num">01</span>
-          <h2>Every match, <em>one tap</em>.</h2>
-          <p>
-            Pick the ref, send the fee via Vipps. Amount pre-filled, expense logged —
-            no paperwork.
-          </p>
-        </div>
-        <div class="hg-feature-phone"><PhoneMatch /></div>
+    <section class="case-feature flipped">
+      <div class="case-feature-copy">
+        <span class="ft-num">02</span>
+        <h2 class="ft-h">Every minute counts itself.</h2>
+        <p class="ft-p">
+          Start the clock and the app tracks who's on, who's owed time, and the score —
+          live. Substitutions in two taps, fair playing time without the mental math.
+        </p>
       </div>
-
-      <div class="hg-feature flipped">
-        <div class="hg-feature-copy">
-          <span class="num">02</span>
-          <h2>Settlement that <em>does itself</em>.</h2>
-          <p>
-            Every expense totalled per coach, live. Who owes whom — settled by the time
-            the season ends.
-          </p>
-        </div>
-        <div class="hg-feature-phone"><PhoneSeason /></div>
-      </div>
-
-      <div class="hg-feature">
-        <div class="hg-feature-copy">
-          <span class="num">03</span>
-          <h2>Team colors, <em>one glance</em>.</h2>
-          <p>
-            Green, red, white — filter by squad and home/away. The whiteboard in the
-            changing room, on your phone.
-          </p>
-        </div>
-        <div class="hg-feature-phone"><PhoneDashboard /></div>
-      </div>
+      <div class="case-feature-stage"><PhoneMatch /></div>
     </section>
 
-    <section class="hg-list">
-      <span class="hg-list-label">Under the hood</span>
+    <section class="case-feature">
+      <div class="case-feature-copy">
+        <span class="ft-num">03</span>
+        <h2 class="ft-h">It knows who's due.</h2>
+        <p class="ft-p">
+          BenchBoss watches how often each loaner steps up. When you're short, it names
+          them — ranked by who has carried the load across the season.
+        </p>
+      </div>
+      <div class="case-feature-stage"><PhoneLoan /></div>
+    </section>
+
+    <section class="case-feature flipped">
+      <div class="case-feature-copy">
+        <span class="ft-num">04</span>
+        <h2 class="ft-h">Sessions with a spine.</h2>
+        <p class="ft-p">
+          Periods, sessions, drills — each with its focus and its learning points. The
+          week's plan, written down, not lost in a group chat.
+        </p>
+      </div>
+      <div class="case-feature-stage"><PhoneTraining /></div>
+    </section>
+
+    <section class="case-feature">
+      <div class="case-feature-copy">
+        <span class="ft-num">05</span>
+        <h2 class="ft-h">Parents see their slice.</h2>
+        <p class="ft-p">
+          One PIN drops parents into a read-only season — matches, times, venues,
+          training. Exactly what's theirs, nothing they can break.
+        </p>
+      </div>
+      <div class="case-feature-stage"><PhoneParent /></div>
+    </section>
+
+    <section class="case-list">
+      <span class="case-list-label">Under the hood</span>
       <ul>
         <li style="--i:0"><span class="n">01</span><span class="text"><em>NFF sync</em> — times, venues and opponents update on their own.</span></li>
-        <li style="--i:1"><span class="n">02</span><span class="text">Assign <em>coaches and refs</em> per match — two taps.</span></li>
-        <li style="--i:2"><span class="n">03</span><span class="text"><em>Excel export</em> for end-of-season accounts.</span></li>
+        <li style="--i:1"><span class="n">02</span><span class="text">Referee fees over <em>Vipps</em>, expense logged in the same tap.</span></li>
+        <li style="--i:2"><span class="n">03</span><span class="text"><em>Season wrap</em> — the year told back from the bench.</span></li>
+        <li style="--i:3"><span class="n">04</span><span class="text"><em>Excel export</em> for the end-of-season accounts.</span></li>
       </ul>
     </section>
 
-    <div class="hg-stack">
+    <div class="case-stack">
       <span class="live">Live with Halsen G2015</span>
-      <span class="dot"></span>
-      <span>Vue 3 · Vite · Supabase · Netlify</span>
-      <span class="dot"></span>
+      <span class="sep">·</span>
+      <span>Three squads, two cup teams</span>
+      <span class="sep">·</span>
       <span>Design + build · Alex</span>
     </div>
   </div>
 </Layout>
 
 <script>
-  const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const formatNumber = (n: number) => {
-    const v = Math.round(n);
-    return v >= 1000 ? v.toLocaleString('nb-NO').replace(/,/g, ' ') : String(v);
-  };
-
-  const revealObserver = new IntersectionObserver(
+  // ---- reveal feature sections + list rows on scroll ----
+  const revealObs = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
         if (e.isIntersecting) {
           e.target.classList.add('is-in');
-          revealObserver.unobserve(e.target);
+          revealObs.unobserve(e.target);
         }
       });
     },
-    { threshold: 0.15 }
+    { threshold: 0.18 }
   );
-  document
-    .querySelectorAll('.hg-feature, .hg-list li')
-    .forEach((el) => revealObserver.observe(el));
+  document.querySelectorAll('.case-feature, .case-list li').forEach((el) => revealObs.observe(el));
 
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // ---- phone demo loops ----
+  type Demo = { root: HTMLElement; timers: number[]; running: boolean; start: () => void; stop: () => void };
 
-  // ===== Phone demo loops =====
-  type Loop = {
-    root: HTMLElement;
-    visible: boolean;
-    timers: number[];
-    start: () => void;
-    stop: () => void;
-  };
+  const fmt = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
 
-  const clearTimers = (loop: Loop) => {
-    loop.timers.forEach((t) => clearTimeout(t));
-    loop.timers = [];
-  };
-
-  const animateTo = (el: HTMLElement, target: number, suffix: string, duration = 1400) => {
-    const start = performance.now();
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      const v = target * easeOut(t);
-      el.textContent = formatNumber(v) + suffix;
-      if (t < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  };
-
-  const resetCountEls = (root: HTMLElement) => {
-    root.querySelectorAll<HTMLElement>('[data-kpi-target]').forEach((el) => {
-      const suffix = el.dataset.kpiSuffix ?? '';
-      el.textContent = '0' + suffix;
-    });
-  };
-
-  const makeDashboardLoop = (root: HTMLElement): Loop => {
-    const cards = Array.from(root.querySelectorAll<HTMLElement>('.match-card'));
-    const whereChips = Array.from(root.querySelectorAll<HTMLElement>('[data-chip-group="where"] .chip'));
-    const teamChips = Array.from(root.querySelectorAll<HTMLElement>('[data-chip-group="team"] .chip'));
-
-    const setChip = (chips: HTMLElement[], val: string) => {
-      chips.forEach((c) => c.classList.toggle('is-active', c.dataset.val === val));
-    };
-
-    const applyFilter = (where: string, team: string) => {
-      cards.forEach((c) => {
-        const t = c.dataset.team ?? '';
-        const w = c.dataset.where ?? '';
-        const matches = (team === 'all' || t === team) && (where === 'all' || w === where);
-        c.classList.toggle('is-filtered', !matches);
-      });
-    };
-
-    const tap = (el: HTMLElement | undefined) => {
-      if (!el) return;
-      el.classList.add('is-tapping');
-      setTimeout(() => el.classList.remove('is-tapping'), 420);
-    };
-
-    const loop: Loop = {
+  const makeDemo = (root: HTMLElement, build: (d: Demo, after: (ms: number, fn: () => void) => void, every: (ms: number, fn: () => void) => void) => void): Demo => {
+    const d: Demo = {
       root,
-      visible: false,
       timers: [],
+      running: false,
       start() {
-        clearTimers(loop);
-        // Start from all-visible
-        setChip(whereChips, 'all');
-        setChip(teamChips, 'all');
-        applyFilter('all', 'all');
-
-        const schedule = (ms: number, fn: () => void) => {
-          loop.timers.push(window.setTimeout(fn, ms));
-        };
-
-        schedule(1800, () => {
-          tap(teamChips.find((c) => c.dataset.val === 'g'));
-          setChip(teamChips, 'g');
-          applyFilter('all', 'g');
-        });
-        schedule(3800, () => {
-          tap(whereChips.find((c) => c.dataset.val === 'home'));
-          setChip(whereChips, 'home');
-          applyFilter('home', 'g');
-        });
-        schedule(6800, () => {
-          tap(teamChips.find((c) => c.dataset.val === 'all'));
-          tap(whereChips.find((c) => c.dataset.val === 'all'));
-          setChip(whereChips, 'all');
-          setChip(teamChips, 'all');
-          applyFilter('all', 'all');
-        });
-        schedule(9000, () => loop.start());
+        if (d.running) return;
+        d.running = true;
+        run();
       },
-      stop() { clearTimers(loop); },
+      stop() {
+        d.running = false;
+        d.timers.forEach((t) => clearTimeout(t));
+        d.timers.forEach((t) => clearInterval(t));
+        d.timers = [];
+      },
     };
-    return loop;
+    const after = (ms: number, fn: () => void) => { d.timers.push(window.setTimeout(fn, ms)); };
+    const every = (ms: number, fn: () => void) => { d.timers.push(window.setInterval(fn, ms)); };
+    const run = () => {
+      d.timers.forEach((t) => { clearTimeout(t); clearInterval(t); });
+      d.timers = [];
+      build(d, after, every);
+    };
+    (d as any)._run = run;
+    return d;
   };
 
-  const makeMatchLoop = (root: HTMLElement): Loop => {
-    const dchips = Array.from(root.querySelectorAll<HTMLElement>('.dchip'));
-    const cta = root.querySelector<HTMLElement>('.mx-cta');
-    const sendBtn = root.querySelector<HTMLElement>('.vipps-send');
+  const demos: Demo[] = [];
+  const q = (root: HTMLElement, sel: string) => root.querySelector<HTMLElement>(sel);
+  const qa = (root: HTMLElement, sel: string) => Array.from(root.querySelectorAll<HTMLElement>(sel));
 
-    const setStep = (v: string) => root.setAttribute('data-step', v);
-    const setVippsOpen = (v: boolean) => root.setAttribute('data-vipps-open', v ? '1' : '0');
-    const setVippsShow = (v: boolean) => root.setAttribute('data-vipps-show', v ? '1' : '0');
-    const setVippsState = (v: string) => root.setAttribute('data-vipps-state', v);
+  // ===== 01 HOME =====
+  document.querySelectorAll<HTMLElement>('[data-demo="home"]').forEach((root) => {
+    const tasks = qa(root, '.bb-task');
+    const count = q(root, '[data-count]');
+    const labels = ['3 igjen', '2 igjen', '1 igjen', 'Ferdig'];
+    const reset = () => { tasks.forEach((t) => t.classList.remove('is-active')); if (count) count.textContent = '4 igjen'; };
+    demos.push(makeDemo(root, (d, after) => {
+      reset();
+      tasks.forEach((t, i) => after(900 + i * 1200, () => {
+        t.classList.add('is-active');
+        if (count) count.textContent = labels[i];
+      }));
+      after(7000, () => { if (d.running) (d as any)._run(); });
+    }));
+  });
 
-    const tap = (el: HTMLElement | null) => {
-      if (!el) return;
-      el.classList.add('is-tapping');
-      setTimeout(() => el.classList.remove('is-tapping'), 420);
+  // ===== 02 MATCH =====
+  document.querySelectorAll<HTMLElement>('[data-demo="match"]').forEach((root) => {
+    const clockEl = q(root, '[data-clock]');
+    const mins = qa(root, '[data-min]');
+    const home = q(root, '[data-home]');
+    const target = q(root, '[data-sub-target]');
+    const nameEl = target ? q(target, '[data-name]') : null;
+    const targetMin = target ? q(target, '[data-min]') : null;
+
+    const state = { clock: 38 * 60 + 14, m: mins.map((el) => Number(el.dataset.min) * 60) };
+    const paint = () => {
+      if (clockEl) clockEl.textContent = fmt(state.clock);
+      mins.forEach((el, i) => { el.textContent = fmt(state.m[i]); });
     };
-
     const reset = () => {
-      dchips.forEach((c) => c.classList.remove('is-selected'));
-      setStep('0');
-      setVippsOpen(false);
-      setVippsShow(false);
-      setVippsState('idle');
+      state.clock = 38 * 60 + 14;
+      state.m = mins.map((el) => Number(el.dataset.min) * 60);
+      if (home) home.textContent = '2';
+      if (nameEl) nameEl.textContent = 'Matheo';
+      root.dataset.subShow = '0';
+      target?.classList.remove('swapped');
+      paint();
     };
 
-    const loop: Loop = {
-      root,
-      visible: false,
-      timers: [],
-      start() {
-        clearTimers(loop);
-        reset();
+    demos.push(makeDemo(root, (d, after, every) => {
+      reset();
+      every(1000, () => { state.clock++; state.m = state.m.map((s) => s + 1); paint(); });
+      // substitution
+      after(3000, () => { root.dataset.subShow = '1'; });
+      after(4600, () => {
+        if (nameEl) nameEl.textContent = 'Aksel';
+        if (targetMin) state.m[2] = 0;
+        target?.classList.add('swapped');
+        paint();
+      });
+      after(5600, () => { root.dataset.subShow = '0'; });
+      // goal
+      after(7200, () => {
+        if (home) { home.textContent = '3'; home.classList.add('flash'); }
+        after(800, () => home?.classList.remove('flash'));
+      });
+      after(10500, () => { if (d.running) (d as any)._run(); });
+    }));
+  });
 
-        const schedule = (ms: number, fn: () => void) => {
-          loop.timers.push(window.setTimeout(fn, ms));
-        };
+  // ===== 03 LOAN =====
+  document.querySelectorAll<HTMLElement>('[data-demo="loan"]').forEach((root) => {
+    demos.push(makeDemo(root, (d, after) => {
+      root.dataset.step = '0';
+      after(700, () => { root.dataset.step = '1'; });
+      after(1500, () => { root.dataset.step = '2'; });
+      after(3200, () => { root.dataset.step = '3'; });
+      after(7000, () => { if (d.running) (d as any)._run(); });
+    }));
+  });
 
-        schedule(1500, () => {
-          const filip = dchips.find((c) => c.dataset.ref === 'filip');
-          tap(filip || null);
-          filip?.classList.add('is-selected');
-          setVippsShow(true);
-        });
-        schedule(3200, () => {
-          tap(cta);
-          setVippsOpen(true);
-        });
-        schedule(4800, () => {
-          tap(sendBtn);
-          setVippsState('sending');
-        });
-        schedule(6300, () => setVippsState('sent'));
-        schedule(7100, () => {
-          setVippsOpen(false);
-          setStep('done');
-        });
-        schedule(10000, () => loop.start());
-      },
-      stop() { clearTimers(loop); },
-    };
-    return loop;
-  };
+  // ===== 04 TRAINING =====
+  document.querySelectorAll<HTMLElement>('[data-demo="training"]').forEach((root) => {
+    const drills = qa(root, '.bb-drill');
+    const reset = () => drills.forEach((dr) => dr.classList.remove('is-open'));
+    demos.push(makeDemo(root, (d, after) => {
+      reset();
+      drills.forEach((dr, i) => {
+        after(800 + i * 1900, () => { reset(); dr.classList.add('is-open'); });
+      });
+      after(800 + drills.length * 1900 + 600, () => reset());
+      after(800 + drills.length * 1900 + 1400, () => { if (d.running) (d as any)._run(); });
+    }));
+  });
 
-  const makeSeasonLoop = (root: HTMLElement): Loop => {
-    const kpiEls = Array.from(root.querySelectorAll<HTMLElement>('[data-kpi-target]'));
+  // ===== 05 PARENT =====
+  document.querySelectorAll<HTMLElement>('[data-demo="parent"]').forEach((root) => {
+    const dots = qa(root, '.bb-pin-dot');
+    const role = q(root, '[data-role]');
+    const reset = () => { dots.forEach((x) => x.classList.remove('is-filled')); root.dataset.unlocked = '0'; if (role) role.textContent = 'LÅST'; };
+    demos.push(makeDemo(root, (d, after) => {
+      reset();
+      dots.forEach((x, i) => after(700 + i * 420, () => x.classList.add('is-filled')));
+      after(700 + dots.length * 420 + 400, () => { root.dataset.unlocked = '1'; if (role) role.textContent = 'FORELDER'; });
+      after(8000, () => { if (d.running) (d as any)._run(); });
+    }));
+  });
 
-    const setStep = (v: string) => root.setAttribute('data-step', v);
-
-    const loop: Loop = {
-      root,
-      visible: false,
-      timers: [],
-      start() {
-        clearTimers(loop);
-        setStep('0');
-        resetCountEls(root);
-
-        const schedule = (ms: number, fn: () => void) => {
-          loop.timers.push(window.setTimeout(fn, ms));
-        };
-
-        schedule(600, () => {
-          kpiEls.forEach((el) => {
-            const target = Number(el.dataset.kpiTarget ?? '0');
-            const suffix = el.dataset.kpiSuffix ?? '';
-            animateTo(el, target, suffix, 1500);
-          });
-        });
-        schedule(1500, () => setStep('1'));
-        schedule(3600, () => setStep('2'));
-        schedule(7500, () => loop.start());
-      },
-      stop() { clearTimers(loop); },
-    };
-    return loop;
-  };
-
-  const loops: Loop[] = [];
+  // ---- start/stop on visibility ----
   if (!reduce) {
-    document.querySelectorAll<HTMLElement>('[data-phone-loop="dashboard"]')
-      .forEach((el) => loops.push(makeDashboardLoop(el)));
-    document.querySelectorAll<HTMLElement>('[data-phone-loop="match"]')
-      .forEach((el) => loops.push(makeMatchLoop(el)));
-    document.querySelectorAll<HTMLElement>('[data-phone-loop="season"]')
-      .forEach((el) => loops.push(makeSeasonLoop(el)));
-
-    const phoneObserver = new IntersectionObserver(
+    const phoneObs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          const loop = loops.find((l) => l.root === e.target);
-          if (!loop) return;
-          if (e.isIntersecting && !loop.visible) {
-            loop.visible = true;
-            loop.start();
-          } else if (!e.isIntersecting && loop.visible) {
-            loop.visible = false;
-            loop.stop();
-          }
+          const demo = demos.find((dm) => dm.root === e.target);
+          if (!demo) return;
+          if (e.isIntersecting) demo.start();
+          else demo.stop();
         });
       },
-      { threshold: 0.25 }
+      { threshold: 0.3 }
     );
-    loops.forEach((l) => phoneObserver.observe(l.root));
-  } else {
-    // Reduced motion: show final "full" state, no animation
-    document.querySelectorAll<HTMLElement>('[data-phone-loop="season"]')
-      .forEach((root) => {
-        root.setAttribute('data-step', '2');
-        root.querySelectorAll<HTMLElement>('[data-kpi-target]').forEach((el) => {
-          const target = Number(el.dataset.kpiTarget ?? '0');
-          const suffix = el.dataset.kpiSuffix ?? '';
-          el.textContent = formatNumber(target) + suffix;
-        });
-      });
-  }
-
-  if (!reduce) {
-    const stage = document.querySelector<HTMLElement>('.hg-stage');
-    const primary = stage?.querySelector<HTMLElement>('.phone-primary');
-    const secondary = stage?.querySelector<HTMLElement>('.phone-secondary');
-    let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        const y = window.scrollY;
-        if (primary) primary.style.translate = `0 ${y * -0.04}px`;
-        if (secondary) secondary.style.translate = `0 ${y * -0.08}px`;
-        raf = 0;
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+    demos.forEach((dm) => phoneObs.observe(dm.root));
   }
 </script>

@@ -1,0 +1,62 @@
+---
+/* Demo 01 — Smart coach home: reminders resolving one by one */
+---
+
+<div class="phone bb-home" data-demo="home">
+  <div class="phone-bar">
+    <span>09:41</span>
+    <span class="dots"><i></i><i></i><i></i></span>
+  </div>
+  <div class="phone-screen">
+    <div class="bb-head">
+      <div class="scr-h">God dag, Alex</div>
+      <div class="scr-sub" style="margin-top:6px">Mandag 22. juni</div>
+    </div>
+
+    <div class="d-card bb-next">
+      <span class="scr-label">Neste kamp · onsdag</span>
+      <div class="bb-next-row"><span>Grønn</span><span class="bb-vs">vs</span><span>Eik G15</span></div>
+      <div class="bb-next-meta">17:30 · Hjemme · Framnes</div>
+    </div>
+
+    <div class="bb-todo">
+      <div class="bb-todo-head">
+        <span class="scr-label">Å ordne</span>
+        <span class="bb-count" data-count>4 igjen</span>
+      </div>
+      <div class="d-row bb-task"><span class="bb-check"></span><span class="bb-task-t">Sett dommer</span><span class="d-meta">hjemmekamp</span></div>
+      <div class="d-row bb-task"><span class="bb-check"></span><span class="bb-task-t">Betal dommer</span><span class="d-meta">Vipps</span></div>
+      <div class="d-row bb-task"><span class="bb-check"></span><span class="bb-task-t">Lånespillere</span><span class="d-meta">2 mangler</span></div>
+      <div class="d-row bb-task"><span class="bb-check"></span><span class="bb-task-t">Skriv referat</span><span class="d-meta">forrige</span></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .bb-next-row {
+    display: flex; align-items: baseline; gap: 8px;
+    margin-top: 8px;
+    font-family: var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: -0.02em;
+    color: var(--fg1);
+  }
+  .bb-vs { font-family: var(--font-mono); font-size: 10px; color: var(--fg3); text-transform: uppercase; }
+  .bb-next-meta { margin-top: 5px; font-family: var(--font-mono); font-size: 10.5px; color: var(--fg3); }
+
+  .bb-todo { display: flex; flex-direction: column; gap: 7px; }
+  .bb-todo-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1px; }
+  .bb-count { font-family: var(--font-mono); font-size: 10px; color: var(--fg3); }
+
+  .bb-task { gap: 9px; }
+  .bb-task-t { flex: 1; }
+  .bb-check {
+    width: 14px; height: 14px; flex-shrink: 0;
+    border: 1.5px solid var(--fg3);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+  }
+  .bb-task.is-active .bb-check { background: var(--fg-invert); border-color: var(--fg-invert); }
+  .bb-task.is-active .bb-check::after {
+    content: '✓'; font-size: 10px; line-height: 1; color: var(--fg1);
+  }
+  .bb-task.is-active .bb-task-t { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+</style>
