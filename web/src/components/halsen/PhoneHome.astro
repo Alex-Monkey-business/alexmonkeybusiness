@@ -10,12 +10,12 @@
   <div class="phone-screen">
     <div class="bb-head">
       <div class="scr-h">God dag, Alex</div>
-      <div class="scr-sub" style="margin-top:6px">Mandag 22. juni</div>
+      <div class="scr-sub" style="margin-top:5px">Mandag 22. juni</div>
     </div>
 
     <div class="d-card bb-next">
       <span class="scr-label">Neste kamp · onsdag</span>
-      <div class="bb-next-row"><span>Grønn</span><span class="bb-vs">vs</span><span>Eik G15</span></div>
+      <div class="bb-next-row"><span class="bb-team-g">Grønn</span><span class="bb-vs">vs</span><span>Eik G15</span></div>
       <div class="bb-next-meta">17:30 · Hjemme · Framnes</div>
     </div>
 
@@ -35,28 +35,30 @@
 <style>
   .bb-next-row {
     display: flex; align-items: baseline; gap: 8px;
-    margin-top: 8px;
-    font-family: var(--font-display); font-weight: 600; font-size: 16px; letter-spacing: -0.02em;
-    color: var(--fg1);
+    margin-top: 9px;
+    font-family: var(--app-sans); font-weight: 700; font-size: 17px; letter-spacing: -0.01em;
+    color: var(--app-text);
   }
-  .bb-vs { font-family: var(--font-mono); font-size: 10px; color: var(--fg3); text-transform: uppercase; }
-  .bb-next-meta { margin-top: 5px; font-family: var(--font-mono); font-size: 10.5px; color: var(--fg3); }
+  .bb-team-g { color: var(--t-green-fg); }
+  .bb-vs { font-weight: 500; font-size: 12px; color: var(--app-text-3); }
+  .bb-next-meta { margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--app-text-3); }
 
   .bb-todo { display: flex; flex-direction: column; gap: 7px; }
   .bb-todo-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1px; }
-  .bb-count { font-family: var(--font-mono); font-size: 10px; color: var(--fg3); }
+  .bb-count { font-family: var(--app-sans); font-size: 11px; font-weight: 600; color: var(--app-text-3); }
 
   .bb-task { gap: 9px; }
   .bb-task-t { flex: 1; }
   .bb-check {
-    width: 14px; height: 14px; flex-shrink: 0;
-    border: 1.5px solid var(--fg3);
+    width: 16px; height: 16px; flex-shrink: 0; border-radius: 6px;
+    border: 1.5px solid var(--app-text-3);
     display: inline-flex; align-items: center; justify-content: center;
     transition: background var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
   }
-  .bb-task.is-active .bb-check { background: var(--fg-invert); border-color: var(--fg-invert); }
+  .bb-task.is-active { background: var(--app-surface); border-color: var(--app-border); }
+  .bb-task.is-active .bb-check { background: var(--app-accent); border-color: var(--app-accent); }
   .bb-task.is-active .bb-check::after {
-    content: '✓'; font-size: 10px; line-height: 1; color: var(--fg1);
+    content: '✓'; font-size: 10px; line-height: 1; color: var(--app-on-accent); font-weight: 700;
   }
-  .bb-task.is-active .bb-task-t { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+  .bb-task.is-active .bb-task-t { color: var(--app-text-3); text-decoration: line-through; text-decoration-thickness: 1.5px; }
 </style>

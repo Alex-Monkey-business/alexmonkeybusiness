@@ -4,40 +4,42 @@
 
 <div class="phone bb-loan" data-demo="loan">
   <div class="phone-bar">
-    <span>TROPP</span>
-    <span>LÅNESPILLERE</span>
+    <span>Tropp</span>
+    <span class="bb-bar-meta">Lånespillere</span>
   </div>
   <div class="phone-screen">
     <div class="bb-head">
       <div class="scr-h">Mangler 2</div>
-      <div class="scr-sub" style="margin-top:6px">Grønn · onsdag 17:30</div>
+      <div class="scr-sub" style="margin-top:5px">Grønn · onsdag 17:30</div>
     </div>
 
     <div class="bb-reco" data-reco>
       <span class="scr-label">Anbefalt — flest kamper</span>
       <div class="d-row bb-cand" data-rank="1">
-        <span class="bb-rank">01</span>
+        <span class="bb-rank">1</span>
         <span class="bb-cand-name">Jonas</span>
         <span class="bb-bar"><span class="bb-bar-fill" style="--w:100%"></span></span>
-        <span class="d-meta">7</span>
+        <span class="d-meta"><span class="bb-c">7</span></span>
       </div>
       <div class="d-row bb-cand" data-rank="2">
-        <span class="bb-rank">02</span>
+        <span class="bb-rank">2</span>
         <span class="bb-cand-name">Isak</span>
         <span class="bb-bar"><span class="bb-bar-fill" style="--w:71%"></span></span>
-        <span class="d-meta">5</span>
+        <span class="d-meta"><span class="bb-c">5</span></span>
       </div>
       <div class="d-row bb-cand" data-rank="3">
-        <span class="bb-rank">03</span>
+        <span class="bb-rank">3</span>
         <span class="bb-cand-name">Lennox</span>
         <span class="bb-bar"><span class="bb-bar-fill" style="--w:57%"></span></span>
-        <span class="d-meta">4</span>
+        <span class="d-meta"><span class="bb-c">4</span></span>
       </div>
     </div>
   </div>
 </div>
 
 <style>
+  .bb-bar-meta { font-weight: 600; color: var(--app-text-3); }
+
   .bb-reco {
     display: flex; flex-direction: column; gap: 8px;
     opacity: 0; transform: translateY(14px);
@@ -48,19 +50,21 @@
   .bb-loan[data-step="3"] .bb-reco { opacity: 1; transform: none; }
 
   .bb-cand { gap: 9px; }
-  .bb-rank { font-family: var(--font-mono); font-size: 11px; color: var(--fg3); }
-  .bb-cand-name { font-weight: 600; width: 52px; flex-shrink: 0; }
-  .bb-cand .d-meta { font-variant-numeric: tabular-nums; min-width: 12px; text-align: right; }
+  .bb-rank { font-family: var(--app-sans); font-size: 12px; font-weight: 600; color: var(--app-text-3); width: 10px; }
+  .bb-cand-name { font-weight: 600; width: 72px; flex-shrink: 0; white-space: nowrap; }
+  .bb-cand-name::before { content: '★ '; color: var(--app-gold); font-size: 11px; }
+  .bb-cand .d-meta { min-width: 14px; text-align: right; font-variant-numeric: tabular-nums; }
 
-  .bb-bar { flex: 1; height: 6px; background: var(--bg-sunken); display: block; overflow: hidden; }
-  .bb-bar-fill { display: block; height: 100%; width: 0; background: var(--fg1); transition: width 700ms var(--ease-out); }
+  .bb-bar { flex: 1; height: 6px; border-radius: 99px; background: var(--app-surface); display: block; overflow: hidden; }
+  .bb-bar-fill { display: block; height: 100%; width: 0; border-radius: 99px; background: var(--app-accent); transition: width 700ms var(--ease-out); }
   .bb-loan[data-step="2"] .bb-bar-fill,
   .bb-loan[data-step="3"] .bb-bar-fill { width: var(--w); }
-  .bb-cand.is-active .bb-bar-fill { background: var(--fg-invert); }
 
-  /* top pick gets added on step 3 */
-  .bb-loan[data-step="3"] .bb-cand[data-rank="1"] { background: var(--fg1); color: var(--fg-invert); border-color: var(--fg1); }
+  /* top pick added on step 3 */
+  .bb-loan[data-step="3"] .bb-cand[data-rank="1"] { background: var(--app-accent); border-color: var(--app-accent); }
   .bb-loan[data-step="3"] .bb-cand[data-rank="1"] .bb-rank,
-  .bb-loan[data-step="3"] .bb-cand[data-rank="1"] .d-meta { color: var(--fg-invert); }
-  .bb-loan[data-step="3"] .bb-cand[data-rank="1"] .d-meta::after { content: ' ✓'; }
+  .bb-loan[data-step="3"] .bb-cand[data-rank="1"] .bb-cand-name,
+  .bb-loan[data-step="3"] .bb-cand[data-rank="1"] .d-meta { color: var(--app-on-accent); }
+  .bb-loan[data-step="3"] .bb-cand[data-rank="1"] .bb-bar-fill { background: var(--app-on-accent); }
+  .bb-loan[data-step="3"] .bb-cand[data-rank="1"] .bb-c::after { content: ' ✓'; }
 </style>
