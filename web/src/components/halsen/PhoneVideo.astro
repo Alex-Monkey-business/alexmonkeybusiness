@@ -1,0 +1,23 @@
+---
+/* Real BenchBoss screen recording inside the rounded device frame. */
+interface Props {
+  src: string;
+  poster: string;
+  /** seconds to skip the initial skeleton/load frames on loop */
+  start?: number;
+}
+const { src, poster, start = 1.8 } = Astro.props;
+---
+
+<div class="phone phone--video">
+  <video
+    class="phone-video"
+    src={src}
+    poster={poster}
+    data-start={start}
+    muted
+    playsinline
+    preload="metadata"
+    aria-hidden="true"
+  ></video>
+</div>

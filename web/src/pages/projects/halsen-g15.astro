@@ -1,10 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import PhoneHome from '../../components/halsen/PhoneHome.astro';
-import PhoneMatch from '../../components/halsen/PhoneMatch.astro';
-import PhoneLoan from '../../components/halsen/PhoneLoan.astro';
-import PhoneTraining from '../../components/halsen/PhoneTraining.astro';
-import PhoneParent from '../../components/halsen/PhoneParent.astro';
+import PhoneVideo from '../../components/halsen/PhoneVideo.astro';
 import '../../styles/halsen.css';
 ---
 
@@ -24,12 +20,11 @@ import '../../styles/halsen.css';
         <span class="ft-num">01</span>
         <h2 class="ft-h">Opens to what's next.</h2>
         <p class="ft-p">
-          Every coach lands on a page that already knows the day — next match, next
-          session, and the three things still on them: squad, referee, loan players.
-          Nothing to hunt for.
+          Every coach lands on a page that already knows the day — the next session, and
+          the things still on them, like the two match reports waiting. Nothing to hunt for.
         </p>
       </div>
-      <div class="case-feature-stage"><PhoneHome /></div>
+      <div class="case-feature-stage"><PhoneVideo src="/assets/halsen/home.webm" poster="/assets/halsen/home-poster.jpg" /></div>
     </section>
 
     <section class="case-feature flipped">
@@ -37,23 +32,23 @@ import '../../styles/halsen.css';
         <span class="ft-num">02</span>
         <h2 class="ft-h">Every minute counts itself.</h2>
         <p class="ft-p">
-          Start the clock and the app tracks who's on, who's owed time, and the score —
-          live. Substitutions in two taps, fair playing time without the mental math.
+          The app tracks who's on, who's owed time, and the score — and keeps it after the
+          whistle. Playing time, scorers and referee fee, all on one match.
         </p>
       </div>
-      <div class="case-feature-stage"><PhoneMatch /></div>
+      <div class="case-feature-stage"><PhoneVideo src="/assets/halsen/match.webm" poster="/assets/halsen/match-poster.jpg" /></div>
     </section>
 
     <section class="case-feature">
       <div class="case-feature-copy">
         <span class="ft-num">03</span>
-        <h2 class="ft-h">It knows who's due.</h2>
+        <h2 class="ft-h">Knows who's free to lend.</h2>
         <p class="ft-p">
-          BenchBoss watches how often each loaner steps up. When you're short, it names
-          them — ranked by who has carried the load across the season.
+          Flag a player as loan-eligible and the squad shows it at a glance. The app tracks
+          who has stepped up most, so picking a stand-in takes a second, not a group chat.
         </p>
       </div>
-      <div class="case-feature-stage"><PhoneLoan /></div>
+      <div class="case-feature-stage"><PhoneVideo src="/assets/halsen/loan.webm" poster="/assets/halsen/loan-poster.jpg" /></div>
     </section>
 
     <section class="case-feature flipped">
@@ -65,7 +60,7 @@ import '../../styles/halsen.css';
           week's plan, written down, not lost in a group chat.
         </p>
       </div>
-      <div class="case-feature-stage"><PhoneTraining /></div>
+      <div class="case-feature-stage"><PhoneVideo src="/assets/halsen/training.webm" poster="/assets/halsen/training-poster.jpg" /></div>
     </section>
 
     <section class="case-feature">
@@ -73,11 +68,11 @@ import '../../styles/halsen.css';
         <span class="ft-num">05</span>
         <h2 class="ft-h">Parents see their slice.</h2>
         <p class="ft-p">
-          One PIN drops parents into a read-only season — matches, times, venues,
-          training. Exactly what's theirs, nothing they can break.
+          One PIN drops parents into a read-only season — every match, score, time and
+          venue. Exactly what's theirs, nothing they can break.
         </p>
       </div>
-      <div class="case-feature-stage"><PhoneParent /></div>
+      <div class="case-feature-stage"><PhoneVideo src="/assets/halsen/parent.webm" poster="/assets/halsen/parent-poster.jpg" /></div>
     </section>
 
     <section class="case-list">
@@ -103,7 +98,7 @@ import '../../styles/halsen.css';
 <script>
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ---- reveal feature sections + list rows on scroll ----
+  // reveal feature sections + list rows on scroll
   const revealObs = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
@@ -117,155 +112,32 @@ import '../../styles/halsen.css';
   );
   document.querySelectorAll('.case-feature, .case-list li').forEach((el) => revealObs.observe(el));
 
-  // ---- phone demo loops ----
-  type Demo = { root: HTMLElement; timers: number[]; running: boolean; start: () => void; stop: () => void };
-
-  const fmt = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
-
-  const makeDemo = (root: HTMLElement, build: (d: Demo, after: (ms: number, fn: () => void) => void, every: (ms: number, fn: () => void) => void) => void): Demo => {
-    const d: Demo = {
-      root,
-      timers: [],
-      running: false,
-      start() {
-        if (d.running) return;
-        d.running = true;
-        run();
-      },
-      stop() {
-        d.running = false;
-        d.timers.forEach((t) => clearTimeout(t));
-        d.timers.forEach((t) => clearInterval(t));
-        d.timers = [];
-      },
-    };
-    const after = (ms: number, fn: () => void) => { d.timers.push(window.setTimeout(fn, ms)); };
-    const every = (ms: number, fn: () => void) => { d.timers.push(window.setInterval(fn, ms)); };
-    const run = () => {
-      d.timers.forEach((t) => { clearTimeout(t); clearInterval(t); });
-      d.timers = [];
-      build(d, after, every);
-    };
-    (d as any)._run = run;
-    return d;
-  };
-
-  const demos: Demo[] = [];
-  const q = (root: HTMLElement, sel: string) => root.querySelector<HTMLElement>(sel);
-  const qa = (root: HTMLElement, sel: string) => Array.from(root.querySelectorAll<HTMLElement>(sel));
-
-  // ===== 01 HOME =====
-  document.querySelectorAll<HTMLElement>('[data-demo="home"]').forEach((root) => {
-    const tasks = qa(root, '.bb-task');
-    const count = q(root, '[data-count]');
-    const labels = ['3 igjen', '2 igjen', '1 igjen', 'Ferdig'];
-    const reset = () => { tasks.forEach((t) => t.classList.remove('is-active')); if (count) count.textContent = '4 igjen'; };
-    demos.push(makeDemo(root, (d, after) => {
-      reset();
-      tasks.forEach((t, i) => after(900 + i * 1200, () => {
-        t.classList.add('is-active');
-        if (count) count.textContent = labels[i];
-      }));
-      after(7000, () => { if (d.running) (d as any)._run(); });
-    }));
+  // play each real-app recording only while on screen; loop past the skeleton frames
+  const videos = Array.from(document.querySelectorAll<HTMLVideoElement>('.phone-video'));
+  videos.forEach((v) => {
+    const start = Number(v.dataset.start ?? '0');
+    const toStart = () => { if (start && v.currentTime < start) v.currentTime = start; };
+    v.addEventListener('loadedmetadata', toStart);
+    v.addEventListener('timeupdate', () => {
+      if (v.duration && v.currentTime >= v.duration - 0.25) v.currentTime = start || 0;
+    });
   });
 
-  // ===== 02 MATCH =====
-  document.querySelectorAll<HTMLElement>('[data-demo="match"]').forEach((root) => {
-    const clockEl = q(root, '[data-clock]');
-    const mins = qa(root, '[data-min]');
-    const home = q(root, '[data-home]');
-    const target = q(root, '[data-sub-target]');
-    const nameEl = target ? q(target, '[data-name]') : null;
-    const targetMin = target ? q(target, '[data-min]') : null;
-
-    const state = { clock: 38 * 60 + 14, m: mins.map((el) => Number(el.dataset.min) * 60) };
-    const paint = () => {
-      if (clockEl) clockEl.textContent = fmt(state.clock);
-      mins.forEach((el, i) => { el.textContent = fmt(state.m[i]); });
-    };
-    const reset = () => {
-      state.clock = 38 * 60 + 14;
-      state.m = mins.map((el) => Number(el.dataset.min) * 60);
-      if (home) home.textContent = '2';
-      if (nameEl) nameEl.textContent = 'Matheo';
-      root.dataset.subShow = '0';
-      target?.classList.remove('swapped');
-      paint();
-    };
-
-    demos.push(makeDemo(root, (d, after, every) => {
-      reset();
-      every(1000, () => { state.clock++; state.m = state.m.map((s) => s + 1); paint(); });
-      // substitution
-      after(3000, () => { root.dataset.subShow = '1'; });
-      after(4600, () => {
-        if (nameEl) nameEl.textContent = 'Aksel';
-        if (targetMin) state.m[2] = 0;
-        target?.classList.add('swapped');
-        paint();
-      });
-      after(5600, () => { root.dataset.subShow = '0'; });
-      // goal
-      after(7200, () => {
-        if (home) { home.textContent = '3'; home.classList.add('flash'); }
-        after(800, () => home?.classList.remove('flash'));
-      });
-      after(10500, () => { if (d.running) (d as any)._run(); });
-    }));
-  });
-
-  // ===== 03 LOAN =====
-  document.querySelectorAll<HTMLElement>('[data-demo="loan"]').forEach((root) => {
-    demos.push(makeDemo(root, (d, after) => {
-      root.dataset.step = '0';
-      after(700, () => { root.dataset.step = '1'; });
-      after(1500, () => { root.dataset.step = '2'; });
-      after(3200, () => { root.dataset.step = '3'; });
-      after(7000, () => { if (d.running) (d as any)._run(); });
-    }));
-  });
-
-  // ===== 04 TRAINING =====
-  document.querySelectorAll<HTMLElement>('[data-demo="training"]').forEach((root) => {
-    const drills = qa(root, '.bb-drill');
-    const reset = () => drills.forEach((dr) => dr.classList.remove('is-open'));
-    demos.push(makeDemo(root, (d, after) => {
-      reset();
-      drills.forEach((dr, i) => {
-        after(800 + i * 1900, () => { reset(); dr.classList.add('is-open'); });
-      });
-      after(800 + drills.length * 1900 + 600, () => reset());
-      after(800 + drills.length * 1900 + 1400, () => { if (d.running) (d as any)._run(); });
-    }));
-  });
-
-  // ===== 05 PARENT =====
-  document.querySelectorAll<HTMLElement>('[data-demo="parent"]').forEach((root) => {
-    const dots = qa(root, '.bb-pin-dot');
-    const role = q(root, '[data-role]');
-    const reset = () => { dots.forEach((x) => x.classList.remove('is-filled')); root.dataset.unlocked = '0'; if (role) role.textContent = 'LÅST'; };
-    demos.push(makeDemo(root, (d, after) => {
-      reset();
-      dots.forEach((x, i) => after(700 + i * 420, () => x.classList.add('is-filled')));
-      after(700 + dots.length * 420 + 400, () => { root.dataset.unlocked = '1'; if (role) role.textContent = 'FORELDER'; });
-      after(8000, () => { if (d.running) (d as any)._run(); });
-    }));
-  });
-
-  // ---- start/stop on visibility ----
   if (!reduce) {
-    const phoneObs = new IntersectionObserver(
+    const vidObs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          const demo = demos.find((dm) => dm.root === e.target);
-          if (!demo) return;
-          if (e.isIntersecting) demo.start();
-          else demo.stop();
+          const v = e.target as HTMLVideoElement;
+          if (e.isIntersecting) {
+            if (v.currentTime < Number(v.dataset.start ?? '0')) v.currentTime = Number(v.dataset.start ?? '0');
+            v.play().catch(() => {});
+          } else {
+            v.pause();
+          }
         });
       },
-      { threshold: 0.3 }
+      { threshold: 0.35 }
     );
-    demos.forEach((dm) => phoneObs.observe(dm.root));
+    videos.forEach((v) => vidObs.observe(v));
   }
 </script>
