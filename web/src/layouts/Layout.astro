@@ -21,7 +21,9 @@ const htmlStyle = accent ? `--accent: ${accent};` : undefined;
 ---
 
 <!doctype html>
-<html lang="en" style={htmlStyle}>
+<!-- Dark is the default. It ships on the server-rendered tag so the first
+     paint is already velvet — the script below only ever removes it. -->
+<html lang="en" class="dark" style={htmlStyle}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -33,7 +35,7 @@ const htmlStyle = accent ? `--accent: ${accent};` : undefined;
     <link rel="icon" type="image/png" sizes="16x16" href="/brand/icons/favicon-16.png" />
     <link rel="apple-touch-icon" href="/brand/icons/apple-touch-icon.png" />
     <link rel="mask-icon" href="/brand/icons/mask-icon.svg" color="#1a1a1a" />
-    <meta name="theme-color" content="#ffffeb" />
+    <meta name="theme-color" content="#121211" />
 
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -45,10 +47,11 @@ const htmlStyle = accent ? `--accent: ${accent};` : undefined;
     <meta name="twitter:image" content="/brand/social-og-image.png" />
 
     <script is:inline>
-      // restore theme before paint so dark/light doesn't flash
+      // Dark ships on the html tag, so only an explicit opt-out drops it.
+      // Runs before paint, so switching to light doesn't flash either.
       try {
-        if (localStorage.getItem('mb-theme') === 'dark') {
-          document.documentElement.classList.add('dark');
+        if (localStorage.getItem('mb-theme') === 'light') {
+          document.documentElement.classList.remove('dark');
         }
       } catch (_) {}
     </script>
