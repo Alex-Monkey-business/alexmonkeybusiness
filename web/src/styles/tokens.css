@@ -1,164 +1,189 @@
 /* ============================================================
-   Monkey Business — VARIANT B · Swiss Brutalist / Editorial
-   Paper + ink. Space Grotesk. Vermilion accent. Hard rules,
-   index numbers, square corners, offset shadows.
-   The cold, structured antithesis of variant A (warm organic).
+   Monkey Business — WISPR EDITORIAL
+   Cream broadsheet, dark velvet chambers.
+   Warm cream canvas (#ffffeb) + EB Garamond 400 at display scale.
+   Figtree on every interactive surface. 2px ink borders as signature.
+   Oversized radii (32–80px). Zero shadows — flatness is the point.
    ============================================================ */
 
 /* ---------- Fonts ----------
-   Display + UI: Space Grotesk (techy geometric grotesk, heavy range)
-   Mono:         JetBrains Mono (indices, metadata, labels)
+   Display: EB Garamond 400 — commands through scale, never weight
+   UI:      Figtree 400/500/600/700
 */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap');
 
 :root {
   /* ============================================================
-     PALETTE — neutral paper + true ink, one hot accent
+     PALETTE — four working colors, disciplined
      ============================================================ */
-  --paper:    #e9e2df;   /* modern greige with a whisper of pink — not stark white */
-  --paper-2:  #ded5d1;   /* sunken panels */
-  --paper-3:  #f1ecea;   /* raised cards — warm near-white */
-  --ink:      #121211;   /* near-black */
-  --ink-2:    #54534e;   /* secondary text */
-  --ink-3:    #8a887f;   /* meta / captions */
-  --ink-4:    #b9b7ad;   /* disabled */
+  --lumen-cream:     #ffffeb;  /* dominant canvas — paper, not screen */
+  --lumen-stone:     #e4e4d0;  /* one shade down — muted dividers, nav pill bg */
+  --vast-ink:        #1a1a1a;  /* text, borders, dark chambers */
+  --charcoal:        #222222;  /* secondary button + nav text */
+  --fog:             #8a8a80;  /* muted labels — large text only: 3.4:1 on cream */
+  --fog-ink:         #6e6e64;  /* the same voice, darkened to clear 4.5:1 at 14–16px */
+  --pure-white:      #ffffff;  /* badge borders on dark, icon strokes */
 
-  --vermilion:  #ff3b1f; /* the single accent — hot, Swiss-poster red */
-  --vermilion-d:#e02a10;
-  --vermilion-t:#ffe4de; /* tint */
+  --lavender:        #f0d7ff;  /* the ONE primary-action color */
+  --lavender-d:      #e3bfff;  /* hover — same hue, more saturated */
+  --forest-ink:      #034f46;  /* secondary brand — badges, inner dark panels */
+  --ember-glow:      #ffa946;  /* live/active accent only */
 
   /* ============================================================
      SEMANTIC TOKENS — always reference these
      ============================================================ */
-  --bg:          var(--paper);
-  --bg-elevated: var(--paper-3);
-  --bg-sunken:   var(--paper-2);
-  --bg-paper:    var(--paper-3);
-  --bg-invert:   var(--ink);
+  --bg:          var(--lumen-cream);
+  --bg-elevated: var(--lumen-cream);
+  --bg-sunken:   var(--lumen-stone);
+  --bg-paper:    var(--lumen-cream);
+  --bg-invert:   var(--vast-ink);
 
-  --fg1: var(--ink);
-  --fg2: var(--ink-2);
-  --fg3: var(--ink-3);
-  --fg4: var(--ink-4);
-  --fg-invert: var(--paper);
+  --fg1: var(--vast-ink);
+  --fg2: var(--charcoal);
+  --fg3: var(--fog);
+  --fg4: var(--lumen-stone);
+  --fg-invert: var(--lumen-cream);
 
-  --border:        var(--ink);                 /* brutalist: borders are INK, full strength */
-  --border-strong: var(--ink);
-  --border-hair:   rgba(18, 18, 17, 0.16);     /* the rare soft rule */
-  --border-ink:    var(--ink);
+  /* Borders are INK at full strength — 2px is the signature, not optional */
+  --border:        var(--vast-ink);
+  --border-strong: var(--vast-ink);
+  --border-hair:   var(--lumen-stone);
+  --border-ink:    var(--vast-ink);
+  --border-w:      2px;
 
-  --accent:        var(--vermilion);
-  --accent-hover:  var(--vermilion-d);
-  --accent-soft:   var(--vermilion-t);
-  --accent-tint:   var(--vermilion-t);
-  --on-accent:     #ffffff;
+  --accent:        var(--lavender);
+  --accent-hover:  var(--lavender-d);
+  --accent-soft:   var(--lavender);
+  --accent-tint:   var(--lavender);
+  --on-accent:     var(--vast-ink);   /* lavender is light — ink rides on top */
 
-  --em-color:      var(--fg1);          /* emphasis stays monochrome; vermilion is hero-only */
+  --secondary:     var(--forest-ink);
+  --on-secondary:  var(--lumen-cream);
 
-  --focus-ring: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink);
+  --em-color:      var(--forest-ink); /* emphasis = forest, never the old rust */
+
+  --focus-ring: 0 0 0 3px var(--lumen-cream), 0 0 0 5px var(--vast-ink);
+
+  /* Chamber surfaces.
+     The chamber is ALWAYS velvet — in both themes. Only the canvas flips.
+     Invert it and every cream/lavender child inside it loses its contrast. */
+  --surface-canvas:   var(--lumen-cream);
+  --surface-chamber:  var(--vast-ink);
+  --surface-lavender: var(--lavender);
+  --surface-forest:   var(--forest-ink);
 
   /* ============================================================
      TYPE
      ============================================================ */
-  --font-display: 'Space Grotesk', -apple-system, 'system-ui', 'Segoe UI', Roboto, sans-serif;
-  --font-ui:      'Space Grotesk', -apple-system, 'system-ui', 'Segoe UI', Roboto, sans-serif;
-  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --font-hand:    'JetBrains Mono', ui-monospace, monospace; /* no handwriting in B */
+  --font-display: 'EB Garamond', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-ui:      'Figtree', -apple-system, 'system-ui', 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    'Figtree', -apple-system, 'system-ui', sans-serif; /* no mono in this system */
+  --font-hand:    'EB Garamond', Georgia, serif;
 
-  /* Type scale */
+  /* Type scale — from the spec */
   --t-12: 12px;
-  --t-13: 13px;
+  --t-13: 14px;   /* caption floor is 14 here — 12/13 collapse up */
   --t-14: 14px;
-  --t-16: 16px;
-  --t-18: 18px;
+  --t-16: 16px;   /* the workhorse */
+  --t-18: 20px;
   --t-22: 22px;
-  --t-28: 28px;
-  --t-36: 36px;
+  --t-28: 24px;
+  --t-36: 32px;
   --t-48: 48px;
   --t-64: 64px;
-  --t-88: 88px;
+  --t-88: 120px;  /* display */
 
-  /* Line heights */
-  --lh-tight:  0.92;
-  --lh-snug:   1.08;
-  --lh-normal: 1.55;
-  --lh-loose:  1.62;
+  /* Line heights — 1.3 everywhere in UI, 0.85–0.95 at display scale */
+  --lh-tight:  0.85;
+  --lh-snug:   0.95;
+  --lh-normal: 1.3;
+  --lh-loose:  1.45;
 
-  /* Tracking — brutalist runs tight on display, wide on mono labels */
-  --tr-tight:  -0.04em;
-  --tr-snug:   -0.02em;
+  /* Tracking — negative and proportional at display scale */
+  --tr-tight:  -0.03em;   /* ≈ -3.6px at 120px */
+  --tr-snug:   -0.03em;   /* ≈ -1.92px at 64px */
   --tr-normal: 0;
-  --tr-wide:   0.08em;
-  --tr-caps:   0.22em;
+  --tr-wide:   0.02em;
+  --tr-caps:   0.12em;
 
   /* ============================================================
-     SPACING & RADII — square. corners are a sin here.
+     SPACING — 8px base, comfortable density
      ============================================================ */
-  --s-1: 4px;
+  --s-1: 8px;
   --s-2: 8px;
-  --s-3: 12px;
+  --s-3: 16px;
   --s-4: 16px;
-  --s-5: 20px;
+  --s-5: 24px;
   --s-6: 24px;
   --s-8: 32px;
   --s-10: 40px;
   --s-12: 48px;
   --s-16: 64px;
-  --s-20: 80px;
+  --s-20: 96px;
+  --s-24: 128px;
 
-  --r-xs: 0;
-  --r-sm: 0;
-  --r-md: 0;
-  --r-lg: 0;
-  --r-xl: 0;
-  --r-pill: 0;
+  --page-max: 1200px;
 
   /* ============================================================
-     SHADOWS — hard offset blocks, never soft blur
+     RADII — oversized. Nothing below 12px on buttons, 32px on cards.
      ============================================================ */
-  --shadow-1: 2px 2px 0 var(--ink);
-  --shadow-2: 4px 4px 0 var(--ink);
-  --shadow-3: 6px 6px 0 var(--ink);
-  --shadow-pop: 4px 4px 0 var(--ink);
-  --shadow-pop-sm: 2px 2px 0 var(--ink);
+  --r-xs:   8px;    /* dark square badge — the deliberate tight counterpoint */
+  --r-sm:   12px;   /* buttons, inputs */
+  --r-md:   12px;
+  --r-lg:   32px;   /* cards */
+  --r-xl:   40px;   /* dark feature cards */
+  --r-2xl:  80px;   /* section chambers */
+  --r-pill: 9999px;
 
-  /* Motion — snappy, no spring */
+  /* ============================================================
+     SHADOWS — there are none. Flatness is the signature.
+     ============================================================ */
+  --shadow-1: none;
+  --shadow-2: none;
+  --shadow-3: none;
+  --shadow-pop: none;
+  --shadow-pop-sm: none;
+
+  /* Motion */
   --ease-out:    cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease-in:     cubic-bezier(0.6, 0, 0.9, 0.3);
-  --ease-spring: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --dur-fast:    90ms;
-  --dur-base:    150ms;
-  --dur-slow:    260ms;
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --dur-fast:    140ms;
+  --dur-base:    260ms;
+  --dur-slow:    420ms;
 }
 
 /* ============================================================
-   DARK MODE — invert to ink canvas, paper ink, accent holds
+   DARK MODE — the whole page becomes velvet.
+   Canvas drops below the chamber tone so bands still separate,
+   and the cream cards become the light that the rooms hold.
+   Lavender and forest hold — they are brand, not theme.
    ============================================================ */
 html.dark {
-  --bg:          #0e0e0d;
-  --bg-elevated: #1a1a18;
-  --bg-sunken:   #060605;
-  --bg-paper:    #1a1a18;
-  --bg-invert:   var(--paper);
+  --bg:          #121211;   /* one step under the chamber, so bands read as bands */
+  --bg-elevated: #1f1f1e;
+  --bg-sunken:   #0b0b0a;
+  --bg-paper:    #1f1f1e;
+  --bg-invert:   var(--lumen-cream);
 
-  --fg1: #f1f0ea;
-  --fg2: #b7b5ab;
-  --fg3: #8a887f;
-  --fg4: #5a584f;
-  --fg-invert: var(--ink);
+  /* Canvas goes dark; the chamber lifts slightly instead of flipping */
+  --surface-canvas:  #121211;
+  --surface-chamber: #1f1f1e;
 
-  --border:        #f1f0ea;
-  --border-strong: #f1f0ea;
-  --border-hair:   rgba(241, 240, 234, 0.18);
-  --border-ink:    #f1f0ea;
+  --fg1: var(--lumen-cream);
+  --fg2: #d8d8c6;
+  --fg3: #93938a;
+  --fg4: #55554e;
+  --fg-invert: var(--vast-ink);
 
-  --on-accent: #ffffff;
+  --border:        var(--lumen-cream);
+  --border-strong: var(--lumen-cream);
+  --border-hair:   #3a3a38;
+  --border-ink:    var(--lumen-cream);
 
-  --shadow-1: 2px 2px 0 #f1f0ea;
-  --shadow-2: 4px 4px 0 #f1f0ea;
-  --shadow-3: 6px 6px 0 #f1f0ea;
-  --shadow-pop: 4px 4px 0 #f1f0ea;
-  --shadow-pop-sm: 2px 2px 0 #f1f0ea;
+  --em-color: var(--lavender);
+
+  --focus-ring: 0 0 0 3px var(--vast-ink), 0 0 0 5px var(--lumen-cream);
 }
 
 /* ============================================================
@@ -172,42 +197,43 @@ html, body {
   line-height: var(--lh-normal);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  transition: background 240ms var(--ease-out), color 240ms var(--ease-out);
+  transition: background var(--dur-base) var(--ease-out),
+              color var(--dur-base) var(--ease-out);
 }
 
 .h-display {
   font-family: var(--font-display);
-  font-size: var(--t-88);
+  font-size: clamp(56px, 11vw, 120px);
   line-height: var(--lh-tight);
   letter-spacing: var(--tr-tight);
-  font-weight: 700;
+  font-weight: 400;
   color: var(--fg1);
 }
 .h1 {
   font-family: var(--font-display);
-  font-size: var(--t-64);
-  line-height: var(--lh-tight);
-  letter-spacing: var(--tr-tight);
-  font-weight: 700;
+  font-size: clamp(40px, 7vw, 64px);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-snug);
+  font-weight: 400;
 }
 .h2 {
   font-family: var(--font-display);
-  font-size: var(--t-48);
+  font-size: clamp(32px, 5vw, 48px);
   line-height: var(--lh-snug);
   letter-spacing: var(--tr-snug);
-  font-weight: 600;
+  font-weight: 400;
 }
 .h3 {
-  font-family: var(--font-ui);
-  font-size: var(--t-28);
-  line-height: var(--lh-snug);
-  letter-spacing: var(--tr-snug);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: var(--t-36);
+  line-height: var(--lh-normal);
+  letter-spacing: -0.03em;
+  font-weight: 400;
 }
 .h4 {
   font-family: var(--font-ui);
   font-size: var(--t-22);
-  line-height: var(--lh-snug);
+  line-height: var(--lh-normal);
   font-weight: 600;
 }
 .p {
@@ -218,32 +244,35 @@ html, body {
 }
 .p-lg {
   font-size: var(--t-18);
-  line-height: var(--lh-loose);
+  line-height: var(--lh-normal);
   color: var(--fg2);
 }
 .caption {
   font-size: var(--t-14);
   color: var(--fg3);
 }
+/* Eyebrows lose the mono/caps brutalism — this system whispers in Figtree */
 .eyebrow {
-  font-family: var(--font-mono);
-  font-size: var(--t-12);
-  letter-spacing: var(--tr-caps);
-  text-transform: uppercase;
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  letter-spacing: var(--tr-wide);
   font-weight: 500;
+  text-transform: none;
   color: var(--fg3);
 }
 .code {
-  font-family: var(--font-mono);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 0.9em;
   background: var(--bg-sunken);
-  padding: 1px 6px;
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
   border: 1px solid var(--border-hair);
   color: var(--fg2);
 }
 .hand {
-  font-family: var(--font-mono);
-  font-size: var(--t-16);
-  color: var(--vermilion);
-  line-height: var(--lh-snug);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--t-18);
+  color: var(--em-color);
+  line-height: var(--lh-normal);
 }

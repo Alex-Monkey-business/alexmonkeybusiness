@@ -1,4 +1,17 @@
 ---
+const year = new Date().getFullYear();
 ---
 
-<footer class="site-footer" aria-hidden="true"></footer>
+<footer class="site-footer">
+  <div class="band">
+    <div class="footer-inner">
+      <p class="footer-word">Let's make some<br /><em>monkey business</em>.</p>
+      <ul class="footer-links">
+        <li><a href="mailto:alexander.samnoy@gmail.com">Email</a></li>
+        <li><a href="https://github.com/Alex-Monkey-business" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        <li><a href="/about">About</a></li>
+      </ul>
+    </div>
+    <p class="footer-meta">Alex Monkey Business — {year}. Built in the open.</p>
+  </div>
+</footer>

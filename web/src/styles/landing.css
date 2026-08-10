@@ -1,39 +1,55 @@
 /* ============================================================
-   VARIANT B — Shared chrome: Nav + Footer (Swiss brutalist)
-   Hard ink rules, uppercase mono labels, square everything.
-   Page-specific hero / projects styling lives inside each page.
+   WISPR EDITORIAL — Shared chrome + primitives
+   Floating cream pill nav, dark footer band, chamber sections,
+   bordered buttons and pill badges. Page-specific styling lives
+   inside each page's <style> block.
    ============================================================ */
 
-/* ============ NAV ============ */
+/* ============ NAV — floating cream pill ============ */
 .nav {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 50;
-  padding: 16px 32px;
+  width: calc(100% - 32px);
+  max-width: var(--page-max);
+  padding: 10px 12px 10px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--bg);
-  border-bottom: 2px solid var(--border);
-  transition: background 240ms var(--ease-out);
+  gap: var(--s-4);
+
+  background: var(--lumen-cream);
+  color: var(--vast-ink);
+  border: var(--border-w) solid var(--vast-ink);
+  border-radius: var(--r-pill);
+  transition: background var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out);
+}
+/* In dark mode the pill flips to velvet with a cream edge */
+html.dark .nav {
+  background: var(--vast-ink);
+  color: var(--lumen-cream);
+  border-color: var(--lumen-cream);
 }
 @media (max-width: 640px) {
   .nav {
-    padding: 12px 18px;
+    top: 10px;
+    width: calc(100% - 20px);
+    padding: 8px 8px 8px 14px;
   }
 }
 
 .nav-home {
   display: inline-flex;
   align-items: center;
-  color: var(--fg1);
-  transition: transform 120ms var(--ease-out);
+  color: inherit;
   text-decoration: none;
+  transition: transform var(--dur-slow) var(--ease-spring);
 }
 .nav-home:hover {
-  transform: translate(1px, 1px);
+  transform: rotate(-12deg) scale(1.08);
 }
 
 .nav .mark {
@@ -41,7 +57,6 @@
   width: auto;
   display: block;
 }
-/* B is hard-edged: no stroke-redraw flourish */
 .nav .mark path {
   stroke-dasharray: none;
   stroke-dashoffset: 0;
@@ -49,96 +64,317 @@
 
 .nav ul {
   display: flex;
-  gap: 0;
+  align-items: center;
+  gap: var(--s-2);
   list-style: none;
   margin: 0;
   padding: 0;
-  align-items: stretch;
-}
-.nav ul li {
-  display: flex;
 }
 .nav ul a {
-  font-family: var(--font-mono);
-  font-size: 12px;
+  font-family: var(--font-ui);
+  font-size: var(--t-16);
   font-weight: 500;
-  letter-spacing: var(--tr-wide);
-  text-transform: uppercase;
-  color: var(--fg2);
+  letter-spacing: 0;
+  text-transform: none;
+  color: inherit;
   text-decoration: none;
   position: relative;
-  padding: 8px 16px;
+  padding: 8px 14px;
+  border-radius: var(--r-pill);
   display: inline-flex;
   align-items: center;
-  border-left: 1px solid var(--border-hair);
-  transition: background 120ms var(--ease-out), color 120ms var(--ease-out);
+  transition: color var(--dur-fast) var(--ease-out);
 }
-.nav ul li:first-child a {
-  border-left: none;
+/* Underline animates in left-to-right — no fill-swap brutalism here */
+.nav ul a::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 5px;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-out);
 }
-.nav ul a:hover {
-  background: var(--ink);
-  color: var(--fg-invert);
-}
-:global(html.dark) .nav ul a:hover {
-  background: var(--fg1);
-  color: var(--bg);
+.nav ul a:hover::after {
+  transform: scaleX(1);
 }
 @media (max-width: 640px) {
-  .nav ul a {
-    font-size: 11px;
-    padding: 6px 10px;
-  }
+  .nav ul { gap: 0; }
+  .nav ul a { font-size: var(--t-14); padding: 6px 9px; }
+  .nav ul a::after { left: 9px; right: 9px; }
+  /* Projects is one scroll away on mobile — drop it, keep the essentials */
+  .nav ul li.nav-secondary { display: none; }
+}
+
+/* Lavender CTA pinned to the right of the pill.
+   Selector must out-specify `.nav ul a` (0-1-2) or it inherits the pill's
+   text color and goes cream-on-lavender in dark mode. */
+.nav ul a.nav-cta {
+  font-family: var(--font-ui);
+  font-size: var(--t-16);
+  font-weight: 500;
+  color: var(--vast-ink);
+  background: var(--lavender);
+  border: var(--border-w) solid var(--vast-ink);
+  border-radius: var(--r-sm);
+  padding: 8px 16px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.nav ul a.nav-cta:hover { background: var(--lavender-d); }
+html.dark .nav ul a.nav-cta { border-color: var(--lumen-cream); }
+/* The button is its own affordance — no sliding underline on top of it */
+.nav ul a.nav-cta::after { display: none; }
+@media (max-width: 640px) {
+  .nav ul a.nav-cta { font-size: var(--t-14); padding: 7px 12px; }
 }
 
 .theme-toggle {
   background: transparent;
-  border: none;
-  border-left: 1px solid var(--border-hair);
-  border-radius: 0;
+  border: var(--border-w) solid currentColor;
+  border-radius: var(--r-pill);
   width: 38px;
-  align-self: stretch;
-  padding: 0 12px;
+  height: 38px;
+  padding: 0;
   cursor: pointer;
-  color: var(--fg2);
+  color: inherit;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 120ms var(--ease-out), color 120ms var(--ease-out);
+  flex: none;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
 }
 .theme-toggle:hover {
-  background: var(--ink);
-  color: var(--fg-invert);
+  background: var(--vast-ink);
+  color: var(--lumen-cream);
 }
-:global(html.dark) .theme-toggle:hover {
-  background: var(--fg1);
-  color: var(--bg);
+html.dark .theme-toggle:hover {
+  background: var(--lumen-cream);
+  color: var(--vast-ink);
 }
-.theme-toggle svg {
-  width: 14px;
-  height: 14px;
-}
-.theme-toggle .icon-sun {
-  display: none;
-}
-html.dark .theme-toggle .icon-sun {
-  display: block;
-}
-html.dark .theme-toggle .icon-moon {
-  display: none;
+.theme-toggle svg { width: 15px; height: 15px; }
+.theme-toggle .icon-sun { display: none; }
+html.dark .theme-toggle .icon-sun { display: block; }
+html.dark .theme-toggle .icon-moon { display: none; }
+@media (max-width: 640px) {
+  .theme-toggle { width: 34px; height: 34px; }
+  .theme-toggle svg { width: 14px; height: 14px; }
 }
 
-/* ============ FOOTER ============ */
-.site-footer {
-  max-width: 1080px;
+/* ============ SHARED PRIMITIVES ============ */
+
+/* Page-level content band, max-width centered */
+.band {
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: 0 32px 7vh;
-  /* meta text dropped — pages close on their own content / rules */
+  padding: 0 var(--s-4);
 }
-@media (max-width: 640px) {
-  .site-footer { padding: 0 18px 7vh; }
+@media (min-width: 641px) {
+  .band { padding: 0 var(--s-8); }
+}
+
+/* A dark velvet chamber — full-bleed fill, oversized inset radius */
+.chamber {
+  background: var(--surface-chamber);
+  color: var(--lumen-cream);
+  border-radius: var(--r-2xl);
+  padding: var(--s-20) var(--s-8);
+}
+@media (max-width: 900px) {
+  .chamber { border-radius: var(--r-xl); padding: var(--s-16) var(--s-5); }
+}
+
+/* Buttons */
+.btn {
+  font-family: var(--font-ui);
+  font-size: var(--t-16);
+  font-weight: 500;
+  line-height: 1;
+  border-radius: var(--r-sm);
+  border: var(--border-w) solid var(--vast-ink);
+  padding: 16px 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.btn-primary {
+  background: var(--lavender);
+  color: var(--vast-ink);
+}
+.btn-primary:hover { background: var(--lavender-d); }
+
+.btn-secondary {
+  background: var(--lumen-cream);
+  color: var(--vast-ink);
+}
+.btn-secondary:hover { background: var(--lumen-stone); }
+
+/* On a dark chamber the border flips to cream */
+.chamber .btn,
+html.dark .btn {
+  border-color: var(--lumen-cream);
+}
+html.dark .btn-secondary {
+  background: var(--vast-ink);
+  color: var(--lumen-cream);
+}
+html.dark .btn-secondary:hover { background: #2c2c2a; }
+/* Inside a chamber, secondary stays cream-on-ink regardless of theme */
+.chamber .btn-secondary {
+  background: var(--lumen-cream);
+  color: var(--vast-ink);
+  border-color: var(--lumen-cream);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: none;
+  padding: 8px 0;
+  font-weight: 400;
+  color: var(--fg1);
+}
+.btn-ghost:hover { text-decoration: underline; }
+
+/* Badges */
+.badge-teal {
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  font-weight: 500;
+  line-height: 1;
+  background: var(--forest-ink);
+  color: var(--lumen-cream);
+  border-radius: var(--r-pill);
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Tight 8px radius — the geometric counterpoint to all the pills */
+.badge-square {
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  font-weight: 500;
+  line-height: 1;
+  background: var(--vast-ink);
+  color: var(--lumen-cream);
+  border-radius: var(--r-xs);
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* Outlined pill on dark surfaces */
+.badge-outline {
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  font-weight: 500;
+  line-height: 1;
+  background: transparent;
+  color: var(--lumen-cream);
+  border: 1.5px solid var(--pure-white);
+  border-radius: var(--r-pill);
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Hand-drawn lavender underline beneath key words in a display headline */
+.squiggle {
+  position: relative;
+  display: inline-block;
+}
+.squiggle svg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.16em;
+  width: 100%;
+  height: 0.18em;
+  overflow: visible;
+  pointer-events: none;
+}
+.squiggle svg path {
+  fill: none;
+  stroke: var(--lavender);
+  stroke-width: 4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ============ FOOTER — full-width dark band ============ */
+.site-footer {
+  margin-top: var(--s-20);
+  background: var(--surface-chamber);
+  color: var(--lumen-cream);
+  border-top-left-radius: var(--r-2xl);
+  border-top-right-radius: var(--r-2xl);
+  padding: var(--s-16) 0 var(--s-12);
+}
+@media (max-width: 900px) {
+  .site-footer {
+    border-top-left-radius: var(--r-xl);
+    border-top-right-radius: var(--r-xl);
+    padding: var(--s-12) 0 var(--s-10);
+  }
+}
+
+.footer-inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-8);
+  flex-wrap: wrap;
+}
+.footer-word {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(32px, 6vw, 64px);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-snug);
+  margin: 0;
+}
+.footer-word em {
+  font-style: italic;
+  color: var(--lavender);
+}
+.footer-links {
+  display: flex;
+  gap: var(--s-5);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.footer-links a {
+  font-size: var(--t-16);
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.footer-links a:hover { opacity: 1; text-decoration: underline; }
+.footer-meta {
+  margin: var(--s-8) 0 0;
+  font-size: var(--t-14);
+  opacity: 0.55;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-home, .nav ul a, .theme-toggle { transition: none; }
+  .nav-home, .nav ul a, .nav ul a::after, .theme-toggle, .btn { transition: none; }
+  .nav-home:hover { transform: none; }
 }
