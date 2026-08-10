@@ -12,13 +12,14 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
-  width: calc(100% - 32px);
-  max-width: var(--page-max);
-  padding: 10px 12px 10px 20px;
-  display: flex;
+  /* Hugs its content. A full-width stadium with two links in it reads as a
+     search input, not a nav — the empty middle is what gives it away. */
+  width: max-content;
+  max-width: calc(100% - 24px);
+  padding: 10px 10px 10px 22px;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--s-4);
+  gap: var(--s-10);
 
   background: var(--lumen-cream);
   color: var(--vast-ink);
@@ -36,8 +37,8 @@ html.dark .nav {
 @media (max-width: 640px) {
   .nav {
     top: 10px;
-    width: calc(100% - 20px);
-    padding: 8px 8px 8px 14px;
+    gap: var(--s-5);
+    padding: 7px 7px 7px 14px;
   }
 }
 
@@ -83,6 +84,7 @@ html.dark .nav {
   border-radius: var(--r-pill);
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;   /* the pill is width-constrained — never let a label wrap */
   transition: color var(--dur-fast) var(--ease-out);
 }
 /* Underline animates in left-to-right — no fill-swap brutalism here */
@@ -105,7 +107,8 @@ html.dark .nav {
   .nav ul { gap: 0; }
   .nav ul a { font-size: var(--t-14); padding: 6px 9px; }
   .nav ul a::after { left: 9px; right: 9px; }
-  /* Projects is one scroll away on mobile — drop it, keep the essentials */
+  /* Projects is an anchor to a section one scroll down — the pill can't fit
+     it at 360px without the CTA label wrapping */
   .nav ul li.nav-secondary { display: none; }
 }
 
@@ -137,10 +140,15 @@ html.dark .nav ul a.nav-cta { border-color: var(--lumen-cream); }
 
 .theme-toggle {
   background: transparent;
-  border: var(--border-w) solid currentColor;
+  /* Borderless — a bordered circle beside the bordered CTA is two competing
+     edges in a 4-item cluster. The CTA gets to be the only outlined thing. */
+  border: none;
   border-radius: var(--r-pill);
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
+  /* Sits between text links and the button — equal air on both sides so it
+     doesn't read as part of the button group */
+  margin-inline: 8px;
   padding: 0;
   cursor: pointer;
   color: inherit;
@@ -164,7 +172,7 @@ html.dark .theme-toggle:hover {
 html.dark .theme-toggle .icon-sun { display: block; }
 html.dark .theme-toggle .icon-moon { display: none; }
 @media (max-width: 640px) {
-  .theme-toggle { width: 34px; height: 34px; }
+  .theme-toggle { width: 30px; height: 30px; margin-inline: 0; }
   .theme-toggle svg { width: 14px; height: 14px; }
 }
 
