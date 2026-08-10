@@ -294,24 +294,25 @@ html.dark .ft-num {
   max-width: 86vw;
   aspect-ratio: 390 / 844;
   background: var(--phone-bezel);
-  padding: 8px;
-  border-radius: 50px;
-  /* No drop shadow — this system separates by fill and border, not depth */
+  /* 8px at this width was a hairline — the frame read as a rounded
+     screenshot outline rather than a device */
+  padding: 12px;
+  border-radius: 52px;
+  /* No drop shadow — this system separates by fill and border, not depth.
+     On the velvet canvas a near-black frame needs a rim to exist at all. */
+  border: 1px solid rgba(26, 26, 26, 0.9);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   user-select: none;
 }
-.phone::after {
-  content: '';
-  position: absolute;
-  top: 12px; left: 50%; transform: translateX(-50%);
-  width: 80px; height: 6px;
-  background: var(--phone-bezel);
-  border-radius: 99px;
-  z-index: 3;
-}
+html.dark .phone { border-color: rgba(255, 255, 235, 0.16); }
+/* No fake notch. The recordings carry no iOS status bar, so an island
+   floated over the app's own first row read as pasted on — and the
+   reference is explicit that these are flat illustrations, not renders. */
 html.dark .phone {
+  /* Lifted off pure black: a #000 frame vanishes into the #121211 canvas */
+  --phone-bezel: #2b2b28;
   --app-bg: #0e0e0d;
   --app-surface: #19191a;
   --app-border: #2b2b28;
@@ -325,7 +326,6 @@ html.dark .phone {
   --t-green-fg: #9ec79f; --t-green-bg: rgba(120, 170, 120, 0.15);
   --t-red-fg:   #e0a07f; --t-red-bg:   rgba(200, 120, 80, 0.15);
   --t-white-fg: #c9c9c2; --t-white-bg: rgba(200, 200, 190, 0.10);
-  --phone-bezel: #000000;
 }
 
 .phone-bar {
@@ -385,14 +385,19 @@ html.dark .phone {
 }
 .d-meta { font-family: var(--app-sans); font-size: 12px; font-weight: 500; color: var(--app-text-3); }
 
-/* video variant — real app screen recording fills the device */
-.phone--video { padding: 7px; }
+/* Video variant — real app screen recording fills the device.
+   The RECORDING sets the height, not the frame: a fixed frame ratio plus a
+   12px bezel leaves an inner box of a different ratio, and object-fit then
+   crops ~4% off the sides of every screen. Letting the video carry its own
+   700x1516 ratio means nothing is cropped at all.
+   Inner radius = outer 52 - bezel 12. */
+.phone--video { aspect-ratio: auto; }
 .phone-video {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top;
-  border-radius: 42px;
+  height: auto;
+  aspect-ratio: 700 / 1516;
+  object-fit: contain;
+  border-radius: 40px;
   display: block;
   background: #ffffff;
 }
