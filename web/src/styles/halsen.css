@@ -50,11 +50,12 @@
   align-items: center;
   gap: 10px;
 }
+/* Ember is the reference's dot/indicator color; lavender vanishes on cream */
 .case-eyebrow::before {
   content: '';
   width: 8px; height: 8px;
   border-radius: var(--r-pill);
-  background: var(--marigold);
+  background: var(--ember-glow);
   display: inline-block;
   flex: none;
 }
@@ -227,7 +228,7 @@ html.dark .ft-num {
 }
 .case-list .text em {
   font-style: italic;
-  color: var(--marigold);
+  color: var(--lavender);
 }
 
 /* ============ STACK FOOTER ============ */
@@ -250,11 +251,12 @@ html.dark .ft-num {
   align-items: center;
   gap: 8px;
 }
+/* A literal live indicator — exactly what ember glow is specced for */
 .case-stack .live::before {
   content: '';
   width: 8px; height: 8px;
   border-radius: var(--r-pill);
-  background: var(--marigold);
+  background: var(--ember-glow);
   display: inline-block;
   flex: none;
   animation: case-pulse 2s ease-in-out infinite;

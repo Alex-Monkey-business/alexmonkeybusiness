@@ -76,13 +76,14 @@
   align-items: center;
   gap: 10px;
 }
-/* Flat marigold dot. The old halo was a box-shadow, and this system
-   separates by fill and border only. */
+/* Ember, not lavender — the reference assigns #ffa946 to dots and active
+   indicators, and lavender at 8px is invisible on cream. The old halo was a
+   box-shadow, and this system separates by fill and border only. */
 .about-eyebrow::before {
   content: '';
   width: 8px; height: 8px;
   border-radius: var(--r-pill);
-  background: var(--marigold);
+  background: var(--ember-glow);
   flex: none;
 }
 

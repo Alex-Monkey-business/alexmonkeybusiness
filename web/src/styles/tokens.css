@@ -24,14 +24,10 @@
   --fog-ink:         #6e6e64;  /* the same voice, darkened to clear 4.5:1 at 14–16px */
   --pure-white:      #ffffff;  /* badge borders on dark, icon strokes */
 
-  /* The ONE primary-action color. Replaces the reference's lavender #f0d7ff:
-     the accent has to be light enough to carry ink text in a filled button,
-     must not collide with forest as secondary, and can't be brown. Marigold
-     sits on the same warm axis as the cream canvas and glows on velvet. */
-  --marigold:        #ffc04a;
-  --marigold-d:      #f2ad2c;  /* hover — same hue, deeper */
+  --lavender:        #f0d7ff;  /* the ONE primary-action color */
+  --lavender-d:      #e3bfff;  /* hover — same hue, more saturated */
   --forest-ink:      #034f46;  /* secondary brand — badges, inner dark panels */
-  --ember-glow:      #ffa946;  /* live/active accent only */
+  --ember-glow:      #ffa946;  /* live/active accent — dots, active indicators */
 
   /* ============================================================
      SEMANTIC TOKENS — always reference these
@@ -55,11 +51,11 @@
   --border-ink:    var(--vast-ink);
   --border-w:      2px;
 
-  --accent:        var(--marigold);
-  --accent-hover:  var(--marigold-d);
-  --accent-soft:   var(--marigold);
-  --accent-tint:   var(--marigold);
-  --on-accent:     var(--vast-ink);   /* marigold is light — ink rides on top */
+  --accent:        var(--lavender);
+  --accent-hover:  var(--lavender-d);
+  --accent-soft:   var(--lavender);
+  --accent-tint:   var(--lavender);
+  --on-accent:     var(--vast-ink);   /* lavender is light — ink rides on top */
 
   --secondary:     var(--forest-ink);
   --on-secondary:  var(--lumen-cream);
@@ -70,10 +66,10 @@
 
   /* Chamber surfaces.
      The chamber is ALWAYS velvet — in both themes. Only the canvas flips.
-     Invert it and every cream/marigold child inside it loses its contrast. */
+     Invert it and every cream/lavender child inside it loses its contrast. */
   --surface-canvas:   var(--lumen-cream);
   --surface-chamber:  var(--vast-ink);
-  --surface-accent:   var(--marigold);
+  --surface-accent:   var(--lavender);
   --surface-forest:   var(--forest-ink);
 
   /* ============================================================
@@ -161,7 +157,7 @@
    DARK MODE — the whole page becomes velvet.
    Canvas drops below the chamber tone so bands still separate,
    and the cream cards become the light that the rooms hold.
-   Marigold and forest hold — they are brand, not theme.
+   Lavender and forest hold — they are brand, not theme.
    ============================================================ */
 html.dark {
   --bg:          #121211;   /* one step under the chamber, so bands read as bands */
@@ -185,7 +181,7 @@ html.dark {
   --border-hair:   #3a3a38;
   --border-ink:    var(--lumen-cream);
 
-  --em-color: var(--marigold);
+  --em-color: var(--lavender);
 
   --focus-ring: 0 0 0 3px var(--vast-ink), 0 0 0 5px var(--lumen-cream);
 }
