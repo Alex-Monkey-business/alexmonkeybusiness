@@ -34,33 +34,35 @@ const { project } = Astro.props;
 
 <style>
   .project-detail {
-    max-width: 720px;
+    max-width: 760px;
     margin: 0 auto;
-    padding: 24vh 40px 14vh;
+    padding: 24vh var(--s-8) 12vh;
   }
   @media (max-width: 640px) {
     .project-detail {
-      padding: 20vh 22px 10vh;
+      padding: 20vh var(--s-4) 8vh;
     }
   }
   .back {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--fg3);
+    font-family: var(--font-ui);
+    font-size: var(--t-16);
+    font-weight: 500;
+    color: var(--fg2);
     text-decoration: none;
-    letter-spacing: 0.06em;
-    transition: color 160ms var(--ease-out);
+    letter-spacing: 0;
+    transition: color var(--dur-fast) var(--ease-out);
   }
   .back:hover {
     color: var(--fg1);
+    text-decoration: underline;
   }
   .detail-title {
     font-family: var(--font-display);
-    font-size: clamp(56px, 10vw, 128px);
-    line-height: 0.92;
-    letter-spacing: -0.035em;
+    font-size: clamp(52px, 11.5vw, 120px);
+    line-height: var(--lh-tight);
+    letter-spacing: var(--tr-tight);
     font-weight: 400;
-    margin: 32px 0 24px;
+    margin: var(--s-8) 0 var(--s-5);
     color: var(--fg1);
   }
   .detail-title em {
@@ -68,35 +70,35 @@ const { project } = Astro.props;
     color: var(--em-color);
   }
   .detail-meta {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--fg3);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    margin: 0 0 64px;
-  }
-  /* warm "in progress" pill — matches the landing list */
-  .detail-meta .wip {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.02em;
+    font-family: var(--font-ui);
+    font-size: var(--t-14);
+    color: var(--fog-ink);
+    letter-spacing: 0;
     text-transform: none;
-    color: var(--mustard);
-    background: var(--pale);
-    padding: 3px 8px;
-    border-radius: 999px;
+    display: flex;
+    gap: var(--s-3);
+    align-items: center;
+    margin: 0 0 var(--s-16);
   }
-  :global(html.dark) .detail-meta .wip {
-    background: rgba(248, 198, 102, 0.12);
-    color: var(--yellow);
+  :global(html.dark) .detail-meta { color: var(--fg3); }
+  /* "In progress" — the same forest pill the landing cards use. Was styled
+     with --mustard/--pale/--yellow, which no longer exist in the palette. */
+  .detail-meta .wip {
+    font-family: var(--font-ui);
+    font-size: var(--t-14);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--lumen-cream);
+    background: var(--forest-ink);
+    padding: 8px 16px;
+    border-radius: var(--r-pill);
   }
   .detail-placeholder {
     font-family: var(--font-display);
-    font-size: clamp(22px, 3vw, 28px);
-    color: var(--fg3);
+    font-size: clamp(24px, 3vw, 32px);
+    color: var(--fg2);
     font-style: italic;
   }
 </style>

@@ -1,47 +1,50 @@
 /* ============================================================
-   BenchBoss case study — VARIANT B (Swiss brutalist / editorial)
-   Paper + ink, Space Grotesk + JetBrains Mono, square, hard rules.
-   Vermilion appears once, in the case hero. Demos stay monochrome;
-   "active / live / selected" states invert to an ink block.
+   BenchBoss case study — WISPR EDITORIAL
+   Cream broadsheet chrome, EB Garamond 400 at display scale,
+   Figtree for UI. "Under the hood" is a velvet chamber, so the
+   page carries the cream -> velvet -> cream rhythm.
+   The phone block below stays app-faithful on purpose.
    ============================================================ */
 
-/* App-faithful fonts for the phone screens (page chrome uses Space Grotesk) */
+/* App-faithful font for the phone screens (page chrome uses Figtree/Garamond) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .case {
-  max-width: 1080px;
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: 14vh 32px 0;
+  padding: 18vh var(--s-8) 0;
 }
 @media (max-width: 640px) {
-  .case { padding: 12vh 18px 0; }
+  .case { padding: 15vh var(--s-4) 0; }
 }
 
 .case-back {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: var(--tr-wide);
-  text-transform: uppercase;
-  color: var(--fg3);
+  font-family: var(--font-ui);
+  font-size: var(--t-16);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--fg2);
   text-decoration: none;
   transition: color var(--dur-fast) var(--ease-out);
 }
-.case-back:hover { color: var(--fg1); }
+.case-back:hover { color: var(--fg1); text-decoration: underline; }
 
 /* ============ HERO ============ */
 .case-hero {
-  padding: 7vh 0 8vh;
-  border-bottom: 2px solid var(--border);
+  padding: 6vh 0 8vh;
+  border-bottom: var(--border-w) solid var(--border);
 }
 @media (max-width: 860px) {
-  .case-hero { padding: 5vh 0 6vh; }
+  .case-hero { padding: 4vh 0 6vh; }
 }
 
 .case-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: var(--tr-wide);
-  text-transform: uppercase;
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--fg3);
   display: inline-flex;
   align-items: center;
@@ -49,40 +52,46 @@
 }
 .case-eyebrow::before {
   content: '';
-  width: 7px; height: 7px;
-  background: var(--accent);          /* the single vermilion hit */
+  width: 8px; height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--marigold);
   display: inline-block;
+  flex: none;
 }
 
 .case-title {
   font-family: var(--font-display);
-  font-size: clamp(56px, 11vw, 132px);
-  font-weight: 700;
-  line-height: 0.86;
-  letter-spacing: -0.045em;
-  text-transform: uppercase;
-  margin: 20px 0 0;
+  font-size: clamp(52px, 11.5vw, 120px);
+  font-weight: 400;                 /* scale commands, never weight */
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tr-tight);
+  text-transform: none;
+  margin: var(--s-5) 0 0;
   color: var(--fg1);
 }
-.case-title .em { color: var(--fg3); }   /* "Boss" greyed, like the landing */
+.case-title .em {
+  font-style: italic;
+  color: var(--em-color);
+}
 
 .case-lede {
-  margin: 28px 0 0;
-  max-width: 30ch;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 1.7;
+  margin: var(--s-8) 0 0;
+  max-width: 34ch;
+  font-family: var(--font-ui);
+  font-size: var(--t-18);
+  line-height: var(--lh-normal);
   color: var(--fg2);
 }
 
 .case-stackline {
-  margin: 22px 0 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--fg4);
+  margin: var(--s-5) 0 0;
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--fog-ink);
 }
+html.dark .case-stackline { color: var(--fg3); }
 
 .case-hero-stage { display: flex; justify-content: center; }
 
@@ -90,7 +99,7 @@
 .case-feature {
   display: grid;
   grid-template-columns: 1fr minmax(0, 360px);
-  gap: 72px;
+  gap: var(--s-20);
   align-items: center;
   padding: 12vh 0;
   border-bottom: 1px solid var(--border-hair);
@@ -105,91 +114,149 @@
   .case-feature,
   .case-feature.flipped {
     grid-template-columns: 1fr;
-    gap: 44px;
+    gap: var(--s-12);
     padding: 9vh 0;
   }
   .case-feature.flipped .case-feature-copy { order: 0; }
 }
 
 .case-feature-copy { max-width: 38ch; }
+
+/* The index gets the system's tight-radius square badge — the geometric
+   counterpoint to all the pills */
 .ft-num {
-  font-family: var(--font-mono);
-  font-size: 13px;
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
   font-weight: 500;
-  color: var(--fg3);
-  display: block;
-  margin-bottom: 18px;
+  line-height: 1;
+  color: var(--lumen-cream);
+  background: var(--vast-ink);
+  border-radius: var(--r-xs);
+  padding: 8px 14px;
+  display: inline-flex;
+  margin-bottom: var(--s-5);
 }
+html.dark .ft-num {
+  background: var(--lumen-cream);
+  color: var(--vast-ink);
+}
+
 .ft-h {
   font-family: var(--font-display);
-  font-size: clamp(30px, 4.4vw, 48px);
-  font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -0.03em;
+  font-size: clamp(32px, 4.6vw, 48px);
+  font-weight: 400;
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-snug);
   margin: 0;
   color: var(--fg1);
 }
 .ft-p {
-  margin: 20px 0 0;
+  margin: var(--s-5) 0 0;
   font-family: var(--font-ui);
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: var(--t-16);
+  /* The reference sets 1.3 everywhere; a three-line paragraph reads better
+     with a touch more leading, so body copy gets --lh-loose */
+  line-height: var(--lh-loose);
   color: var(--fg2);
 }
 
 .case-feature-stage { display: flex; justify-content: center; }
 
-/* ============ UNDER THE HOOD ============ */
+/* ============ UNDER THE HOOD — velvet chamber ============ */
 .case-list {
-  padding: 12vh 0 11vh;
-  border-bottom: 2px solid var(--border);
+  margin: var(--s-20) 0 0;
+  background: var(--surface-chamber);
+  color: var(--lumen-cream);
+  border-radius: var(--r-2xl);
+  padding: var(--s-20) var(--s-12);
 }
+@media (max-width: 900px) {
+  .case-list {
+    border-radius: var(--r-xl);
+    padding: var(--s-16) var(--s-5);
+    margin-top: var(--s-16);
+  }
+}
+
 .case-list-label {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: var(--tr-wide);
-  text-transform: uppercase;
-  color: var(--fg3);
-  display: block;
-  margin-bottom: 18px;
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--lumen-cream);
+  background: transparent;
+  border: 1.5px solid var(--pure-white);
+  border-radius: var(--r-pill);
+  padding: 8px 16px;
+  display: inline-flex;
+  margin-bottom: var(--s-10);
 }
-.case-list ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
+
+.case-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid rgba(255, 255, 235, 0.22);
+}
 .case-list li {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 24px;
+  gap: var(--s-5);
   align-items: baseline;
-  padding: 22px 4px;
-  border-bottom: 1px solid var(--border);
+  padding: var(--s-5) 4px;
+  border-bottom: 1px solid rgba(255, 255, 235, 0.22);
   opacity: 0;
   transform: translateY(12px);
   transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
   transition-delay: calc(var(--i, 0) * 80ms);
 }
 .case-list li.is-in { opacity: 1; transform: none; }
-.case-list .n { font-family: var(--font-mono); font-size: 13px; color: var(--fg3); }
-.case-list .text { font-family: var(--font-display); font-size: clamp(18px, 2.4vw, 24px); font-weight: 500; letter-spacing: -0.02em; color: var(--fg1); }
-.case-list .text em { font-style: normal; color: var(--fg3); }
+.case-list .n {
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  color: rgba(255, 255, 235, 0.6);
+}
+.case-list .text {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.6vw, 32px);
+  font-weight: 400;
+  line-height: var(--lh-normal);
+  letter-spacing: -0.02em;
+  color: var(--lumen-cream);
+}
+.case-list .text em {
+  font-style: italic;
+  color: var(--marigold);
+}
 
 /* ============ STACK FOOTER ============ */
 .case-stack {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 14px;
-  padding: 32px 0 11vh;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  gap: var(--s-3);
+  padding: var(--s-10) 0 0;
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--fg3);
 }
-.case-stack .live { color: var(--fg1); display: inline-flex; align-items: center; gap: 8px; }
+.case-stack .live {
+  color: var(--fg1);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 .case-stack .live::before {
   content: '';
-  width: 7px; height: 7px;
-  background: var(--accent);          /* live = the one vermilion echo */
+  width: 8px; height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--marigold);
   display: inline-block;
+  flex: none;
   animation: case-pulse 2s ease-in-out infinite;
 }
 @keyframes case-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -198,7 +265,8 @@
 /* ============================================================
    PHONE — faithful to the real BenchBoss app (warm minimal, Inter,
    rounded cards, team colours) inside a rounded device frame.
-   The brutalist page chrome frames these like real product shots.
+   Deliberately NOT restyled: these are real product recordings, and
+   the app's own look is the content here, not the page's system.
    ============================================================ */
 .phone {
   --app-bg: #ffffff;
@@ -226,7 +294,7 @@
   background: var(--phone-bezel);
   padding: 8px;
   border-radius: 50px;
-  box-shadow: 0 24px 50px -18px rgba(18, 18, 17, 0.32), 0 5px 14px -7px rgba(18, 18, 17, 0.20);
+  /* No drop shadow — this system separates by fill and border, not depth */
   display: flex;
   flex-direction: column;
   overflow: hidden;

@@ -112,15 +112,15 @@ html.dark .nav {
   .nav ul li.nav-secondary { display: none; }
 }
 
-/* Lavender CTA pinned to the right of the pill.
+/* Accent CTA pinned to the right of the pill.
    Selector must out-specify `.nav ul a` (0-1-2) or it inherits the pill's
-   text color and goes cream-on-lavender in dark mode. */
+   text color and goes cream-on-marigold in dark mode. */
 .nav ul a.nav-cta {
   font-family: var(--font-ui);
   font-size: var(--t-16);
   font-weight: 500;
   color: var(--vast-ink);
-  background: var(--lavender);
+  background: var(--marigold);
   border: var(--border-w) solid var(--vast-ink);
   border-radius: var(--r-sm);
   padding: 8px 16px;
@@ -130,7 +130,7 @@ html.dark .nav {
   gap: var(--s-2);
   transition: background var(--dur-fast) var(--ease-out);
 }
-.nav ul a.nav-cta:hover { background: var(--lavender-d); }
+.nav ul a.nav-cta:hover { background: var(--marigold-d); }
 html.dark .nav ul a.nav-cta { border-color: var(--lumen-cream); }
 /* The button is its own affordance — no sliding underline on top of it */
 .nav ul a.nav-cta::after { display: none; }
@@ -217,10 +217,10 @@ html.dark .theme-toggle .icon-moon { display: none; }
               color var(--dur-fast) var(--ease-out);
 }
 .btn-primary {
-  background: var(--lavender);
+  background: var(--marigold);
   color: var(--vast-ink);
 }
-.btn-primary:hover { background: var(--lavender-d); }
+.btn-primary:hover { background: var(--marigold-d); }
 
 .btn-secondary {
   background: var(--lumen-cream);
@@ -302,7 +302,7 @@ html.dark .btn-secondary:hover { background: #2c2c2a; }
   white-space: nowrap;
 }
 
-/* Hand-drawn lavender underline beneath key words in a display headline */
+/* Hand-drawn accent underline beneath key words in a display headline */
 .squiggle {
   position: relative;
   display: inline-block;
@@ -319,7 +319,7 @@ html.dark .btn-secondary:hover { background: #2c2c2a; }
 }
 .squiggle svg path {
   fill: none;
-  stroke: var(--lavender);
+  stroke: var(--marigold);
   stroke-width: 4;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
@@ -359,7 +359,7 @@ html.dark .btn-secondary:hover { background: #2c2c2a; }
 }
 .footer-word em {
   font-style: italic;
-  color: var(--lavender);
+  color: var(--marigold);
 }
 .footer-links {
   display: flex;

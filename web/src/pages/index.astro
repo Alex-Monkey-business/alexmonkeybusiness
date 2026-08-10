@@ -110,7 +110,7 @@ import { projects } from '../data/projects';
   .display .line { display: block; }
   /* Two-tone cadence: fog opens, ink lands */
   .display .dim { color: var(--fg3); }
-  /* Lavender on cream is invisible at this size — em-color reads in both themes */
+  /* A pale accent dot is invisible on cream — em-color reads in both themes */
   .display .period { color: var(--em-color); }
 
   .lede {
@@ -154,7 +154,7 @@ import { projects } from '../data/projects';
   }
   .work-title em {
     font-style: italic;
-    color: var(--lavender);
+    color: var(--marigold);
   }
 
   /* ===== project cards ===== */
@@ -183,8 +183,8 @@ import { projects } from '../data/projects';
     text-decoration: none;
     transition: background var(--dur-base) var(--ease-out);
   }
-  /* No shadow, no lift — the surface itself turns lavender */
-  .card:hover { background: var(--lavender); }
+  /* No shadow, no lift — the surface itself turns marigold */
+  .card:hover { background: var(--marigold); }
   @media (max-width: 640px) {
     .card { padding: var(--s-5); }
   }
