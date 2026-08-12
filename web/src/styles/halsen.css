@@ -388,14 +388,15 @@ html.dark .phone {
 /* Video variant — real app screen recording fills the device.
    The RECORDING sets the height, not the frame: a fixed frame ratio plus a
    12px bezel leaves an inner box of a different ratio, and object-fit then
-   crops ~4% off the sides of every screen. Letting the video carry its own
-   700x1516 ratio means nothing is cropped at all.
+   crops off the sides of every screen. Letting the video carry its own ratio
+   means nothing is cropped at all. 780x1688 is the recording size — a 390x844
+   viewport painted at 2x.
    Inner radius = outer 52 - bezel 12. */
 .phone--video { aspect-ratio: auto; }
 .phone-video {
   width: 100%;
   height: auto;
-  aspect-ratio: 700 / 1516;
+  aspect-ratio: 780 / 1688;
   object-fit: contain;
   border-radius: 40px;
   display: block;
