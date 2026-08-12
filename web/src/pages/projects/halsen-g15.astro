@@ -20,6 +20,9 @@ const features = [
     p: "Set the team on the pitch, kick off, and each player's clock runs on its own. Bring someone on in the eighth minute and their time starts there, so the match clock and the minutes a player is owed are never confused for each other. Goals ask who scored before anyone forgets.",
     src: '/assets/halsen/matchmode.webm',
     poster: '/assets/halsen/matchmode-poster.jpg',
+    // The take opens with eight taps to build the lineup, which reads as a
+    // bottom sheet flapping. Start the loop on the finished pitch instead.
+    start: 9.8,
   },
   {
     n: '03',
@@ -30,10 +33,10 @@ const features = [
   },
   {
     n: '04',
-    h: "Who it's fair to ask next.",
-    p: "Two columns: extra matches a player has already covered, and matches they are already booked into. Borrowing someone becomes a glance instead of a group chat — and this sits above the top-scorer list on purpose, because one of them decides something.",
-    src: '/assets/halsen/stats-loan.webm',
-    poster: '/assets/halsen/stats-loan-poster.jpg',
+    h: 'It picks the stand-in for you.',
+    p: "Borrowing a player is a shortlist, not a search. The app stars the ones who are eligible, free that day, and not already lent to another match the same week — fewest extra appearances first — so the load spreads instead of landing on whoever answers the group chat fastest.",
+    src: '/assets/halsen/loan-suggest.webm',
+    poster: '/assets/halsen/loan-suggest-poster.jpg',
   },
   {
     n: '05',
@@ -78,7 +81,7 @@ const features = [
           <p class="ft-p">{f.p}</p>
         </div>
         <div class="case-feature-stage">
-          <PhoneVideo src={f.src} poster={f.poster} start={0.5} />
+          <PhoneVideo src={f.src} poster={f.poster} start={f.start ?? 0.5} />
         </div>
       </section>
     ))}
