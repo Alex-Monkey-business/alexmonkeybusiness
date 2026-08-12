@@ -18,6 +18,12 @@ const {
 } = Astro.props;
 
 const htmlStyle = accent ? `--accent: ${accent};` : undefined;
+
+// Absolute URLs, built from `site` in astro.config. Social scrapers reject
+// relative og:image paths, and the canonical tag keeps the netlify.app
+// hostname from competing with the real domain in search.
+const ogImage = new URL('/brand/social-og-image.png', Astro.site).href;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
 ---
 
 <!doctype html>
@@ -37,14 +43,17 @@ const htmlStyle = accent ? `--accent: ${accent};` : undefined;
     <link rel="mask-icon" href="/brand/icons/mask-icon.svg" color="#1a1a1a" />
     <meta name="theme-color" content="#121211" />
 
+    <link rel="canonical" href={canonical} />
+
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/brand/social-og-image.png" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content="/brand/social-og-image.png" />
+    <meta name="twitter:image" content={ogImage} />
 
     <script is:inline>
       // Dark ships on the html tag, so only an explicit opt-out drops it.
