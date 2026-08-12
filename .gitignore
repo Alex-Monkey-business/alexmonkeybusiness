@@ -38,3 +38,6 @@ Thumbs.db
 
 # Local source images (not for repo)
 Pics/
+
+# Alex's in-progress brand assets — keep local until he chooses to publish
+web/public/brand/characters/
