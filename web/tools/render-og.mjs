@@ -16,7 +16,10 @@ import { dirname, resolve } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE = resolve(here, 'og-image.html');
-const OUT = resolve(here, '../public/brand/social-card.png');
+const CARDS = [
+  { lang: 'nb', out: resolve(here, '../public/brand/social-card.png') },
+  { lang: 'en', out: resolve(here, '../public/brand/social-card-en.png') },
+];
 
 const browser = await chromium.launch();
 const page = await browser.newPage({
@@ -24,7 +27,8 @@ const page = await browser.newPage({
   deviceScaleFactor: 2, // 2400x1260 — sharp on retina, still well inside limits
 });
 
-await page.goto(`file://${TEMPLATE}`, { waitUntil: 'networkidle' });
+for (const card of CARDS) {
+await page.goto(`file://${TEMPLATE}?lang=${card.lang}`, { waitUntil: 'networkidle' });
 await page.evaluate(() => document.fonts.ready);
 
 const fonts = await page.evaluate(() => ({
@@ -32,13 +36,13 @@ const fonts = await page.evaluate(() => ({
   sans: document.fonts.check("400 25px 'Figtree'"),
 }));
 if (!fonts.serif || !fonts.sans) {
-  await browser.close();
   throw new Error(
     `Webfonts did not load (EB Garamond: ${fonts.serif}, Figtree: ${fonts.sans}). ` +
       'Refusing to render a card in a fallback font.'
   );
 }
 
-await page.screenshot({ path: OUT, type: 'png' });
+await page.screenshot({ path: card.out, type: 'png' });
+console.log(`wrote ${card.out}`);
+}
 await browser.close();
-console.log(`wrote ${OUT}`);

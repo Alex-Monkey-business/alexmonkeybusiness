@@ -138,6 +138,67 @@ html.dark .nav ul a.nav-cta { border-color: var(--lumen-cream); }
   .nav ul a.nav-cta { font-size: var(--t-14); padding: 7px 12px; }
 }
 
+/* Language switch — shows the language you'd get, not the one you're on.
+   Two letters keeps it the same footprint as the theme icon, so the pill
+   stays compact enough to survive 360px. */
+.nav ul a.nav-lang {
+  font-size: var(--t-14);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 8px 10px;
+  opacity: 0.72;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.nav ul a.nav-lang:hover { opacity: 1; }
+.nav ul a.nav-lang::after { left: 10px; right: 10px; }
+@media (max-width: 640px) {
+  .nav ul a.nav-lang { padding: 6px 7px; }
+  .nav ul a.nav-lang::after { left: 7px; right: 7px; }
+}
+
+/* Soft language suggestion. Sits bottom-centre so it never fights the fixed
+   nav, and ships hidden — script reveals it only when the browser disagrees. */
+.lang-hint {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 10px 12px 10px 18px;
+  background: var(--lumen-cream);
+  color: var(--vast-ink);
+  border: var(--border-w) solid var(--vast-ink);
+  border-radius: var(--r-pill);
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  max-width: calc(100% - 24px);
+}
+.lang-hint[hidden] { display: none; }
+html.dark .lang-hint {
+  background: var(--vast-ink);
+  color: var(--lumen-cream);
+  border-color: var(--lumen-cream);
+}
+.lang-hint svg { width: 15px; height: 15px; flex: none; }
+.lang-hint__close {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 19px;
+  line-height: 1;
+  padding: 0 2px 0 8px;
+  cursor: pointer;
+  opacity: 0.5;
+}
+.lang-hint__close:hover { opacity: 1; }
+
 .theme-toggle {
   background: transparent;
   /* Borderless — a bordered circle beside the bordered CTA is two competing

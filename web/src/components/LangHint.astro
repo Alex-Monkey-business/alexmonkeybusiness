@@ -1,0 +1,55 @@
+---
+import { t, path, otherLang, stripLang, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+const other = otherLang(lang);
+const href = path(other, stripLang(Astro.url.pathname));
+const label = t(lang).switchHint;
+---
+
+{/*
+  A suggestion, not a redirect. Detecting Accept-Language and forcing people
+  somewhere fails in both directions — a Norwegian on an English laptop gets
+  shipped to the wrong page and has to hunt for the switch, and crawlers (which
+  mostly request from the US in en-US) would only ever see one version. This
+  renders hidden and is only revealed client-side when the browser language
+  disagrees with the page, so there is no flash and nothing for SEO to trip on.
+*/}
+<a class="lang-hint" id="lang-hint" href={href} hidden data-target={other}>
+  <span>{label}</span>
+  <svg viewBox="0 0 16 16" aria-hidden="true"
+    ><path d="M3 8h9M8.5 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg
+  >
+  <button type="button" class="lang-hint__close" aria-label="Dismiss">×</button>
+</a>
+
+<script>
+  const hint = document.getElementById('lang-hint');
+  if (hint) {
+    const target = hint.dataset.target; // 'nb' | 'en'
+    const prefersNorwegian = navigator.languages
+      ? navigator.languages.some((l) => /^(nb|nn|no)\b/i.test(l))
+      : /^(nb|nn|no)\b/i.test(navigator.language || '');
+
+    let quiet = false;
+    try {
+      quiet =
+        localStorage.getItem('mb-lang-hint') === 'dismissed' ||
+        localStorage.getItem('mb-lang-chosen') === '1';
+    } catch (_) {}
+
+    // Only offer the language the browser actually asks for.
+    const worthOffering = target === 'nb' ? prefersNorwegian : !prefersNorwegian;
+
+    if (!quiet && worthOffering) hint.hidden = false;
+
+    hint.querySelector('.lang-hint__close')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      hint.hidden = true;
+      try { localStorage.setItem('mb-lang-hint', 'dismissed'); } catch (_) {}
+    });
+  }
+</script>

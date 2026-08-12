@@ -3,6 +3,8 @@ import '../styles/global.css';
 import '../styles/landing.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import LangHint from '../components/LangHint.astro';
+import { langFromUrl, t, path, stripLang, HTML_LANG, LANGS } from '../i18n';
 
 interface Props {
   title?: string;
@@ -11,9 +13,12 @@ interface Props {
   accent?: string;
 }
 
+const lang = langFromUrl(Astro.url);
+const s = t(lang);
+
 const {
   title = 'Alex Monkey Business',
-  description = 'Product design and small software, built end to end.',
+  description = s.site.description,
   accent,
 } = Astro.props;
 
@@ -22,14 +27,26 @@ const htmlStyle = accent ? `--accent: ${accent};` : undefined;
 // Absolute URLs, built from `site` in astro.config. Social scrapers reject
 // relative og:image paths, and the canonical tag keeps the netlify.app
 // hostname from competing with the real domain in search.
-const ogImage = new URL('/brand/social-card.png', Astro.site).href;
+// One card per language — otherwise a Norwegian sharing the Norwegian page
+// gets an English preview. Norwegian keeps the original filename since it is
+// now the default; English gets its own URL, so no platform cache to bust.
+const cardFile = lang === 'nb' ? '/brand/social-card.png' : '/brand/social-card-en.png';
+const ogImage = new URL(cardFile, Astro.site).href;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+// Same page, other language. hreflang is what tells search engines these are
+// translations rather than duplicates — without it the two compete.
+const bare = stripLang(Astro.url.pathname);
+const alternates = LANGS.map((l) => ({
+  lang: HTML_LANG[l],
+  href: new URL(path(l, bare), Astro.site).href,
+}));
 ---
 
 <!doctype html>
 <!-- Dark is the default. It ships on the server-rendered tag so the first
      paint is already velvet — the script below only ever removes it. -->
-<html lang="en" class="dark" style={htmlStyle}>
+<html lang={HTML_LANG[lang]} class="dark" style={htmlStyle}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -44,11 +61,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <meta name="theme-color" content="#121211" />
 
     <link rel="canonical" href={canonical} />
+    {alternates.map((a) => <link rel="alternate" hreflang={a.lang} href={a.href} />)}
+    <link rel="alternate" hreflang="x-default" href={new URL(path('nb', bare), Astro.site).href} />
 
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={lang === 'nb' ? 'nb_NO' : 'en_US'} />
     <meta property="og:image" content={ogImage} />
     <!-- Declared dimensions let Slack and LinkedIn commit to the large-card
          layout on first fetch instead of guessing from a half-loaded image. -->
@@ -73,10 +93,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     </script>
   </head>
   <body>
-    <Nav />
+    <Nav lang={lang} />
+    <LangHint lang={lang} />
     <main id="top">
       <slot />
-      <Footer />
+      <Footer lang={lang} />
     </main>
   </body>
 </html>

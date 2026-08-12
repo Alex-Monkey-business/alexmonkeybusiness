@@ -1,7 +1,7 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import ProjectDetail from '../../components/pages/ProjectDetail.astro';
-import { projects } from '../../data/projects';
+import Layout from '../../../layouts/Layout.astro';
+import ProjectDetail from '../../../components/pages/ProjectDetail.astro';
+import { projects } from '../../../data/projects';
 
 // getStaticPaths has to live in the route file, so it is repeated per locale.
 export function getStaticPaths() {
@@ -15,5 +15,5 @@ const { project } = Astro.props;
 ---
 
 <Layout title={`${project.title}${project.titleEm ? ' ' + project.titleEm : ''} — Alex Monkey Business`}>
-  <ProjectDetail lang="nb" project={project} />
+  <ProjectDetail lang="en" project={project} />
 </Layout>

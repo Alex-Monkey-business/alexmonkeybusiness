@@ -1,0 +1,125 @@
+---
+import PhoneVideo from '../halsen/PhoneVideo.astro';
+import { t, path, type Lang } from '../../i18n';
+import '../../styles/halsen.css';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const s = t(lang).case;
+
+/* Recordings are made against BenchBoss in demo mode — invented players, no
+   database. The real app runs a grassroots team of children, and their names
+   have no business on a public portfolio.
+
+   Media and pacing live here; the prose lives in src/i18n/strings.ts, paired to
+   these by index. */
+const media = [
+  { src: '/assets/halsen/hjem.webm',         poster: '/assets/halsen/hjem-poster.jpg' },
+  // The take opens with eight taps to build the lineup, which reads as a
+  // bottom sheet flapping. Start the loop on the finished pitch instead.
+  { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 9.8 },
+  { src: '/assets/halsen/filter.webm',       poster: '/assets/halsen/filter-poster.jpg' },
+  { src: '/assets/halsen/stats-teams.webm',  poster: '/assets/halsen/stats-teams-poster.jpg' },
+  { src: '/assets/halsen/loan-suggest.webm', poster: '/assets/halsen/loan-suggest-poster.jpg' },
+  { src: '/assets/halsen/handbok.webm',      poster: '/assets/halsen/handbok-poster.jpg' },
+  { src: '/assets/halsen/trening.webm',      poster: '/assets/halsen/trening-poster.jpg' },
+  { src: '/assets/halsen/cup.webm',          poster: '/assets/halsen/cup-poster.jpg' },
+];
+
+const features = s.features.map((f, i) => ({
+  ...f,
+  ...media[i],
+  n: String(i + 1).padStart(2, '0'),
+}));
+---
+
+<div class="case">
+  <a href={path(lang, '/#projects')} class="case-back">{s.back}</a>
+
+  <section class="case-hero">
+    <span class="case-eyebrow">{s.eyebrow}</span>
+    <h1 class="case-title">Bench<span class="em">Boss</span></h1>
+    <p class="case-lede">{s.lede}</p>
+    <p class="case-stackline">Vue 3 · Vite · Pinia · Supabase · Netlify · Vipps · NFF</p>
+  </section>
+
+  {features.map((f, i) => (
+    <section class={`case-feature${i % 2 === 1 ? ' flipped' : ''}`}>
+      <div class="case-feature-copy">
+        <span class="ft-num">{f.n}</span>
+        <h2 class="ft-h">{f.h}</h2>
+        <p class="ft-p">{f.p}</p>
+      </div>
+      <div class="case-feature-stage">
+        <PhoneVideo src={f.src} poster={f.poster} start={f.start ?? 0.5} />
+      </div>
+    </section>
+  ))}
+
+  <section class="case-list">
+    <span class="case-list-label">{s.underHood}</span>
+    <ul>
+      {s.hood.map((h, i) => (
+        <li style={`--i:${i}`}>
+          <span class="n">{String(i + 1).padStart(2, '0')}</span>
+          <span class="text">{h.pre}<em>{h.em}</em>{h.rest}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <div class="case-stack">
+    <span class="live">{s.stack[0]}</span>
+    <span class="sep">·</span>
+    <span>{s.stack[1]}</span>
+    <span class="sep">·</span>
+    <span>{s.stack[2]}</span>
+  </div>
+</div>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // reveal feature sections + list rows on scroll
+  const revealObs = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-in');
+          revealObs.unobserve(e.target);
+        }
+      });
+    },
+    { threshold: 0.18 }
+  );
+  document.querySelectorAll('.case-feature, .case-list li').forEach((el) => revealObs.observe(el));
+
+  // play each real-app recording only while on screen; loop past the first paint
+  const videos = Array.from(document.querySelectorAll<HTMLVideoElement>('.phone-video'));
+  videos.forEach((v) => {
+    const start = Number(v.dataset.start ?? '0');
+    const toStart = () => { if (start && v.currentTime < start) v.currentTime = start; };
+    v.addEventListener('loadedmetadata', toStart);
+    v.addEventListener('timeupdate', () => {
+      if (v.duration && v.currentTime >= v.duration - 0.25) v.currentTime = start || 0;
+    });
+  });
+
+  if (!reduce) {
+    const vidObs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          const v = e.target as HTMLVideoElement;
+          if (e.isIntersecting) {
+            if (v.currentTime < Number(v.dataset.start ?? '0')) v.currentTime = Number(v.dataset.start ?? '0');
+            v.play().catch(() => {});
+          } else {
+            v.pause();
+          }
+        });
+      },
+      { threshold: 0.35 }
+    );
+    videos.forEach((v) => vidObs.observe(v));
+  }
+</script>

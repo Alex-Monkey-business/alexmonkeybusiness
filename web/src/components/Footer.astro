@@ -1,4 +1,9 @@
 ---
+import { t, path, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const s = t(lang);
 const year = new Date().getFullYear();
 ---
 
@@ -7,9 +12,9 @@ const year = new Date().getFullYear();
     <div class="footer-inner">
       <p class="footer-word">Alex<br /><em>Monkey business</em>.</p>
       <ul class="footer-links">
-        <li><a href="mailto:alexander.samnoy@gmail.com">Email</a></li>
-        <li><a href="https://github.com/Alex-Monkey-business" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-        <li><a href="/about">About</a></li>
+        <li><a href="mailto:alexander.samnoy@gmail.com">{s.footer.email}</a></li>
+        <li><a href="https://github.com/Alex-Monkey-business" target="_blank" rel="noopener noreferrer">{s.footer.github}</a></li>
+        <li><a href={path(lang, '/about')}>{s.footer.about}</a></li>
       </ul>
     </div>
     <p class="footer-meta">Alex Samnøy · {year}</p>

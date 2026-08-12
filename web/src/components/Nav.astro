@@ -1,15 +1,25 @@
 ---
 import AmbMark from './brand/AmbMark.astro';
+import { t, path, otherLang, stripLang, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const s = t(lang);
+
+const other = otherLang(lang);
+const bare = stripLang(Astro.url.pathname);
+// Land on the same page in the other language, not back at the front page.
+const switchHref = path(other, bare);
 ---
 
 <nav class="nav" id="nav">
-  <a href="/#top" class="nav-home" aria-label="home">
+  <a href={path(lang, '/#top')} class="nav-home" aria-label="home">
     <AmbMark height={26} class="mark" />
   </a>
 
   <ul>
-    <li class="nav-secondary"><a href="/#projects">Projects</a></li>
-    <li><a href="/about">About</a></li>
+    <li class="nav-secondary"><a href={path(lang, '/#projects')}>{s.nav.projects}</a></li>
+    <li><a href={path(lang, '/about')}>{s.nav.about}</a></li>
     <li>
       <button
         class="theme-toggle"
@@ -45,7 +55,12 @@ import AmbMark from './brand/AmbMark.astro';
       </button>
     </li>
     <li>
-      <a class="nav-cta" href="mailto:alexander.samnoy@gmail.com">Get in touch</a>
+      <a class="nav-lang" href={switchHref} hreflang={other === 'nb' ? 'nb-NO' : 'en'} data-lang-switch>
+        {other === 'nb' ? 'NO' : 'EN'}
+      </a>
+    </li>
+    <li>
+      <a class="nav-cta" href="mailto:alexander.samnoy@gmail.com">{s.nav.cta}</a>
     </li>
   </ul>
 </nav>
@@ -61,5 +76,11 @@ import AmbMark from './brand/AmbMark.astro';
   toggle?.addEventListener('click', () => {
     const isDark = document.documentElement.classList.toggle('dark');
     localStorage.setItem('mb-theme', isDark ? 'dark' : 'light');
+  });
+
+  // Using the switch is an explicit choice — remember it so the hint stops
+  // offering the language they just declined.
+  document.querySelector('[data-lang-switch]')?.addEventListener('click', () => {
+    try { localStorage.setItem('mb-lang-chosen', '1'); } catch (_) {}
   });
 </script>

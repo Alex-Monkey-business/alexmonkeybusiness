@@ -1,0 +1,27 @@
+---
+import { t, type Lang } from '../../i18n';
+import '../../styles/about.css';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const s = t(lang).about;
+---
+
+<section class="about">
+  <div class="about-grid">
+    <figure class="about-portrait">
+      <img src="/assets/about/alex.png" alt="Alexander Samnøy" />
+    </figure>
+
+    <div class="about-copy">
+      <span class="about-eyebrow" style="--i:0">{s.eyebrow}</span>
+      <h1 class="about-title">
+        <span class="line" style="--i:1">{s.title}<em>.</em></span>
+      </h1>
+      <p class="about-body">
+        <span class="line" style="--i:2">{s.body1a} <em>{s.body1em}</em>.</span>
+        <span class="line" style="--i:3">{s.body2}</span>
+      </p>
+    </div>
+  </div>
+</section>

@@ -111,7 +111,17 @@
         >
       </h1>
 
-      <p class="lede">Product design and small software, built end to end.</p>
+      <p class="lede" id="lede">Product design and small software, built end to end.</p>
     </div>
-  </body>
+    <script>
+    // The card is rendered twice, once per language. Only the lede differs —
+    // "Alex Monkey business." is the brand and stays put.
+    const LEDE = {
+      nb: 'Produktdesign og små apper, bygget fra ende til ende.',
+      en: 'Product design and small software, built end to end.',
+    };
+    const lang = new URLSearchParams(location.search).get('lang') || 'en';
+    document.getElementById('lede').textContent = LEDE[lang] || LEDE.en;
+  </script>
+</body>
 </html>
