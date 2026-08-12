@@ -80,7 +80,7 @@
         font-size: 25px;
         line-height: 1.3;
         color: var(--fog);
-        white-space: nowrap;   /* one line — no orphaned "end to end." */
+        white-space: pre-line;  /* the copy breaks itself — see LEDE below */
       }
     </style>
   </head>
@@ -111,14 +111,15 @@
         >
       </h1>
 
-      <p class="lede" id="lede">Product design and small software, built end to end.</p>
+      <p class="lede" id="lede">Small things. Big plans. And a couple that actually got finished.</p>
     </div>
     <script>
     // The card is rendered twice, once per language. Only the lede differs —
-    // "Alex Monkey business." is the brand and stays put.
+    // "Alex Monkey business." is the brand and stays put. The newline is the
+    // same break the site makes: the punchline gets its own line.
     const LEDE = {
-      nb: 'Produktdesign og små apper, bygget fra ende til ende.',
-      en: 'Product design and small software, built end to end.',
+      nb: 'Små ting. Store planer.\nOg et par ting som faktisk ble ferdige.',
+      en: 'Small things. Big plans.\nAnd a couple that actually got finished.',
     };
     const lang = new URLSearchParams(location.search).get('lang') || 'en';
     document.getElementById('lede').textContent = LEDE[lang] || LEDE.en;

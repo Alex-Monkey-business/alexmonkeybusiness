@@ -24,7 +24,8 @@ const s = t(lang);
     </h1>
 
     <p class="lede">
-{s.hero.lede}
+      <span>{s.hero.lede1}</span>
+      <span>{s.hero.lede2}</span>
     </p>
 
     <div class="hero-actions">
@@ -68,7 +69,7 @@ const s = t(lang);
                   {p.titleEm && <em>{' '}{p.titleEm}</em>}
                 </h3>
 
-                {(s.projects[p.slug] ?? p.subtitle) && <p class="card-sub">{s.projects[p.slug] ?? p.subtitle}</p>}
+                {s.projects[p.slug] && <p class="card-sub">{s.projects[p.slug]}</p>}
 
                 <span class="card-cta">
                   {external ? s.card.visitSite : s.card.readCase}
@@ -117,6 +118,8 @@ const s = t(lang);
   /* A pale accent dot is invisible on cream — em-color reads in both themes */
   .display .period { color: var(--em-color); }
 
+  /* Two short lines, each on its own — the second is the punchline and only
+     lands if it isn't wrapped into the first. 46ch holds both without breaking. */
   .lede {
     margin: var(--s-10) 0 0;
     max-width: 46ch;
@@ -126,6 +129,7 @@ const s = t(lang);
     line-height: var(--lh-normal);
     color: var(--fg2);
   }
+  .lede span { display: block; }
 
   .hero-actions {
     margin-top: var(--s-10);

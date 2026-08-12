@@ -19,35 +19,34 @@ export const strings = {
   nb: {
     label: 'Norsk',
     site: {
-      description: 'Produktdesign og små apper, bygget fra ende til ende.',
+      description: 'Små ting. Store planer. Og et par ting som faktisk ble ferdige.',
       aboutTitle: 'Om — Alex Monkey Business',
     },
     nav: { projects: 'Prosjekter', about: 'Om', cta: 'Ta kontakt' },
     hero: {
-      lede: 'Produktdesign og små apper, bygget fra ende til ende. Sideprosjekter og verktøy for folk jeg kjenner.',
+      lede1: 'Små ting. Store planer.',
+      lede2: 'Og et par ting som faktisk ble ferdige.',
       seeWork: 'Se arbeidet',
       getInTouch: 'Ta kontakt',
     },
     work: {
       count: (n: number) => `${n} prosjekter`,
       titleA: 'Ting jeg har',
-      titleEm: 'bygget',
+      titleEm: 'laget',
     },
     card: { readCase: 'Les caset', visitSite: 'Se siden', inProgress: 'Underveis' },
     footer: { email: 'E-post', github: 'GitHub', about: 'Om' },
     about: {
-      eyebrow: 'Om',
-      title: 'Bygger',
-      body1a: 'Produktmann av yrke. Sideprosjekter av',
-      body1em: 'natur',
-      body2: 'Inspirert av Elon Musks ambisjon og Candide Thovex’ flyt.',
+      eyebrow: 'Alexander Samnøy',
+      title: 'Har en tendens til å få idéer',
+      body: 'Noen av dem slipper jeg ikke før de finnes.',
     },
     detail: { back: '← Tilbake', wip: 'underveis', comingSoon: 'Kommer snart.' },
     /** Offered to visitors whose browser is not Norwegian. */
     switchHint: 'Read in English',
     case: {
       eyebrow: 'Case — Halsen G2015',
-      lede: 'Full kontroll på laget. Mesteparten på autopilot.',
+      lede: 'En hel sesong i én app. Det meste passer seg selv.',
       back: '← Tilbake',
       underHood: 'Under panseret',
       hood: [
@@ -60,76 +59,76 @@ export const strings = {
       features: [
         {
           h: 'Åpner på dagen du er i.',
-          p: 'Neste økt, neste kamp, og det som fortsatt henger. Ingenting annet på skjermen.',
+          p: 'Neste økt, neste kamp, og det som fortsatt henger. Ingenting annet.',
         },
         {
           h: 'Minuttene teller seg selv.',
-          p: 'Sett laget på banen, så blås i gang. Hver spiller har sin egen klokke: en innbytter som kommer inn i det åttende minuttet starter på null mens kampklokka går videre.',
+          p: 'Sett laget på banen og blås i gang. Hver spiller har sin egen klokke.',
         },
         {
           h: 'Tre lag, ett om gangen.',
-          p: 'Tre lag ut av én klubb. Trykk på en farge, og sesongen blir det lagets sesong. Tallene står på fanene.',
+          p: 'Trykk på en farge. Sesongen blir det lagets sesong.',
         },
         {
           h: 'Er lagene jevne?',
-          p: 'Spilt, vunnet, uavgjort, målforskjell, poeng — per lag, ikke per klubb. Ingen tabell viser deg det.',
+          p: 'Spilt, vunnet, målforskjell — per lag, ikke per klubb. Ingen tabell viser deg det.',
         },
         {
-          h: 'Den foreslår innbytteren.',
-          p: 'Appen stjernemerker de som er egnet, ledige den dagen, og ikke alt lånt ut den uka. Færrest ekstrakamper først, så belastningen fordeles i stedet for å havne på den som svarer først i gruppechatten.',
+          h: 'Den finner hvem som kan steppe inn.',
+          p: 'Ledig den dagen, ikke lånt ut den uka, færrest ekstrakamper først. Gruppechatten får hvile litt.',
         },
         {
           h: 'Hvorfor-et, skrevet ned.',
-          p: 'Sju prinsipper for hvordan dette laget trener. En vikar på en tirsdag kjører samme fotball som lørdagen før. Det ligger i appen, ikke i en PDF.',
+          p: 'Sju prinsipper for hvordan laget trener. En vikar på tirsdag kjører samme fotball som lørdagen før.',
         },
         {
           h: 'Økter med ryggrad.',
-          p: 'Perioder holder økter, økter holder øvelser. Hver øvelse har sitt fokus og en tyngre variant. Uka er skrevet ned, ikke husket.',
+          p: 'Perioder, økter, øvelser. Uka er skrevet ned, ikke husket.',
         },
         {
-          h: 'En hel turnering, to lag.',
-          p: 'Tolv kamper over to dager, to Halsen-lag. Bane, avspark, kampnummer, filtrert per lag. Én skjerm i stedet for et utskrevet ark.',
+          h: 'Tolv kamper. To dager. To lag.',
+          p: 'Alt på ett sted. Bane, avspark og kampnummer, filtrert per lag.',
         },
       ],
     },
     projects: {
-      'halsen-g15': 'trenerapp for fotballag',
-      'ai-meetup-larvik': 'eventside + invitasjon',
-      'larvik-beach-volley': 'forslag om innendørsbane i Agnespark',
+      'halsen-g15': 'Mindre styr. Mer fotball.',
+      'ai-meetup-larvik': 'En kveld om AI. Uten dresskode.',
+      'larvik-beach-volley': 'Sand er best inne også.',
+      diggski: 'Ikke helt klar ennå. Men på vei et sted.',
     } as Record<string, string>,
   },
 
   en: {
     label: 'English',
     site: {
-      description: 'Product design and small software, built end to end.',
+      description: 'Small things. Big plans. And a couple that actually got finished.',
       aboutTitle: 'About — Alex Monkey Business',
     },
     nav: { projects: 'Projects', about: 'About', cta: 'Get in touch' },
     hero: {
-      lede: 'Product design and small software, built end to end. Side projects and tools for people I know.',
+      lede1: 'Small things. Big plans.',
+      lede2: 'And a couple that actually got finished.',
       seeWork: 'See the work',
       getInTouch: 'Get in touch',
     },
     work: {
       count: (n: number) => `${n} projects`,
       titleA: "Things I've",
-      titleEm: 'shipped',
+      titleEm: 'made',
     },
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
     footer: { email: 'Email', github: 'GitHub', about: 'About' },
     about: {
-      eyebrow: 'About',
-      title: 'Builder',
-      body1a: 'Product guy by profession. Side hustles by',
-      body1em: 'nature',
-      body2: 'Inspired by Elon Musk’s ambition and Candide Thovex’s flow.',
+      eyebrow: 'Alexander Samnøy',
+      title: 'Prone to getting ideas',
+      body: "Some of them I won't let go of until they exist.",
     },
     detail: { back: '← Back', wip: 'in progress', comingSoon: 'Coming soon.' },
     switchHint: 'Les på norsk',
     case: {
       eyebrow: 'Case — Halsen G2015',
-      lede: 'Full control of the team. Most of it on autopilot.',
+      lede: 'A whole season in one app. Most of it looks after itself.',
       back: '← Back',
       underHood: 'Under the hood',
       hood: [
@@ -142,42 +141,43 @@ export const strings = {
       features: [
         {
           h: "Opens to the day you're in.",
-          p: 'The next session, the next match, and whatever is still unfinished. Nothing else on the screen.',
+          p: 'The next session, the next match, and whatever is still unfinished. Nothing else.',
         },
         {
           h: 'Every minute counts itself.',
-          p: "Build the team on the pitch, then kick off. Each player's clock runs on its own: a substitute coming on in the eighth minute starts at zero while the match clock carries on.",
+          p: "Put the team on the pitch and kick off. Every player has their own clock.",
         },
         {
           h: 'Three teams, one at a time.',
-          p: "Three squads out of one club. Tap a colour and the season becomes that squad's season. The counts are on the tabs.",
+          p: "Tap a colour. The season becomes that squad's season.",
         },
         {
           h: 'Are the teams even?',
-          p: 'Played, won, drawn, goal difference, points — per squad rather than per club. No league table shows you that.',
+          p: 'Played, won, goal difference — per squad, not per club. No league table shows you that.',
         },
         {
-          h: 'It picks the stand-in for you.',
-          p: 'The app stars whoever is eligible, free that day, and not already lent out that week. Fewest extra appearances first, so the load spreads instead of landing on whoever answers the group chat fastest.',
+          h: 'It finds who can step in.',
+          p: 'Free that day, not already lent out that week, fewest extra appearances first. The group chat gets a rest.',
         },
         {
           h: 'The why, written down.',
-          p: 'Seven principles for how this team trains. A stand-in on a Tuesday runs the same football as the Saturday before. It lives in the app, not a PDF.',
+          p: 'Seven principles for how the team trains. A stand-in on Tuesday runs the same football as the Saturday before.',
         },
         {
           h: 'Sessions with a spine.',
-          p: 'Periods hold sessions, sessions hold drills. Every drill carries its focus and a harder variant. The week is written down rather than remembered.',
+          p: 'Periods, sessions, drills. The week is written down rather than remembered.',
         },
         {
-          h: 'A whole tournament, two teams.',
-          p: 'Twelve matches over two days, two Halsen sides. Pitch, kick-off, match number, filtered per team. One screen instead of a printed sheet.',
+          h: 'Twelve matches. Two days. Two teams.',
+          p: 'All in one place. Pitch, kick-off and match number, filtered per team.',
         },
       ],
     },
     projects: {
-      'halsen-g15': 'coaching app for football teams',
-      'ai-meetup-larvik': 'event page + invite',
-      'larvik-beach-volley': 'pitch for an indoor court at Agnes park',
+      'halsen-g15': 'Less hassle. More football.',
+      'ai-meetup-larvik': 'An evening about AI. No dress code.',
+      'larvik-beach-volley': 'Sand belongs indoors too.',
+      diggski: "Not quite ready. But headed somewhere.",
     } as Record<string, string>,
   },
 } as const;
