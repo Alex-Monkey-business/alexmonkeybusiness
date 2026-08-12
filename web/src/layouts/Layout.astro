@@ -50,6 +50,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
+    <!-- Declared dimensions let Slack and LinkedIn commit to the large-card
+         layout on first fetch instead of guessing from a half-loaded image. -->
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="Alex Monkey business." />
+    <meta property="og:site_name" content="Alex Monkey Business" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
