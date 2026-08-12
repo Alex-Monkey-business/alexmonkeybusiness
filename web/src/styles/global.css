@@ -20,7 +20,27 @@ body {
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
+
+  /* Pin the footer to the bottom on short pages. Without this, About on a tall
+     window left ~70px of page background showing under the footer band, which
+     reads as a stray dark stripe because the two have different fills. */
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+body > main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+/* Grows to fill, so the footer keeps its 96px gap on long pages instead of
+   being yanked down by margin-top: auto. A column so a short page can hand the
+   leftover height to its own content instead of leaving a void above the
+   footer — see .about, which centres in it. */
+body > main > .page {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 a {

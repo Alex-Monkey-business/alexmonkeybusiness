@@ -1,5 +1,5 @@
 ---
-import { t, path, type Lang } from '../i18n';
+import { t, type Lang } from '../i18n';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -14,7 +14,6 @@ const year = new Date().getFullYear();
       <ul class="footer-links">
         <li><a href="mailto:alexander.samnoy@gmail.com">{s.footer.email}</a></li>
         <li><a href="https://github.com/Alex-Monkey-business" target="_blank" rel="noopener noreferrer">{s.footer.github}</a></li>
-        <li><a href={path(lang, '/about')}>{s.footer.about}</a></li>
       </ul>
     </div>
     <p class="footer-meta">Alex Samnøy · {year}</p>

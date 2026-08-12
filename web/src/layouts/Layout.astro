@@ -96,7 +96,7 @@ const alternates = LANGS.map((l) => ({
     <Nav lang={lang} />
     <LangHint lang={lang} />
     <main id="top">
-      <slot />
+      <div class="page"><slot /></div>
       <Footer lang={lang} />
     </main>
   </body>

@@ -405,17 +405,20 @@ html.dark .btn-secondary:hover { background: #2c2c2a; }
 
 .footer-inner {
   display: flex;
-  align-items: flex-end;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--s-8);
   flex-wrap: wrap;
 }
+/* A sign-off, not a second headline. At 64px this was the largest type on the
+   About page — louder than the page's own title — and it repeats the hero
+   verbatim. Quiet enough now that the links can sit beside it. */
 .footer-word {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(32px, 6vw, 64px);
-  line-height: var(--lh-snug);
-  letter-spacing: var(--tr-snug);
+  font-size: clamp(24px, 2.6vw, 34px);
+  line-height: var(--lh-normal);
+  letter-spacing: -0.02em;
   margin: 0;
 }
 .footer-word em {
