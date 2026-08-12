@@ -22,7 +22,7 @@ const htmlStyle = accent ? `--accent: ${accent};` : undefined;
 // Absolute URLs, built from `site` in astro.config. Social scrapers reject
 // relative og:image paths, and the canonical tag keeps the netlify.app
 // hostname from competing with the real domain in search.
-const ogImage = new URL('/brand/social-og-image.png', Astro.site).href;
+const ogImage = new URL('/brand/social-card.png', Astro.site).href;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 ---
 
