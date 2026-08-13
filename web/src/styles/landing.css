@@ -271,12 +271,13 @@ html.dark .nav-burger:hover { background: var(--lumen-cream); color: var(--vast-
   overflow: auto;
   overscroll-behavior: contain;
 
-  /* Inverts whatever the page is: velvet page opens to cream, cream page
-     opens to ink. A velvet panel over a velvet page changed almost nothing
-     on screen — the menu opened and you could barely tell. Every colour
-     below is currentColor or --bg so both directions come out right. */
-  background: var(--fg1);
-  color: var(--bg);
+  /* Follows the theme, exactly like the pill it unfolds from. It briefly
+     inverted the page instead — which made the menu go BLACK in light mode,
+     so tapping "light" inside it turned it dark. The one thing a theme
+     control must never do is contradict itself. In dark mode the panel sits
+     on --surface-chamber, a step up from the page, so opening still reads. */
+  background: var(--lumen-cream);
+  color: var(--vast-ink);
   flex-direction: column;
 
   opacity: 0;
@@ -284,6 +285,10 @@ html.dark .nav-burger:hover { background: var(--lumen-cream); color: var(--vast-
     opacity 220ms var(--ease-out),
     display 220ms allow-discrete,
     overlay 220ms allow-discrete;
+}
+html.dark .nav-panel {
+  background: var(--surface-chamber);
+  color: var(--lumen-cream);
 }
 .nav-panel:popover-open { display: flex; opacity: 1; }
 @starting-style {
