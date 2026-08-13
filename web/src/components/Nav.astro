@@ -10,6 +10,9 @@ const other = otherLang(lang);
 const bare = stripLang(Astro.url.pathname);
 // Land on the same page in the other language, not back at the front page.
 const switchHref = path(other, bare);
+const otherCode = other === 'nb' ? 'NO' : 'EN';
+const otherHreflang = other === 'nb' ? 'nb-NO' : 'en';
+const mailto = 'mailto:alexander.samnoy@gmail.com';
 ---
 
 <nav class="nav" id="nav">
@@ -17,53 +20,76 @@ const switchHref = path(other, bare);
     <AmbMark height={26} class="mark" />
   </a>
 
-  <ul>
-    <li class="nav-secondary"><a href={path(lang, '/#projects')}>{s.nav.projects}</a></li>
+  {/* The full pill, desktop only. Below 640px it does not fit — the last
+      attempt kept it and simply dropped "Prosjekter" on the floor. */}
+  <ul class="nav-wide">
+    <li><a href={path(lang, '/#projects')}>{s.nav.projects}</a></li>
     <li><a href={path(lang, '/about')}>{s.nav.about}</a></li>
     <li>
-      <button
-        class="theme-toggle"
-        id="theme-toggle"
-        type="button"
-        aria-label="Toggle dark mode"
-      >
-        <svg
-          class="icon-moon"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>
-        <svg
-          class="icon-sun"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="4"></circle>
           <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
         </svg>
       </button>
     </li>
     <li>
-      <a class="nav-lang" href={switchHref} hreflang={other === 'nb' ? 'nb-NO' : 'en'} data-lang-switch>
-        {other === 'nb' ? 'NO' : 'EN'}
-      </a>
+      <a class="nav-lang" href={switchHref} hreflang={otherHreflang} data-lang-switch>{otherCode}</a>
     </li>
     <li>
-      <a class="nav-cta" href="mailto:alexander.samnoy@gmail.com">{s.nav.cta}</a>
+      <a class="nav-cta" href={mailto}>{s.nav.cta}</a>
     </li>
   </ul>
+
+  {/* Mobile only. popovertarget is the whole mechanism — open, Escape,
+      click-outside and top-layer stacking are the browser's job, not a
+      script's. Two strokes rather than three: the site does not do three of
+      anything. */}
+  <button class="nav-burger" type="button" popovertarget="nav-panel" aria-label={s.nav.menu}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <path d="M4 9.5h16M4 15.5h16"></path>
+    </svg>
+  </button>
 </nav>
+
+{/* The pill, opened out into the whole screen. Velvet in both themes, like
+    every other chamber on the site. */}
+<div id="nav-panel" popover class="nav-panel">
+  <div class="nav-panel-top">
+    <a href={path(lang, '/#top')} class="nav-home" aria-label="home">
+      <AmbMark height={26} class="mark" />
+    </a>
+    <button class="nav-burger nav-panel-close" type="button" popovertarget="nav-panel" popovertargetaction="hide" aria-label={s.nav.close}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18"></path>
+      </svg>
+    </button>
+  </div>
+
+  <ul class="nav-panel-links">
+    <li><a href={path(lang, '/#projects')}>{s.nav.projects}</a></li>
+    <li><a href={path(lang, '/about')}>{s.nav.about}</a></li>
+  </ul>
+
+  <div class="nav-panel-foot">
+    <a class="nav-cta" href={mailto}>{s.nav.cta}</a>
+    <div class="nav-panel-utils">
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+        </svg>
+      </button>
+      <a class="nav-lang" href={switchHref} hreflang={otherHreflang} data-lang-switch>{otherCode}</a>
+    </div>
+  </div>
+</div>
 
 <script>
   const nav = document.getElementById('nav');
@@ -72,15 +98,31 @@ const switchHref = path(other, bare);
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  const toggle = document.getElementById('theme-toggle');
-  toggle?.addEventListener('click', () => {
-    const isDark = document.documentElement.classList.toggle('dark');
-    localStorage.setItem('mb-theme', isDark ? 'dark' : 'light');
+  // Two of these exist — one in the pill, one in the panel — so the click
+  // handler is bound by class rather than by id.
+  document.querySelectorAll('.theme-toggle').forEach((el) => {
+    el.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('mb-theme', isDark ? 'dark' : 'light');
+    });
   });
 
   // Using the switch is an explicit choice — remember it so the hint stops
   // offering the language they just declined.
-  document.querySelector('[data-lang-switch]')?.addEventListener('click', () => {
-    try { localStorage.setItem('mb-lang-chosen', '1'); } catch (_) {}
+  document.querySelectorAll('[data-lang-switch]').forEach((el) => {
+    el.addEventListener('click', () => {
+      try { localStorage.setItem('mb-lang-chosen', '1'); } catch (_) {}
+    });
+  });
+
+  // The one thing the popover cannot do on its own: a link to an anchor on
+  // the page you are already on does not navigate, so the panel would stay
+  // open over the section it just scrolled you to. Everything else about
+  // this menu still works with no JS at all.
+  const panel = document.getElementById('nav-panel');
+  panel?.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', () => {
+      if ('hidePopover' in panel) (panel as HTMLElement & { hidePopover(): void }).hidePopover();
+    });
   });
 </script>

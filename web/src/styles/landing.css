@@ -103,13 +103,13 @@ html.dark .nav {
 .nav ul a:hover::after {
   transform: scaleX(1);
 }
+/* Below 640px the pill is the mark and the burger, nothing else. Shrinking
+   type and dropping "Prosjekter" was the old answer, and it left the section
+   unreachable from a phone. */
 @media (max-width: 640px) {
-  .nav ul { gap: 0; }
-  .nav ul a { font-size: var(--t-14); padding: 6px 9px; }
-  .nav ul a::after { left: 9px; right: 9px; }
-  /* Projects is an anchor to a section one scroll down — the pill can't fit
-     it at 360px without the CTA label wrapping */
-  .nav ul li.nav-secondary { display: none; }
+  /* Must out-specify `.nav ul` (0-1-1) — a bare `.nav-wide` (0-1-0) loses to
+     it and the pill keeps laying the whole menu out off the side of the phone. */
+  .nav ul.nav-wide { display: none; }
 }
 
 /* Accent CTA pinned to the right of the pill.
@@ -134,10 +134,6 @@ html.dark .nav {
 html.dark .nav ul a.nav-cta { border-color: var(--lumen-cream); }
 /* The button is its own affordance — no sliding underline on top of it */
 .nav ul a.nav-cta::after { display: none; }
-@media (max-width: 640px) {
-  .nav ul a.nav-cta { font-size: var(--t-14); padding: 7px 12px; }
-}
-
 /* Language switch — shows the language you'd get, not the one you're on.
    Two letters keeps it the same footprint as the theme icon, so the pill
    stays compact enough to survive 360px. */
@@ -151,11 +147,6 @@ html.dark .nav ul a.nav-cta { border-color: var(--lumen-cream); }
 }
 .nav ul a.nav-lang:hover { opacity: 1; }
 .nav ul a.nav-lang::after { left: 10px; right: 10px; }
-@media (max-width: 640px) {
-  .nav ul a.nav-lang { padding: 6px 7px; }
-  .nav ul a.nav-lang::after { left: 7px; right: 7px; }
-}
-
 /* Soft language suggestion. Sits bottom-centre so it never fights the fixed
    nav, and ships hidden — script reveals it only when the browser disagrees. */
 .lang-hint {
@@ -236,6 +227,149 @@ html.dark .theme-toggle .icon-moon { display: none; }
   .theme-toggle { width: 30px; height: 30px; margin-inline: 0; }
   .theme-toggle svg { width: 14px; height: 14px; }
 }
+
+
+/* ============ BURGER + FULL-SCREEN PANEL (mobile) ============ */
+/* The whole menu is a native popover. Opening, Escape, click-outside and
+   top-layer stacking are the browser's, not a script's — the same reasoning
+   as the view transitions in global.css. */
+.nav-burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.nav-burger svg { width: 20px; height: 20px; display: block; }
+.nav-burger:hover { background: var(--vast-ink); color: var(--lumen-cream); }
+html.dark .nav-burger:hover { background: var(--lumen-cream); color: var(--vast-ink); }
+@media (max-width: 640px) {
+  .nav-burger { display: inline-flex; }
+}
+
+.nav-panel {
+  /* Undo the UA popover box, which is a centred bordered card */
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  /* Left padding lands the mark where the pill's mark sits, so opening the
+     menu reads as the pill unfolding rather than a new screen arriving. */
+  padding: 17px 20px calc(env(safe-area-inset-bottom, 0px) + 36px) 26px;
+  overflow: auto;
+  overscroll-behavior: contain;
+
+  /* Inverts whatever the page is: velvet page opens to cream, cream page
+     opens to ink. A velvet panel over a velvet page changed almost nothing
+     on screen — the menu opened and you could barely tell. Every colour
+     below is currentColor or --bg so both directions come out right. */
+  background: var(--fg1);
+  color: var(--bg);
+  flex-direction: column;
+
+  opacity: 0;
+  transition:
+    opacity 220ms var(--ease-out),
+    display 220ms allow-discrete,
+    overlay 220ms allow-discrete;
+}
+.nav-panel:popover-open { display: flex; opacity: 1; }
+@starting-style {
+  .nav-panel:popover-open { opacity: 0; }
+}
+/* Above the breakpoint nothing can open it, but a popover that is display:none
+   cannot be shown by a stray hash or script either. */
+@media (min-width: 641px) {
+  .nav-panel { display: none !important; }
+}
+
+.nav-panel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-panel .nav-home,
+.nav-panel .nav-burger { color: inherit; }
+.nav-panel .nav-burger { display: inline-flex; }
+.nav-panel .nav-burger:hover { background: transparent; opacity: 0.6; }
+
+/* Display scale, because there are two of them and the screen is empty */
+.nav-panel-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-2);
+}
+.nav-panel-links a {
+  display: block;
+  padding: 6px 0;
+  font-family: var(--font-display);
+  font-size: clamp(40px, 13vw, 60px);
+  font-weight: 400;
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tr-snug);
+  color: inherit;
+  text-decoration: none;
+}
+.nav-panel-links a:active { opacity: 0.55; }
+
+.nav-panel-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-5);
+}
+.nav-panel .nav-cta {
+  font-family: var(--font-ui);
+  font-size: var(--t-16);
+  font-weight: 500;
+  line-height: 1;
+  background: var(--lavender);
+  color: var(--vast-ink);
+  border: var(--border-w) solid currentColor;
+  border-radius: var(--r-pill);
+  padding: 15px 26px;
+  text-decoration: none;
+}
+.nav-panel-utils {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.nav-panel .theme-toggle {
+  width: 38px;
+  height: 38px;
+  margin: 0;
+  color: inherit;
+}
+.nav-panel .theme-toggle:hover { background: transparent; color: inherit; opacity: 0.6; }
+.nav-panel .nav-lang {
+  font-family: var(--font-ui);
+  font-size: var(--t-14);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.75;
+  padding: 8px 10px;
+}
+.nav-panel .nav-lang:hover { opacity: 1; }
 
 /* ============ SHARED PRIMITIVES ============ */
 
@@ -375,6 +509,7 @@ html.dark .theme-toggle .icon-moon { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-home, .nav ul a, .nav ul a::after, .theme-toggle { transition: none; }
+  .nav-home, .nav ul a, .nav ul a::after, .theme-toggle, .nav-burger { transition: none; }
+  .nav-panel { transition: none; }
   .nav-home:hover { transform: none; }
 }

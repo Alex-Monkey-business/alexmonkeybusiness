@@ -22,7 +22,7 @@ export const strings = {
       description: 'Små ting. Store planer. Og et par ting som faktisk ble ferdige.',
       aboutTitle: 'Om — Alex Monkey Business',
     },
-    nav: { projects: 'Prosjekter', about: 'Om', cta: 'Ta kontakt' },
+    nav: { projects: 'Prosjekter', about: 'Om', cta: 'Ta kontakt', menu: 'Meny', close: 'Lukk' },
     /** Same word as the nav item, so clicking «Prosjekter» lands on «Prosjekter». */
     work: { label: 'Prosjekter' },
     card: { readCase: 'Les caset', visitSite: 'Se siden', inProgress: 'Underveis' },
@@ -95,7 +95,7 @@ export const strings = {
       description: 'Small things. Big plans. And a couple that actually got finished.',
       aboutTitle: 'About — Alex Monkey Business',
     },
-    nav: { projects: 'Projects', about: 'About', cta: 'Get in touch' },
+    nav: { projects: 'Projects', about: 'About', cta: 'Get in touch', menu: 'Menu', close: 'Close' },
     /** Same word as the nav item, so clicking "Projects" lands on "Projects". */
     work: { label: 'Projects' },
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
