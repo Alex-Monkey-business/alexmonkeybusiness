@@ -10,9 +10,8 @@ const s = t(lang);
 
 <>
   {/* The hero says a name and nothing else. What used to be a lede and two
-      buttons is now the squiggle drawing itself and a dot that breathes —
-      the page has to earn its first sentence, and the first sentence is on
-      a card further down. */}
+      buttons is now the squiggle writing itself — the page has to earn its
+      first sentence, and the first sentence is on a card further down. */}
   <section class="hero band">
     <h1 class="display">
       <span class="line dim">Alex</span>
@@ -26,12 +25,6 @@ const s = t(lang);
           ></span>
       </span>
     </h1>
-
-    {/* The only affordance up here. No word — but a keyboard and a screen
-        reader cannot see a dot pulse, so the label stays for them. */}
-    <a class="scroll-cue" href="#projects" aria-label={s.hero.seeWork}>
-      <span class="cue-dot" aria-hidden="true"></span>
-    </a>
   </section>
 
   <section class="work band" id="projects">
@@ -118,17 +111,15 @@ const s = t(lang);
 <style>
   /* ===== hero — one screen, one name =====
      Height is capped as well as floored. Pinned to a bare 100svh, a tall
-     display stretched the gap between the name and the cue into a void
-     rather than air, and the chamber below fell off the screen entirely.
-     Capped, the hero is still the whole view on a laptop or a phone, and on
-     anything taller the cards start to show — which is the invitation. */
+     display stretched the hero into a void and pushed the chamber off the
+     screen entirely. Capped, the hero is still the whole view on a laptop or
+     a phone, and on anything taller the cards start to show — which is the
+     invitation, and the reason there is no scroll cue to make it. */
   .hero {
     min-height: min(100svh, 880px);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    /* The name and the cue travel together, with bounded air between them */
-    gap: clamp(56px, 11vh, 132px);
     padding-top: clamp(88px, 12vh, 168px);
     padding-bottom: var(--s-12);
   }
@@ -173,50 +164,6 @@ const s = t(lang);
     to { clip-path: inset(0 -2% 0 0); }
   }
 
-  /* ===== scroll cue ===== */
-  .scroll-cue {
-    align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    /* 44px of target around a 10px dot */
-    width: 44px;
-    height: 44px;
-    margin-left: -17px;
-    border-radius: var(--r-pill);
-  }
-  .scroll-cue:focus-visible {
-    outline: 2px solid var(--ember-glow);
-    outline-offset: 2px;
-  }
-  /* The dot falls rather than pulses. Pulsing said "I am here", which read as
-     decoration — Alex had to ask what it was. Falling says "down", and it says
-     it without a word, an arrow or a second element. */
-  .cue-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: var(--r-pill);
-    background: var(--ember-glow);
-    /* `backwards` holds the 0% keyframe through the delay, so the dot is
-       absent until the name has landed and the first fall IS its entrance.
-       Without it the dot sat visible and still, then blinked out to start. */
-    animation: cue-fall 2800ms cubic-bezier(0.33, 0, 0.2, 1) 1500ms infinite backwards;
-  }
-  .scroll-cue:hover .cue-dot,
-  .scroll-cue:focus-visible .cue-dot {
-    animation: none;
-    opacity: 1;
-    transform: scale(1.15);
-  }
-  /* The flat tail is the rest between falls — without it the dot loops
-     frantically and turns back into decoration. */
-  @keyframes cue-fall {
-    0%        { opacity: 0; transform: translateY(-7px); }
-    18%       { opacity: 1; transform: translateY(-3px); }
-    55%       { opacity: 1; transform: translateY(7px); }
-    78%, 100% { opacity: 0; transform: translateY(16px); }
-  }
-
   /* ===== work chamber ===== */
   .work {
     padding-bottom: var(--s-8);
@@ -238,8 +185,9 @@ const s = t(lang);
     align-items: center;
     gap: 10px;
   }
-  /* The dot the hero drops lands here. One ember mark falling, one waiting
-     where it pointed — it is the same accent doing both halves of a sentence. */
+  /* The one ember mark on the page. It was originally the answer to a dot
+     falling in the hero; that dot is gone, and the mark stays on its own
+     merit — without it the label floats loose in the corner. */
   .work-label::before {
     content: '';
     width: 8px;
@@ -360,8 +308,6 @@ const s = t(lang);
 
   @media (prefers-reduced-motion: reduce) {
     .display .line,
-    .scroll-cue,
-    .cue-dot,
     .hero .squiggle svg {
       animation: none !important;
       opacity: 1 !important;
