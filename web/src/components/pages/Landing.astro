@@ -36,6 +36,11 @@ const s = t(lang);
 
   <section class="work band" id="projects">
     <div class="chamber">
+      {/* A label, not a headline — the cards are the display type in here.
+          It also gives the page a heading between the name and the card
+          titles, which drop to h3 so the levels run h1 → h2 → h3. */}
+      <h2 class="work-label">{s.work.label}</h2>
+
       <ul class="grid">
         {projects.map((p, i) => {
           const href = p.url ?? path(lang, `/projects/${p.slug}`);
@@ -57,10 +62,10 @@ const s = t(lang);
                 {/* The name morphs into the detail page's title on navigation.
                     Set through a custom property so reduced motion can drop it —
                     an inline view-transition-name would outrank any media query. */}
-                <h2 class="card-title" style={`--vt: vt-${p.slug}`}>
+                <h3 class="card-title" style={`--vt: vt-${p.slug}`}>
                   {p.title}
                   {p.titleEm && <em>{' '}{p.titleEm}</em>}
-                </h2>
+                </h3>
 
                 {s.projects[p.slug] && <p class="card-sub">{s.projects[p.slug]}</p>}
 
@@ -215,6 +220,33 @@ const s = t(lang);
   /* ===== work chamber ===== */
   .work {
     padding-bottom: var(--s-8);
+  }
+
+  /* Fog, not cream, and stated as a plain colour rather than a theme token:
+     the chamber stays velvet in both themes, so a token that flips would
+     invert this against a background that never does. 4.9:1 on the chamber. */
+  .work-label {
+    margin: 0 0 var(--s-10);
+    font-family: var(--font-ui);
+    font-size: var(--t-14);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--fog);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  /* The dot the hero drops lands here. One ember mark falling, one waiting
+     where it pointed — it is the same accent doing both halves of a sentence. */
+  .work-label::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: var(--r-pill);
+    background: var(--ember-glow);
+    flex: none;
   }
 
   /* ===== project cards ===== */

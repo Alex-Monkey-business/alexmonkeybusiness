@@ -25,6 +25,8 @@ export const strings = {
     nav: { projects: 'Prosjekter', about: 'Om', cta: 'Ta kontakt' },
     /** The hero shows no words beyond the name — this labels the scroll cue. */
     hero: { seeWork: 'Se arbeidet' },
+    /** Same word as the nav item, so clicking «Prosjekter» lands on «Prosjekter». */
+    work: { label: 'Prosjekter' },
     card: { readCase: 'Les caset', visitSite: 'Se siden', inProgress: 'Underveis' },
     footer: { email: 'E-post', github: 'GitHub', about: 'Om' },
     about: {
@@ -98,6 +100,8 @@ export const strings = {
     nav: { projects: 'Projects', about: 'About', cta: 'Get in touch' },
     /** The hero shows no words beyond the name — this labels the scroll cue. */
     hero: { seeWork: 'See the work' },
+    /** Same word as the nav item, so clicking "Projects" lands on "Projects". */
+    work: { label: 'Projects' },
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
     footer: { email: 'Email', github: 'GitHub', about: 'About' },
     about: {
