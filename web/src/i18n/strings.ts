@@ -28,8 +28,8 @@ export const strings = {
     card: { readCase: 'Les caset', visitSite: 'Se siden', inProgress: 'Underveis' },
     footer: { email: 'E-post', github: 'GitHub', about: 'Om' },
     about: {
-      title: 'Har en tendens til å få idéer',
-      body: 'Noen av dem slipper jeg ikke før de finnes.',
+      title: 'Webapplikasjoner, mobilapper, nettsider, presentasjoner',
+      body: 'Produkteier og designer hos Avonova til daglig. Resten lager jeg på fritiden, mest fordi det er gøy.',
     },
     detail: { back: '← Tilbake', wip: 'underveis', comingSoon: 'Kommer snart.' },
     /** Offered to visitors whose browser is not Norwegian. */
@@ -101,8 +101,8 @@ export const strings = {
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
     footer: { email: 'Email', github: 'GitHub', about: 'About' },
     about: {
-      title: 'Prone to getting ideas',
-      body: "Some of them I won't let go of until they exist.",
+      title: 'Web apps, mobile apps, websites, presentations',
+      body: "Product owner and designer at Avonova by day. The rest I make in my own time, mostly because it's fun.",
     },
     detail: { back: '← Back', wip: 'in progress', comingSoon: 'Coming soon.' },
     switchHint: 'Les på norsk',
