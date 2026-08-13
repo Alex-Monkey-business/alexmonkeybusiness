@@ -26,6 +26,10 @@
   text-transform: none;
   color: var(--fg2);
   text-decoration: none;
+  /* 19px tall was under the 24px target floor — pad it without moving it */
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
   transition: color var(--dur-fast) var(--ease-out);
 }
 .case-back:hover { color: var(--fg1); text-decoration: underline; }
@@ -45,11 +49,15 @@
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--fg3);
+  /* --fg3 is --fog #8a8a80: 3.4:1 on cream, which fails at 14px. --fog-ink
+     is the same voice darkened to clear 4.5:1, and dark mode can have the
+     lighter one back. Same split the stackline below already makes. */
+  color: var(--fog-ink);
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
+html.dark .case-eyebrow { color: var(--fg3); }
 /* Ember is the reference's dot/indicator color; lavender vanishes on cream */
 .case-eyebrow::before {
   content: '';
@@ -249,8 +257,9 @@ html.dark .ft-num {
   font-size: var(--t-14);
   letter-spacing: 0;
   text-transform: none;
-  color: var(--fg3);
+  color: var(--fog-ink);
 }
+html.dark .case-stack { color: var(--fg3); }
 .case-stack .live {
   color: var(--fg1);
   font-weight: 500;
@@ -269,7 +278,9 @@ html.dark .ft-num {
   animation: case-pulse 2s ease-in-out infinite;
 }
 @keyframes case-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-.case-stack .sep { color: var(--fg4); }
+/* Was --fg4 (stone): 1.3:1 on cream and 2.5:1 on velvet, so the dots
+   vanished and the line ran together. A middot may share the text colour. */
+.case-stack .sep { color: inherit; }
 
 /* ============================================================
    PHONE — faithful to the real BenchBoss app (warm minimal, Inter,

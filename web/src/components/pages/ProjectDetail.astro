@@ -43,6 +43,10 @@ const s = t(lang).detail;
     color: var(--fg2);
     text-decoration: none;
     letter-spacing: 0;
+    /* Same 24px target floor as the case page's back link */
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
     transition: color var(--dur-fast) var(--ease-out);
   }
   .back:hover {

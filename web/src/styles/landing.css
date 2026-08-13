@@ -184,7 +184,15 @@ html.dark .lang-hint {
   color: inherit;
   font-size: 19px;
   line-height: 1;
-  padding: 0 2px 0 8px;
+  /* 21x19 was the smallest target on the site, and it is a dismiss button
+     sitting right beside a link — the two need separating by size. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin-left: 6px;
   cursor: pointer;
   opacity: 0.5;
 }
@@ -503,6 +511,10 @@ html.dark .nav-panel {
   font-size: var(--t-16);
   color: inherit;
   text-decoration: none;
+  /* 48x19 missed the 24px target floor on the height */
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
   opacity: 0.8;
   transition: opacity var(--dur-fast) var(--ease-out);
 }
