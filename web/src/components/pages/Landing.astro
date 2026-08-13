@@ -111,19 +111,22 @@ const s = t(lang);
 </script>
 
 <style>
-  /* ===== hero — one full screen, one name ===== */
+  /* ===== hero — one screen, one name =====
+     Height is capped as well as floored. Pinned to a bare 100svh, a tall
+     display stretched the gap between the name and the cue into a void
+     rather than air, and the chamber below fell off the screen entirely.
+     Capped, the hero is still the whole view on a laptop or a phone, and on
+     anything taller the cards start to show — which is the invitation. */
   .hero {
-    min-height: 100svh;
+    min-height: min(100svh, 880px);
     display: flex;
     flex-direction: column;
-    padding-top: 14vh;
+    justify-content: center;
+    /* The name and the cue travel together, with bounded air between them */
+    gap: clamp(56px, 11vh, 132px);
+    padding-top: clamp(88px, 12vh, 168px);
     padding-bottom: var(--s-12);
   }
-  /* Two auto margins split the leftover height: the name lands near the
-     middle, the cue sits on the floor. No absolute positioning, so a long
-     name on a short phone just pushes the cue down instead of overlapping. */
-  .hero .display { margin-top: auto; }
-  .scroll-cue { margin-top: auto; }
 
   .display {
     font-family: var(--font-display);
