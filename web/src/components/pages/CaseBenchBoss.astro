@@ -38,7 +38,9 @@ const features = s.features.map((f, i) => ({
 
   <section class="case-hero">
     <span class="case-eyebrow">{s.eyebrow}</span>
-    <h1 class="case-title">Bench<span class="em">Boss</span></h1>
+    {/* Pairs with the landing card of the same slug — the name travels
+        between the two pages instead of the page blinking. */}
+    <h1 class="case-title" style="--vt: vt-halsen-g15">Bench<span class="em">Boss</span></h1>
     <p class="case-lede">{s.lede}</p>
     <p class="case-stackline">Vue 3 · Vite · Pinia · Supabase · Netlify · Vipps · NFF</p>
   </section>

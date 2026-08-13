@@ -74,6 +74,13 @@
   font-style: italic;
   color: var(--em-color);
 }
+/* The other half of the pairing — see .card-title on the landing page. */
+.case-title {
+  view-transition-name: var(--vt);
+}
+@media (prefers-reduced-motion: reduce) {
+  .case-title { view-transition-name: none; }
+}
 
 .case-lede {
   margin: var(--s-8) 0 0;

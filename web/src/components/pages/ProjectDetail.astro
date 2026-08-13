@@ -9,7 +9,7 @@ const s = t(lang).detail;
 
 <section class="project-detail">
   <a class="back" href={path(lang, '/#projects')}>{s.back}</a>
-  <h1 class="detail-title">
+  <h1 class="detail-title" style={`--vt: vt-${project.slug}`}>
     {project.title}
     {project.titleEm && (
       <>
@@ -57,6 +57,10 @@ const s = t(lang).detail;
     font-weight: 400;
     margin: var(--s-8) 0 var(--s-5);
     color: var(--fg1);
+    view-transition-name: var(--vt);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .detail-title { view-transition-name: none; }
   }
   .detail-title em {
     font-style: italic;

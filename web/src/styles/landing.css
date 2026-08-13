@@ -260,61 +260,6 @@ html.dark .theme-toggle .icon-moon { display: none; }
   .chamber { border-radius: var(--r-xl); padding: var(--s-16) var(--s-5); }
 }
 
-/* Buttons */
-.btn {
-  font-family: var(--font-ui);
-  font-size: var(--t-16);
-  font-weight: 500;
-  line-height: 1;
-  border-radius: var(--r-sm);
-  border: var(--border-w) solid var(--vast-ink);
-  padding: 16px 24px;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-2);
-  text-decoration: none;
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-              color var(--dur-fast) var(--ease-out);
-}
-.btn-primary {
-  background: var(--lavender);
-  color: var(--vast-ink);
-}
-.btn-primary:hover { background: var(--lavender-d); }
-
-.btn-secondary {
-  background: var(--lumen-cream);
-  color: var(--vast-ink);
-}
-.btn-secondary:hover { background: var(--lumen-stone); }
-
-/* On a dark chamber the border flips to cream */
-.chamber .btn,
-html.dark .btn {
-  border-color: var(--lumen-cream);
-}
-html.dark .btn-secondary {
-  background: var(--vast-ink);
-  color: var(--lumen-cream);
-}
-html.dark .btn-secondary:hover { background: #2c2c2a; }
-/* Inside a chamber, secondary stays cream-on-ink regardless of theme */
-.chamber .btn-secondary {
-  background: var(--lumen-cream);
-  color: var(--vast-ink);
-  border-color: var(--lumen-cream);
-}
-
-.btn-ghost {
-  background: transparent;
-  border: none;
-  padding: 8px 0;
-  font-weight: 400;
-  color: var(--fg1);
-}
-.btn-ghost:hover { text-decoration: underline; }
-
 /* Badges */
 .badge-teal {
   font-family: var(--font-ui);
@@ -343,23 +288,6 @@ html.dark .btn-secondary:hover { background: #2c2c2a; }
   padding: 8px 16px;
   display: inline-flex;
   align-items: center;
-  white-space: nowrap;
-}
-
-/* Outlined pill on dark surfaces */
-.badge-outline {
-  font-family: var(--font-ui);
-  font-size: var(--t-14);
-  font-weight: 500;
-  line-height: 1;
-  background: transparent;
-  color: var(--lumen-cream);
-  border: 1.5px solid var(--pure-white);
-  border-radius: var(--r-pill);
-  padding: 8px 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
   white-space: nowrap;
 }
 
@@ -447,6 +375,6 @@ html.dark .btn-secondary:hover { background: #2c2c2a; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-home, .nav ul a, .nav ul a::after, .theme-toggle, .btn { transition: none; }
+  .nav-home, .nav ul a, .nav ul a::after, .theme-toggle { transition: none; }
   .nav-home:hover { transform: none; }
 }

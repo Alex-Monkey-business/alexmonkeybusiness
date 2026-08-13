@@ -9,6 +9,10 @@ const s = t(lang);
 
 
 <>
+  {/* The hero says a name and nothing else. What used to be a lede and two
+      buttons is now the squiggle drawing itself and a dot that breathes —
+      the page has to earn its first sentence, and the first sentence is on
+      a card further down. */}
   <section class="hero band">
     <h1 class="display">
       <span class="line dim">Alex</span>
@@ -23,35 +27,21 @@ const s = t(lang);
       </span>
     </h1>
 
-    <p class="lede">
-      <span>{s.hero.lede1}</span>
-      <span>{s.hero.lede2}</span>
-    </p>
-
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="#projects">
-        {s.hero.seeWork}
-        <svg viewBox="0 0 16 16" aria-hidden="true" class="icon-arrow"
-          ><path d="M3 8h9M8.5 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg
-        >
-      </a>
-      <a class="btn btn-secondary" href="mailto:alexander.samnoy@gmail.com">{s.hero.getInTouch}</a>
-    </div>
+    {/* The only affordance up here. No word — but a keyboard and a screen
+        reader cannot see a dot pulse, so the label stays for them. */}
+    <a class="scroll-cue" href="#projects" aria-label={s.hero.seeWork}>
+      <span class="cue-dot" aria-hidden="true"></span>
+    </a>
   </section>
 
   <section class="work band" id="projects">
     <div class="chamber">
-      <header class="work-head">
-        <span class="badge-outline">{s.work.count(projects.length)}</span>
-        <h2 class="work-title">{s.work.titleA}<br /><em>{s.work.titleEm}</em>.</h2>
-      </header>
-
       <ul class="grid">
         {projects.map((p, i) => {
           const href = p.url ?? path(lang, `/projects/${p.slug}`);
           const external = Boolean(p.url);
           return (
-            <li>
+            <li style={`--i:${i}`}>
               <a
                 href={href}
                 target={external ? '_blank' : undefined}
@@ -64,15 +54,18 @@ const s = t(lang);
                   <span class="card-year">{p.year}</span>
                 </div>
 
-                <h3 class="card-title">
+                {/* The name morphs into the detail page's title on navigation.
+                    Set through a custom property so reduced motion can drop it —
+                    an inline view-transition-name would outrank any media query. */}
+                <h2 class="card-title" style={`--vt: vt-${p.slug}`}>
                   {p.title}
                   {p.titleEm && <em>{' '}{p.titleEm}</em>}
-                </h3>
+                </h2>
 
                 {s.projects[p.slug] && <p class="card-sub">{s.projects[p.slug]}</p>}
 
                 <span class="card-cta">
-                  {external ? s.card.visitSite : s.card.readCase}
+                  <span class="sr-only">{external ? s.card.visitSite : s.card.readCase}</span>
                   <svg viewBox="0 0 16 16" aria-hidden="true"
                     ><path
                       d={external ? 'M6 10.5L11 5.5M11 5.5H6.5M11 5.5V10' : 'M3 8h9M8.5 4l4 4-4 4'}
@@ -93,15 +86,44 @@ const s = t(lang);
   </section>
 </>
 
+<script>
+  /* Cards rise in as they arrive. The hidden state lives in CSS behind
+     `html.js`, which is set before first paint, so no-JS shows everything and
+     nothing flashes in and back out. */
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.grid > li'));
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (still || !('IntersectionObserver' in window)) {
+    items.forEach((el) => el.classList.add('in'));
+  } else {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      },
+      { rootMargin: '0px 0px -10% 0px', threshold: 0.12 },
+    );
+    items.forEach((el) => io.observe(el));
+  }
+</script>
+
 <style>
-  /* ===== hero ===== */
+  /* ===== hero — one full screen, one name ===== */
   .hero {
-    padding-top: 24vh;
-    padding-bottom: 12vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    padding-top: 14vh;
+    padding-bottom: var(--s-12);
   }
-  @media (max-width: 640px) {
-    .hero { padding-top: 20vh; padding-bottom: 8vh; }
-  }
+  /* Two auto margins split the leftover height: the name lands near the
+     middle, the cue sits on the floor. No absolute positioning, so a long
+     name on a short phone just pushes the cue down instead of overlapping. */
+  .hero .display { margin-top: auto; }
+  .scroll-cue { margin-top: auto; }
 
   .display {
     font-family: var(--font-display);
@@ -118,51 +140,69 @@ const s = t(lang);
   /* A pale accent dot is invisible on cream — em-color reads in both themes */
   .display .period { color: var(--em-color); }
 
-  /* Two short lines, each on its own — the second is the punchline and only
-     lands if it isn't wrapped into the first. 46ch holds both without breaking. */
-  .lede {
-    margin: var(--s-10) 0 0;
-    max-width: 46ch;
-    font-family: var(--font-ui);
-    font-size: var(--t-18);
-    font-weight: 400;
-    line-height: var(--lh-normal);
-    color: var(--fg2);
+  /* Name arrives a line at a time, then the squiggle writes itself under it. */
+  .display .line {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: hero-line-in 900ms var(--ease-out) forwards;
   }
-  .lede span { display: block; }
+  .display .line:nth-child(1) { animation-delay: 100ms; }
+  .display .line:nth-child(2) { animation-delay: 240ms; }
 
-  .hero-actions {
-    margin-top: var(--s-10);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-3);
+  @keyframes hero-line-in {
+    to { opacity: 1; transform: none; }
   }
-  .icon-arrow { width: 16px; height: 16px; }
+
+  /* Wiped in left to right rather than drawn with stroke-dashoffset: the path
+     carries vector-effect: non-scaling-stroke and a stretched viewBox, and the
+     dash lengths those two produce have nothing to do with the line you see.
+     A clip has no such argument with the geometry. */
+  .hero .squiggle svg {
+    clip-path: inset(0 100% 0 0);
+    animation: squiggle-draw 1000ms var(--ease-out) 620ms forwards;
+  }
+  @keyframes squiggle-draw {
+    to { clip-path: inset(0 -2% 0 0); }
+  }
+
+  /* ===== scroll cue ===== */
+  .scroll-cue {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px of target around a 10px dot */
+    width: 44px;
+    height: 44px;
+    margin-left: -17px;
+    border-radius: var(--r-pill);
+    opacity: 0;
+    animation: hero-line-in 900ms var(--ease-out) 1400ms forwards;
+  }
+  .scroll-cue:focus-visible {
+    outline: 2px solid var(--ember-glow);
+    outline-offset: 2px;
+  }
+  .cue-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--r-pill);
+    background: var(--ember-glow);
+    animation: cue-breathe 3.4s ease-in-out 2s infinite;
+  }
+  .scroll-cue:hover .cue-dot,
+  .scroll-cue:focus-visible .cue-dot {
+    animation: none;
+    transform: scale(1.15);
+  }
+  @keyframes cue-breathe {
+    0%, 100% { opacity: 0.32; transform: scale(0.78); }
+    50%      { opacity: 1;    transform: scale(1); }
+  }
 
   /* ===== work chamber ===== */
   .work {
     padding-bottom: var(--s-8);
-  }
-
-  .work-head {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--s-5);
-    margin-bottom: var(--s-16);
-  }
-  .work-title {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: clamp(34px, 6vw, 64px);
-    line-height: var(--lh-snug);
-    letter-spacing: var(--tr-snug);
-    margin: 0;
-    color: var(--lumen-cream);
-  }
-  .work-title em {
-    font-style: italic;
-    color: var(--lavender);
   }
 
   /* ===== project cards ===== */
@@ -176,6 +216,19 @@ const s = t(lang);
   }
   @media (max-width: 820px) {
     .grid { grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+  }
+
+  :global(html.js) .grid > li {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  :global(html.js) .grid > li.in {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 700ms var(--ease-out),
+      transform 700ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 90ms);
   }
 
   .card {
@@ -216,6 +269,7 @@ const s = t(lang);
     line-height: var(--lh-snug);
     letter-spacing: -0.02em;
     margin: 0;
+    view-transition-name: var(--vt);
   }
   .card-title em {
     font-style: italic;
@@ -230,24 +284,56 @@ const s = t(lang);
     max-width: 34ch;
   }
 
+  /* The label is gone; the arrow is the whole invitation. A bordered disc
+     rather than a bare glyph, because 2px ink is the system's signature and
+     an 18px arrow alone reads as debris at the foot of a card this size. */
   .card-cta {
+    /* auto pushes the disc to the floor of the card; spacing above it must be
+       margin, since padding would inflate the circle instead of moving it */
     margin-top: auto;
-    padding-top: var(--s-5);
+    align-self: flex-start;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: var(--t-16);
-    font-weight: 500;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border: var(--border-w) solid var(--vast-ink);
+    border-radius: var(--r-pill);
+    transition:
+      background var(--dur-base) var(--ease-out),
+      color var(--dur-base) var(--ease-out);
   }
   .card-cta svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     transition: transform var(--dur-base) var(--ease-out);
   }
-  .card:hover .card-cta svg { transform: translateX(3px); }
+  .card:hover .card-cta {
+    background: var(--vast-ink);
+    color: var(--lumen-cream);
+  }
+  .card:hover .card-cta svg { transform: translateX(2px); }
 
   @media (prefers-reduced-motion: reduce) {
-    .card, .card-cta svg { transition: none; }
+    .display .line,
+    .scroll-cue,
+    .cue-dot,
+    .hero .squiggle svg {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      clip-path: none !important;
+    }
+    :global(html.js) .grid > li {
+      opacity: 1;
+      transform: none;
+    }
+    .card,
+    .card-cta,
+    .card-cta svg { transition: none; }
     .card:hover .card-cta svg { transform: none; }
+    /* An element that morphs across pages is movement — drop the pairing and
+       the navigation falls back to the plain cross-fade. */
+    .card-title { view-transition-name: none; }
   }
 </style>

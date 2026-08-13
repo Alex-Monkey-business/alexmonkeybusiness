@@ -23,21 +23,11 @@ export const strings = {
       aboutTitle: 'Om — Alex Monkey Business',
     },
     nav: { projects: 'Prosjekter', about: 'Om', cta: 'Ta kontakt' },
-    hero: {
-      lede1: 'Små ting. Store planer.',
-      lede2: 'Og et par ting som faktisk ble ferdige.',
-      seeWork: 'Se arbeidet',
-      getInTouch: 'Ta kontakt',
-    },
-    work: {
-      count: (n: number) => `${n} prosjekter`,
-      titleA: 'Ting jeg har',
-      titleEm: 'laget',
-    },
+    /** The hero shows no words beyond the name — this labels the scroll cue. */
+    hero: { seeWork: 'Se arbeidet' },
     card: { readCase: 'Les caset', visitSite: 'Se siden', inProgress: 'Underveis' },
     footer: { email: 'E-post', github: 'GitHub', about: 'Om' },
     about: {
-      eyebrow: 'Alexander Samnøy',
       title: 'Har en tendens til å få idéer',
       body: 'Noen av dem slipper jeg ikke før de finnes.',
     },
@@ -106,21 +96,11 @@ export const strings = {
       aboutTitle: 'About — Alex Monkey Business',
     },
     nav: { projects: 'Projects', about: 'About', cta: 'Get in touch' },
-    hero: {
-      lede1: 'Small things. Big plans.',
-      lede2: 'And a couple that actually got finished.',
-      seeWork: 'See the work',
-      getInTouch: 'Get in touch',
-    },
-    work: {
-      count: (n: number) => `${n} projects`,
-      titleA: "Things I've",
-      titleEm: 'made',
-    },
+    /** The hero shows no words beyond the name — this labels the scroll cue. */
+    hero: { seeWork: 'See the work' },
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
     footer: { email: 'Email', github: 'GitHub', about: 'About' },
     about: {
-      eyebrow: 'Alexander Samnøy',
       title: 'Prone to getting ideas',
       body: "Some of them I won't let go of until they exist.",
     },

@@ -90,6 +90,10 @@ const alternates = LANGS.map((l) => ({
           document.documentElement.classList.remove('dark');
         }
       } catch (_) {}
+      // Anything that starts hidden and is revealed by script hides itself
+      // behind this class, so a reader without JS is never left with a blank
+      // page. Set here because here is before the first paint.
+      document.documentElement.classList.add('js');
     </script>
   </head>
   <body>

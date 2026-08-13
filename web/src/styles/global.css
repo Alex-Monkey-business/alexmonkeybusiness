@@ -53,3 +53,42 @@ a {
   background: var(--fg1);
   color: var(--bg);
 }
+
+/* Carries a label to a screen reader without putting a word on the page.
+   Not display:none — that would take it out of the accessibility tree too. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   CROSS-DOCUMENT VIEW TRANSITIONS
+   Native, no router: both pages opt in and the browser animates between
+   them. A card title and its detail heading share a view-transition-name,
+   so the name travels instead of the page blinking. Browsers without it
+   navigate the ordinary way and lose nothing but the flourish.
+   ============================================================ */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+  animation-timing-function: var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
