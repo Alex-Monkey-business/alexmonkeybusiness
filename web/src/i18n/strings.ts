@@ -66,12 +66,12 @@ export const strings = {
           p: 'Ledig den dagen, ikke lånt ut den uka, færrest ekstrakamper først. Du får forslaget, ikke en liste å grave i.',
         },
         {
-          h: 'Hvorfor-et, skrevet ned.',
-          p: 'Sju prinsipper for hvordan laget trener. En vikar på tirsdag kjører samme fotball som lørdagen før.',
+          h: 'Sånn trener vi.',
+          p: 'Sju prinsipper, skrevet ned. Vi er mange trenere, og alle kjører det samme uansett hvem som tar økta.',
         },
         {
-          h: 'Økter med ryggrad.',
-          p: 'Perioder, økter, øvelser. Du møter aldri på trening uten å vite hva dere skal gjøre.',
+          h: 'Uka er satt opp.',
+          p: 'Perioder, økter og øvelser. Du står aldri på banen og finner på noe.',
         },
         {
           h: 'Tolv kamper. To dager. To lag.',
@@ -136,12 +136,12 @@ export const strings = {
           p: 'Free that day, not already lent out that week, fewest extra appearances first. You get the suggestion, not a list to dig through.',
         },
         {
-          h: 'The why, written down.',
-          p: 'Seven principles for how the team trains. A stand-in on Tuesday runs the same football as the Saturday before.',
+          h: 'This is how we train.',
+          p: 'Seven principles, written down. There are several of us coaching, and we all run the same football.',
         },
         {
-          h: 'Sessions with a spine.',
-          p: "Blocks, sessions, drills. You never turn up to training without knowing what you're doing.",
+          h: 'The week is already set.',
+          p: 'Blocks, sessions and drills. You never stand on the pitch making it up.',
         },
         {
           h: 'Twelve matches. Two days. Two teams.',
