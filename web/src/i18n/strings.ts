@@ -66,8 +66,8 @@ export const strings = {
           p: 'Ledig den dagen, ikke lånt ut den uka, færrest ekstrakamper først. Du får forslaget, ikke en liste å grave i.',
         },
         {
-          h: 'Sånn trener vi.',
-          p: 'Ukeplan, sju prinsipper og en øvelsesbank på samme sted. Vi er mange trenere, og ingen står på banen og finner på noe.',
+          h: 'Perioder, ikke enkeltøkter.',
+          p: 'Økter og øvelser planlagt fram i tid, hentet fra øvelsesbanken og de sju prinsippene. Ingen står på banen og finner på noe.',
         },
         {
           h: 'Tolv kamper. To dager. To lag.',
@@ -132,8 +132,8 @@ export const strings = {
           p: 'Free that day, not already lent out that week, fewest extra appearances first. You get the suggestion, not a list to dig through.',
         },
         {
-          h: 'This is how we train.',
-          p: 'A week plan, seven principles and a drill bank in one place. There are several of us coaching, and nobody stands on the pitch making it up.',
+          h: 'Periods, not single sessions.',
+          p: 'Sessions and drills planned ahead, drawn from the drill bank and the seven principles. Nobody stands on the pitch making it up.',
         },
         {
           h: 'Twelve matches. Two days. Two teams.',
