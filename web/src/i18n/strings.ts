@@ -35,10 +35,8 @@ export const strings = {
     /** Offered to visitors whose browser is not Norwegian. */
     switchHint: 'Read in English',
     case: {
-      eyebrow: 'Case — Halsen G2015',
       lede: 'En hel sesong i én app. Det meste passer seg selv.',
       back: '← Tilbake',
-      underHood: 'Under panseret',
       hood: [
         { em: 'NFF-sync', rest: ' — tider, baner og motstandere oppdaterer seg selv.' },
         { pre: 'Dommerhonorar over ', em: 'Vipps', rest: ', utlegget logget i samme trykk.' },
@@ -107,10 +105,8 @@ export const strings = {
     detail: { back: '← Back', wip: 'in progress', comingSoon: 'Coming soon.' },
     switchHint: 'Les på norsk',
     case: {
-      eyebrow: 'Case — Halsen G2015',
       lede: 'A whole season in one app. Most of it looks after itself.',
       back: '← Back',
-      underHood: 'Under the hood',
       hood: [
         { em: 'NFF sync', rest: ' — times, venues and opponents update on their own.' },
         { pre: 'Referee fees over ', em: 'Vipps', rest: ', expense logged in the same tap.' },

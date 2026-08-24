@@ -43,31 +43,6 @@
   .case-hero { padding: 4vh 0 6vh; }
 }
 
-.case-eyebrow {
-  font-family: var(--font-ui);
-  font-size: var(--t-14);
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-  /* --fg3 is --fog #8a8a80: 3.4:1 on cream, which fails at 14px. --fog-ink
-     is the same voice darkened to clear 4.5:1, and dark mode can have the
-     lighter one back. Same split the stackline below already makes. */
-  color: var(--fog-ink);
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-html.dark .case-eyebrow { color: var(--fg3); }
-/* Ember is the reference's dot/indicator color; lavender vanishes on cream */
-.case-eyebrow::before {
-  content: '';
-  width: 8px; height: 8px;
-  border-radius: var(--r-pill);
-  background: var(--ember-glow);
-  display: inline-block;
-  flex: none;
-}
-
 .case-title {
   font-family: var(--font-display);
   font-size: clamp(52px, 11.5vw, 120px);
@@ -75,7 +50,8 @@ html.dark .case-eyebrow { color: var(--fg3); }
   line-height: var(--lh-tight);
   letter-spacing: var(--tr-tight);
   text-transform: none;
-  margin: var(--s-5) 0 0;
+  /* The eyebrow used to hold this gap open; with it gone the title owns it. */
+  margin: var(--s-10) 0 0;
   color: var(--fg1);
 }
 .case-title .em {
@@ -98,16 +74,6 @@ html.dark .case-eyebrow { color: var(--fg3); }
   line-height: var(--lh-normal);
   color: var(--fg2);
 }
-
-.case-stackline {
-  margin: var(--s-5) 0 0;
-  font-family: var(--font-ui);
-  font-size: var(--t-14);
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--fog-ink);
-}
-html.dark .case-stackline { color: var(--fg3); }
 
 .case-hero-stage { display: flex; justify-content: center; }
 
@@ -192,21 +158,6 @@ html.dark .ft-num {
     padding: var(--s-16) var(--s-5);
     margin-top: var(--s-16);
   }
-}
-
-.case-list-label {
-  font-family: var(--font-ui);
-  font-size: var(--t-14);
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--lumen-cream);
-  background: transparent;
-  border: 1.5px solid var(--pure-white);
-  border-radius: var(--r-pill);
-  padding: 8px 16px;
-  display: inline-flex;
-  margin-bottom: var(--s-10);
 }
 
 .case-list ul {

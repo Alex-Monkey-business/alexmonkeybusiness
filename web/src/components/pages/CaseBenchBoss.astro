@@ -37,12 +37,10 @@ const features = s.features.map((f, i) => ({
   <a href={path(lang, '/#projects')} class="case-back">{s.back}</a>
 
   <section class="case-hero">
-    <span class="case-eyebrow">{s.eyebrow}</span>
     {/* Pairs with the landing card of the same slug — the name travels
         between the two pages instead of the page blinking. */}
     <h1 class="case-title" style="--vt: vt-halsen-g15">Bench<span class="em">Boss</span></h1>
     <p class="case-lede">{s.lede}</p>
-    <p class="case-stackline">Vue 3 · Vite · Pinia · Supabase · Netlify · Vipps · NFF</p>
   </section>
 
   {features.map((f, i) => (
@@ -58,12 +56,14 @@ const features = s.features.map((f, i) => ({
     </section>
   ))}
 
+  {/* The tail of the same count the features started: 09-12 are the things
+      that run underneath and have no screen to record. The surface going
+      velvet says that; a heading would only repeat it. */}
   <section class="case-list">
-    <span class="case-list-label">{s.underHood}</span>
     <ul>
       {s.hood.map((h, i) => (
         <li style={`--i:${i}`}>
-          <span class="n">{String(i + 1).padStart(2, '0')}</span>
+          <span class="n">{String(features.length + i + 1).padStart(2, '0')}</span>
           <span class="text">{h.pre}<em>{h.em}</em>{h.rest}</span>
         </li>
       ))}
