@@ -68,7 +68,9 @@
 
 .case-lede {
   margin: var(--s-8) 0 0;
-  max-width: 34ch;
+  /* Three sentences now instead of one. At 34ch it stacked into a narrow
+     column; 46ch keeps it a standfirst rather than a gutter of text. */
+  max-width: 46ch;
   font-family: var(--font-ui);
   font-size: var(--t-18);
   line-height: var(--lh-normal);

@@ -35,7 +35,7 @@ export const strings = {
     /** Offered to visitors whose browser is not Norwegian. */
     switchHint: 'Read in English',
     case: {
-      lede: 'En hel sesong i én app. Det meste passer seg selv.',
+      lede: 'Ett kull, tre lag, og alt som skal klaffe hver uke. Laget av en trener, for trenere — så svaret står i appen, ikke et sted i Messenger-gruppa. Bygget om igjen hver gang noen sier hva som mangler.',
       back: '← Tilbake',
       hood: [
         { em: 'NFF-sync', rest: ' — tider, baner og motstandere oppdaterer seg selv.' },
@@ -47,23 +47,23 @@ export const strings = {
       features: [
         {
           h: 'Åpner på dagen du er i.',
-          p: 'Neste økt, neste kamp, og det som fortsatt henger. Ingenting annet.',
+          p: 'Neste økt, neste kamp, og det du ikke har ordnet ennå. Du slipper å holde det i hodet.',
         },
         {
           h: 'Minuttene teller seg selv.',
-          p: 'Sett laget på banen og blås i gang. Hver spiller har sin egen klokke.',
+          p: 'Sett laget på banen og blås i gang. Etterpå vet du hvem som har spilt for lite — uten å ha telt selv.',
         },
         {
-          h: 'Tre lag, ett om gangen.',
-          p: 'Trykk på en farge. Sesongen blir det lagets sesong.',
+          h: 'Ett lag om gangen.',
+          p: 'Trykk på en farge. Resten av kullet forsvinner, og du ser bare ditt eget lag.',
         },
         {
           h: 'Er lagene jevne?',
-          p: 'Spilt, vunnet, målforskjell — per lag, ikke per klubb. Ingen tabell viser deg det.',
+          p: 'Spilt, vunnet, målforskjell — per lag, ikke per klubb. Verken Spond eller Hoopit viser deg det.',
         },
         {
           h: 'Den finner hvem som kan steppe inn.',
-          p: 'Ledig den dagen, ikke lånt ut den uka, færrest ekstrakamper først. Gruppechatten får hvile litt.',
+          p: 'Ledig den dagen, ikke lånt ut den uka, færrest ekstrakamper først. Du får forslaget, ikke en liste å grave i.',
         },
         {
           h: 'Hvorfor-et, skrevet ned.',
@@ -71,11 +71,11 @@ export const strings = {
         },
         {
           h: 'Økter med ryggrad.',
-          p: 'Perioder, økter, øvelser. Uka er skrevet ned, ikke husket.',
+          p: 'Perioder, økter, øvelser. Du møter aldri på trening uten å vite hva dere skal gjøre.',
         },
         {
           h: 'Tolv kamper. To dager. To lag.',
-          p: 'Alt på ett sted. Bane, avspark og kampnummer, filtrert per lag.',
+          p: 'Bane, avspark og kampnummer, filtrert per lag. Ingen spør hvor og når, for det står der.',
         },
       ],
     },
@@ -105,7 +105,7 @@ export const strings = {
     detail: { back: '← Back', wip: 'in progress', comingSoon: 'Coming soon.' },
     switchHint: 'Les på norsk',
     case: {
-      lede: 'A whole season in one app. Most of it looks after itself.',
+      lede: "One age group, three squads, and everything that has to line up every week. Built by a coach, for coaches — so the answer is in the app, not somewhere in a group chat. Rebuilt every time someone says what's missing.",
       back: '← Back',
       hood: [
         { em: 'NFF sync', rest: ' — times, venues and opponents update on their own.' },
@@ -117,23 +117,23 @@ export const strings = {
       features: [
         {
           h: "Opens to the day you're in.",
-          p: 'The next session, the next match, and whatever is still unfinished. Nothing else.',
+          p: "The next session, the next match, and the thing you haven't sorted yet. You don't have to keep it in your head.",
         },
         {
           h: 'Every minute counts itself.',
-          p: "Put the team on the pitch and kick off. Every player has their own clock.",
+          p: 'Put the team on the pitch and kick off. Afterwards you know who has played too little — without having counted.',
         },
         {
-          h: 'Three teams, one at a time.',
-          p: "Tap a colour. The season becomes that squad's season.",
+          h: 'One squad at a time.',
+          p: 'Tap a colour. The rest of the age group disappears and you see only your own team.',
         },
         {
           h: 'Are the teams even?',
-          p: 'Played, won, goal difference — per squad, not per club. No league table shows you that.',
+          p: 'Played, won, goal difference — per squad, not per club. Neither Spond nor Hoopit shows you that.',
         },
         {
           h: 'It finds who can step in.',
-          p: 'Free that day, not already lent out that week, fewest extra appearances first. The group chat gets a rest.',
+          p: 'Free that day, not already lent out that week, fewest extra appearances first. You get the suggestion, not a list to dig through.',
         },
         {
           h: 'The why, written down.',
@@ -141,11 +141,11 @@ export const strings = {
         },
         {
           h: 'Sessions with a spine.',
-          p: 'Periods, sessions, drills. The week is written down rather than remembered.',
+          p: "Blocks, sessions, drills. You never turn up to training without knowing what you're doing.",
         },
         {
           h: 'Twelve matches. Two days. Two teams.',
-          p: 'All in one place. Pitch, kick-off and match number, filtered per team.',
+          p: "Pitch, kick-off and match number, filtered per team. Nobody asks where and when, because it's there.",
         },
       ],
     },
