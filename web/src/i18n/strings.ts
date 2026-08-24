@@ -35,7 +35,7 @@ export const strings = {
     /** Offered to visitors whose browser is not Norwegian. */
     switchHint: 'Read in English',
     case: {
-      lede: 'Ett kull, tre lag, og alt som skal klaffe hver uke. Laget av en trener, for trenere — så svaret står i appen, ikke et sted i Messenger-gruppa. Bygget om igjen hver gang noen sier hva som mangler.',
+      lede: 'Ett kull, flere lag, og alt som skal klaffe hver uke. Laget av en trener, for trenere — så svaret står i appen, ikke et sted i Messenger-gruppa. Bygget om igjen hver gang noen sier hva som mangler.',
       back: '← Tilbake',
       hood: [
         { em: 'NFF-sync', rest: ' — tider, baner og motstandere oppdaterer seg selv.' },
@@ -105,7 +105,7 @@ export const strings = {
     detail: { back: '← Back', wip: 'in progress', comingSoon: 'Coming soon.' },
     switchHint: 'Les på norsk',
     case: {
-      lede: "One age group, three squads, and everything that has to line up every week. Built by a coach, for coaches — so the answer is in the app, not somewhere in a group chat. Rebuilt every time someone says what's missing.",
+      lede: "One age group, several squads, and everything that has to line up every week. Built by a coach, for coaches — so the answer is in the app, not somewhere in a group chat. Rebuilt every time someone says what's missing.",
       back: '← Back',
       hood: [
         { em: 'NFF sync', rest: ' — times, venues and opponents update on their own.' },
