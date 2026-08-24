@@ -62,16 +62,12 @@ export const strings = {
           p: 'Spilt, vunnet, målforskjell — per lag, ikke per klubb. Verken Spond eller Hoopit viser deg det.',
         },
         {
-          h: 'Den finner hvem som kan steppe inn.',
+          h: 'Appen foreslår hvem som kan steppe inn.',
           p: 'Ledig den dagen, ikke lånt ut den uka, færrest ekstrakamper først. Du får forslaget, ikke en liste å grave i.',
         },
         {
           h: 'Sånn trener vi.',
-          p: 'Sju prinsipper, skrevet ned. Vi er mange trenere, og alle kjører det samme uansett hvem som tar økta.',
-        },
-        {
-          h: 'Uka er satt opp.',
-          p: 'Perioder, økter og øvelser. Du står aldri på banen og finner på noe.',
+          p: 'Ukeplan, sju prinsipper og en øvelsesbank på samme sted. Vi er mange trenere, og ingen står på banen og finner på noe.',
         },
         {
           h: 'Tolv kamper. To dager. To lag.',
@@ -132,16 +128,12 @@ export const strings = {
           p: 'Played, won, goal difference — per squad, not per club. Neither Spond nor Hoopit shows you that.',
         },
         {
-          h: 'It finds who can step in.',
+          h: 'The app suggests who can step in.',
           p: 'Free that day, not already lent out that week, fewest extra appearances first. You get the suggestion, not a list to dig through.',
         },
         {
           h: 'This is how we train.',
-          p: 'Seven principles, written down. There are several of us coaching, and we all run the same football.',
-        },
-        {
-          h: 'The week is already set.',
-          p: 'Blocks, sessions and drills. You never stand on the pitch making it up.',
+          p: 'A week plan, seven principles and a drill bank in one place. There are several of us coaching, and nobody stands on the pitch making it up.',
         },
         {
           h: 'Twelve matches. Two days. Two teams.',
