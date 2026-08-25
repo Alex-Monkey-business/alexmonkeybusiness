@@ -50,8 +50,8 @@ export const strings = {
           p: 'Neste økt, neste kamp, og det du ikke har ordnet ennå. Du slipper å holde det i hodet.',
         },
         {
-          h: 'Minuttene teller seg selv.',
-          p: 'Sett laget på banen og blås i gang. Etterpå vet du hvem som har spilt for lite — uten å ha telt selv.',
+          h: 'Spilletida teller seg selv.',
+          p: 'Sett laget og blås i gang. Skal du bytte, står de som passer i posisjonen først, og den med minst spilletid øverst.',
         },
         {
           h: 'Ett lag om gangen.',
@@ -67,7 +67,7 @@ export const strings = {
         },
         {
           h: 'Perioder, ikke enkeltøkter.',
-          p: 'Økter og øvelser planlagt fram i tid, hentet fra øvelsesbanken og de sju prinsippene. Ingen står på banen og finner på noe.',
+          p: 'Økter og øvelser planlagt fram i tid, hentet fra øvelsesbanken og de sju prinsippene. Sett tid på øvelsene, og appen sier om dagen går opp.',
         },
         {
           h: 'Tolv kamper. To dager. To lag.',
@@ -116,8 +116,8 @@ export const strings = {
           p: "The next session, the next match, and the thing you haven't sorted yet. You don't have to keep it in your head.",
         },
         {
-          h: 'Every minute counts itself.',
-          p: 'Put the team on the pitch and kick off. Afterwards you know who has played too little — without having counted.',
+          h: 'Playing time counts itself.',
+          p: 'Set the team and kick off. When you sub, the players who fit the position come first, least playing time on top.',
         },
         {
           h: 'One squad at a time.',
@@ -133,7 +133,7 @@ export const strings = {
         },
         {
           h: 'Periods, not single sessions.',
-          p: 'Sessions and drills planned ahead, drawn from the drill bank and the seven principles. Nobody stands on the pitch making it up.',
+          p: 'Sessions and drills planned ahead, drawn from the drill bank and the seven principles. Give each drill a time and the app tells you whether the day adds up.',
         },
         {
           h: 'Twelve matches. Two days. Two teams.',

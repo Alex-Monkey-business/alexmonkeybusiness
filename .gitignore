@@ -41,3 +41,6 @@ Pics/
 
 # Alex's in-progress brand assets — keep local until he chooses to publish
 web/public/brand/characters/
+
+# scratch output from web/tools/case/record.mjs
+web/tools/case/rec/
