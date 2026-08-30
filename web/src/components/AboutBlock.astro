@@ -1,0 +1,100 @@
+---
+/**
+ * The asymmetric block, lifted from the Le Camp reference and rebuilt in this
+ * system's own materials: reading-text in a narrow column against poster-text
+ * in a wide one, so the two sizes argue with each other across the page.
+ *
+ * Nothing here is new copy. Both lines already exist on the About page — the
+ * capability list is its display line, the day-job line is its body — so the
+ * landing page borrows what the site already says rather than growing a voice
+ * of its own. It replaces the «Om meg» card that stood here: two about-blocks
+ * in a row was one too many, and this one earns the space by saying something.
+ */
+import { t, path, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const s = t(lang);
+---
+
+<section class="about-block">
+  <div class="col-read">
+    <p class="lede">{s.about.body}</p>
+    <a class="read-more" href={path(lang, '/about')}>
+      {s.aboutCard.title} {s.aboutCard.titleEm}
+      <svg viewBox="0 0 16 16" aria-hidden="true"
+        ><path d="M3 8h9M8.5 4l4 4-4 4" fill="none" stroke="currentColor"
+          stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </a>
+  </div>
+
+  {/* Poster type, not a heading anyone reads as prose — the same list the
+      About page leads with, at the scale this system reserves for display. */}
+  <h2 class="poster">{s.about.title}<span class="stop">.</span></h2>
+</section>
+
+<style>
+  /* 40 / 55 with the gap between them. The tension is the point: a narrow
+     column of 16px against a wide one of 64px, sharing a top edge. */
+  .about-block {
+    display: grid;
+    grid-template-columns: 40% 55%;
+    gap: 5%;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .about-block {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s-8);
+    }
+    /* On one column the poster line leads and the reading text follows it,
+       because a small paragraph above a huge line reads as a caption for it. */
+    .poster { order: -1; }
+  }
+
+  .lede {
+    margin: 0 0 var(--s-6);
+    font-size: var(--t-16);
+    line-height: var(--lh-normal);
+    color: var(--fg2);
+    max-width: 38ch;
+  }
+
+  .read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    /* 24px floor on the tap target, same as every other link on the site. */
+    min-height: 28px;
+    font-family: var(--font-ui);
+    font-size: var(--t-16);
+    font-weight: 500;
+    color: var(--fg1);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  .read-more svg {
+    width: 16px;
+    height: 16px;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+  .read-more:hover { text-decoration: underline; }
+  .read-more:hover svg { transform: translateX(2px); }
+
+  .poster {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 5.4vw, 64px);
+    line-height: var(--lh-tight);
+    letter-spacing: var(--tr-tight);
+    color: var(--fg1);
+  }
+  /* The one accent, matching the full stop after the name in the hero. */
+  .stop { color: var(--em-color); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .read-more svg,
+    .read-more:hover svg { transition: none; transform: none; }
+  }
+</style>

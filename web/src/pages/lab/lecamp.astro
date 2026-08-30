@@ -12,6 +12,11 @@
  *    Grotesque as its substitute, so that is what loads.
  *  - The 90px display is clamp()ed for small screens and capped at 90px, since
  *    a fixed 90px overflows a phone by a wide margin.
+ *  - The spec says the hero is "full-bleed ... at 100vh". The live site is not:
+ *    the hero is an inset rounded block with white margin on all four sides and
+ *    a 20px radius, and the headline is centred in it. Measured on
+ *    lecampquebec.com — .c-hero-display carries the radius and sits inside a
+ *    padded wrapper. The site wins over the write-up.
  * Everything else — the four colours, the four surfaces, 1px black rules,
  * 10/20/35 radii, red only where a decision or an identity is — is verbatim.
  */
@@ -72,10 +77,11 @@ const clip = { src: '/hero/standin.mp4', start: 1.4, end: 3.4 };
           preload="auto"
           aria-hidden="true"></video>
         <div class="hero-inner">
-          <p class="mono-tag light">PRODUKT · DESIGN · KODE</p>
           <h1 class="display">Alex Monkey business</h1>
           <p class="hero-sub">Ting jeg lager på fritiden, mest fordi det er gøy.</p>
         </div>
+
+        <p class="mono-tag light hero-foot">PRODUKT · DESIGN · KODE</p>
 
         <!-- Shield patches — 2px stroke line art, one per system colour. -->
         <span class="patch patch-a" style="--patch: var(--color-signal-red)">
@@ -314,16 +320,25 @@ const clip = { src: '/hero/standin.mp4', start: 1.4, end: 3.4 };
         align-items: center;
         justify-content: space-between;
         gap: var(--spacing-20);
-        padding: var(--spacing-15) var(--spacing-30);
+        /* Inset to sit inside the hero plate, not floating on the white margin
+           beside it. Once the page scrolls past the plate it takes the full
+           width and grows its rule, which is the only moment it is a bar. */
+        margin: var(--spacing-30) var(--spacing-40);
+        padding: var(--spacing-15) var(--spacing-20);
         background: transparent;
         border-bottom: 1px solid transparent;
-        transition: background 200ms ease, border-color 200ms ease, color 200ms ease;
+        transition: background 200ms ease, border-color 200ms ease, color 200ms ease, margin 200ms ease, padding 200ms ease;
         color: var(--color-summit-white);
       }
       .nav.solid {
+        margin: 0;
+        padding: var(--spacing-15) var(--spacing-30);
         background: var(--color-summit-white);
         border-bottom-color: var(--color-carbon-ink);
         color: var(--color-carbon-ink);
+      }
+      @media (max-width: 700px) {
+        .nav { margin: var(--spacing-15); }
       }
       .brand {
         display: inline-flex;
@@ -341,13 +356,24 @@ const clip = { src: '/hero/standin.mp4', start: 1.4, end: 3.4 };
       .nav .btn-secondary { color: inherit; border-color: currentColor; }
 
       /* ============ HERO ============ */
+      /* An inset block, not a full-bleed band: white margin all round and the
+         card radius, so the photograph reads as a plate on the page rather
+         than as the page itself. */
       .hero {
         position: relative;
-        min-height: 100svh;
+        height: calc(100svh - var(--spacing-60));
+        margin: var(--spacing-30) var(--spacing-40);
+        border-radius: var(--radius-cards);
         display: flex;
         align-items: center;
         overflow: hidden;
         background: var(--surface-base-camp-dark);
+      }
+      @media (max-width: 700px) {
+        .hero {
+          margin: var(--spacing-15);
+          height: calc(100svh - var(--spacing-30));
+        }
       }
       .hero-media {
         position: absolute;
@@ -374,11 +400,12 @@ const clip = { src: '/hero/standin.mp4', start: 1.4, end: 3.4 };
         width: 100%;
         max-width: var(--page-max-width);
         margin: 0 auto;
-        padding: 0 var(--spacing-30);
+        padding: 0 var(--spacing-40);
+        text-align: center;
       }
-      .hero-inner .display { max-width: 15ch; }
+      .hero-inner .display { max-width: 18ch; margin-inline: auto; }
       .hero-sub {
-        margin: var(--spacing-20) 0 0;
+        margin: var(--spacing-20) auto 0;
         max-width: 46ch;
         color: var(--color-summit-white);
         opacity: 0.85;
@@ -403,6 +430,14 @@ const clip = { src: '/hero/standin.mp4', start: 1.4, end: 3.4 };
         stroke-linejoin: round;
         stroke-linecap: round;
       }
+      .hero-foot {
+        position: absolute;
+        z-index: 3;
+        left: var(--spacing-40);
+        bottom: var(--spacing-30);
+        margin: 0;
+      }
+
       /* Sits in the taper below the icon, not on it — the badge is a merit
          patch, and the name is the thing stitched at the bottom of one. */
       .patch-name {
@@ -416,9 +451,9 @@ const clip = { src: '/hero/standin.mp4', start: 1.4, end: 3.4 };
       /* A loose constellation down the right edge. They must clear the headline
          — a decorative patch sitting on 90px display type is not decoration,
          it is damage. */
-      .patch-a { top: 14%; right: 14%; transform: rotate(-6deg); }
-      .patch-b { top: 16%; right: 4%; transform: rotate(5deg); }
-      .patch-c { bottom: 16%; right: 11%; transform: rotate(-2deg); }
+      .patch-a { top: 12%; left: 6%; transform: rotate(-6deg); }
+      .patch-b { top: 14%; right: 8%; transform: rotate(5deg); }
+      .patch-c { bottom: 12%; right: 16%; transform: rotate(-2deg); }
       @media (max-width: 900px) {
         .patch { width: 84px; }
         .patch-a { top: auto; bottom: 22%; right: 6%; }

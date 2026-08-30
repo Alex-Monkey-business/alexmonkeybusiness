@@ -1,7 +1,7 @@
 ---
 import { t, path, type Lang } from '../../i18n';
 import { projects } from '../../data/projects';
-import AboutCard from '../AboutCard.astro';
+import AboutBlock from '../AboutBlock.astro';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -31,7 +31,7 @@ const s = t(lang);
   {/* Sits on the canvas, above the chamber, so «Prosjekter» still opens onto
       projects only. */}
   <section class="intro band">
-    <AboutCard lang={lang} />
+    <AboutBlock lang={lang} />
   </section>
 
   <section class="work band" id="projects">
