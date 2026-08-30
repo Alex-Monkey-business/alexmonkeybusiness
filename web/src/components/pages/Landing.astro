@@ -1,6 +1,7 @@
 ---
 import { t, path, type Lang } from '../../i18n';
 import { projects } from '../../data/projects';
+import AboutCard from '../AboutCard.astro';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -25,6 +26,12 @@ const s = t(lang);
           ></span>
       </span>
     </h1>
+  </section>
+
+  {/* Sits on the canvas, above the chamber, so «Prosjekter» still opens onto
+      projects only. */}
+  <section class="intro band">
+    <AboutCard lang={lang} />
   </section>
 
   <section class="work band" id="projects">
@@ -163,6 +170,12 @@ const s = t(lang);
   @keyframes squiggle-draw {
     to { clip-path: inset(0 -2% 0 0); }
   }
+
+  /* The gap under the hero is already generous; this only needs to clear the
+     chamber below it.
+
+     The band's own width fix lives in landing.css. */
+  .intro { padding-bottom: var(--s-10); }
 
   /* ===== work chamber ===== */
   .work {

@@ -386,8 +386,14 @@ html.dark .nav-panel {
 
 /* ============ SHARED PRIMITIVES ============ */
 
-/* Page-level content band, max-width centered */
+/* Page-level content band, max-width centered.
+
+   width: 100% is load-bearing: main is a flex column, and there `margin: auto`
+   shrink-wraps a band to its own content instead of filling to --page-max.
+   Every band on the page was sized by what happened to be inside it, which is
+   invisible while the contents are wide and obvious the moment one is not. */
 .band {
+  width: 100%;
   max-width: var(--page-max);
   margin: 0 auto;
   padding: 0 var(--s-4);

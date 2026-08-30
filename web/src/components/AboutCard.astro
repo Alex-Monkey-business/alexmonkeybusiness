@@ -1,0 +1,174 @@
+---
+/**
+ * The one card that is not a project. It sits between the name and the work,
+ * on the canvas rather than inside the velvet chamber, so the chamber still
+ * opens on «Prosjekter» — a label that opened onto something that is not a
+ * project would be lying.
+ *
+ * It is also where the footage belongs. On a project card a clip reads as
+ * "this is what the project looks like", which is why the same treatment was
+ * cut from BenchBoss. Here it reads as mood, which is what it is.
+ */
+import { t, path, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const s = t(lang);
+
+/* The four seconds of the clip that carry tonal range. */
+const clip = { src: '/hero/standin.mp4', start: 0.4, end: 4.2 };
+---
+
+<a class="about-card" href={path(lang, '/about')}>
+  <video
+    class="footage"
+    src={clip.src}
+    data-start={clip.start}
+    data-end={clip.end}
+    muted
+    loop
+    playsinline
+    preload="none"
+    aria-hidden="true"></video>
+  {/* Solid ink at partial alpha, not a scrim gradient — this system has no
+      gradients, and cream type straight on snow is unreadable. */}
+  <span class="veil"></span>
+
+  <span class="row">
+    <h2 class="about-title">
+      {s.aboutCard.title}{' '}<em>{s.aboutCard.titleEm}</em>
+    </h2>
+    <span class="disc">
+      <span class="sr-only">{s.nav.about}</span>
+      <svg viewBox="0 0 16 16" aria-hidden="true"
+        ><path d="M3 8h9M8.5 4l4 4-4 4" fill="none" stroke="currentColor"
+          stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </span>
+  </span>
+</a>
+
+<script>
+  /* Plays only while pointed at, and only the window that has contrast in it.
+     `loop` restarts at 0 and a #t= fragment does not survive it, so the window
+     is held here. preload="none" keeps it off the critical path — nothing is
+     fetched until someone reaches for the card. */
+  const card = document.querySelector<HTMLAnchorElement>('.about-card');
+  const v = card?.querySelector('video');
+  if (card && v) {
+    const start = Number(v.dataset.start) || 0;
+    const end = Number(v.dataset.end) || 0;
+    v.addEventListener('timeupdate', () => {
+      if (end && (v.currentTime >= end || v.currentTime < start)) v.currentTime = start;
+    });
+    const play = () => { v.currentTime = start; v.play().catch(() => {}); };
+    const stop = () => { v.pause(); };
+    card.addEventListener('pointerenter', play);
+    card.addEventListener('pointerleave', stop);
+    /* Keyboard reaches this card too, and a reveal that only hover can trigger
+       is a reveal half the visitors never get. */
+    card.addEventListener('focus', play);
+    card.addEventListener('blur', stop);
+  }
+</script>
+
+<style>
+  .about-card {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    background: var(--lumen-cream);
+    color: var(--vast-ink);
+    border: var(--border-w) solid var(--vast-ink);
+    border-radius: var(--r-lg);
+    padding: var(--s-8);
+    text-decoration: none;
+    transition: color var(--dur-base) var(--ease-out);
+  }
+
+  /* A wide band, not a tile: the shape says "not one of the four" before the
+     word does. */
+  .row {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-6);
+    min-height: 88px;
+  }
+
+  .about-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 48px);
+    line-height: var(--lh-snug);
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .about-title em {
+    font-style: italic;
+    color: var(--forest-ink);
+    transition: color var(--dur-base) var(--ease-out);
+  }
+
+  .disc {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border: var(--border-w) solid currentColor;
+    border-radius: var(--r-pill);
+  }
+  .disc svg {
+    width: 18px;
+    height: 18px;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .footage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* The ridge, not the empty sky above it. */
+    object-position: 50% 58%;
+    opacity: 0;
+    z-index: 1;
+    transition: opacity var(--dur-slow, 420ms) var(--ease-out);
+  }
+  .veil {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: var(--vast-ink);
+    opacity: 0;
+    transition: opacity var(--dur-slow, 420ms) var(--ease-out);
+  }
+
+  .about-card:hover,
+  .about-card:focus-visible { color: var(--lumen-cream); }
+  .about-card:hover .footage,
+  .about-card:focus-visible .footage { opacity: 1; }
+  .about-card:hover .veil,
+  .about-card:focus-visible .veil { opacity: 0.55; }
+  /* Forest on footage is mud. Lavender is the accent that survives it. */
+  .about-card:hover .about-title em,
+  .about-card:focus-visible .about-title em { color: var(--lavender); }
+  .about-card:hover .disc svg { transform: translateX(2px); }
+
+  @media (max-width: 640px) {
+    .about-card { padding: var(--s-5); }
+    .row { min-height: 64px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footage,
+    .veil { display: none; }
+    .disc svg { transition: none; }
+    .about-card:hover { color: var(--vast-ink); }
+    .about-card:hover .about-title em { color: var(--forest-ink); }
+  }
+</style>

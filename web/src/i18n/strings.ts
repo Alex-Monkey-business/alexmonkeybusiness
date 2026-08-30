@@ -25,6 +25,8 @@ export const strings = {
     nav: { projects: 'Prosjekter', about: 'Om', cta: 'Ta kontakt', menu: 'Meny', close: 'Lukk' },
     /** Same word as the nav item, so clicking «Prosjekter» lands on «Prosjekter». */
     work: { label: 'Prosjekter' },
+    /** The one card on the landing page that is not a project. */
+    aboutCard: { title: 'Om', titleEm: 'meg' },
     card: { readCase: 'Les caset', visitSite: 'Se siden', inProgress: 'Underveis' },
     footer: { email: 'E-post', github: 'GitHub', about: 'Om' },
     about: {
@@ -90,6 +92,8 @@ export const strings = {
     nav: { projects: 'Projects', about: 'About', cta: 'Get in touch', menu: 'Menu', close: 'Close' },
     /** Same word as the nav item, so clicking "Projects" lands on "Projects". */
     work: { label: 'Projects' },
+    /** The one card on the landing page that is not a project. */
+    aboutCard: { title: 'About', titleEm: 'me' },
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
     footer: { email: 'Email', github: 'GitHub', about: 'About' },
     about: {
