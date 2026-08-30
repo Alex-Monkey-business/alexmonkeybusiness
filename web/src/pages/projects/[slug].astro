@@ -5,9 +5,11 @@ import { projects } from '../../data/projects';
 
 // getStaticPaths has to live in the route file, so it is repeated per locale.
 export function getStaticPaths() {
+  // A card with a `url` opens the real site, so a detail page for it would be
+  // an orphan stub nobody can reach. halsen-g15 has its own hand-built page.
   const customPages = new Set(['halsen-g15']);
   return projects
-    .filter((p) => !customPages.has(p.slug))
+    .filter((p) => !customPages.has(p.slug) && !p.url)
     .map((p) => ({ params: { slug: p.slug }, props: { project: p } }));
 }
 

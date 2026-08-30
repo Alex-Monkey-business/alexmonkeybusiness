@@ -77,9 +77,7 @@ export const strings = {
     },
     projects: {
       'halsen-g15': 'Mindre styr. Mer fotball.',
-      'ai-meetup-larvik': 'En kveld om AI. Uten dresskode.',
-      'larvik-beach-volley': 'Sand er best inne også.',
-      diggski: 'Ikke helt klar ennå. Men på vei et sted.',
+      'simons-solfilm': 'Sola ut. Utsikten inn.',
     } as Record<string, string>,
   },
 
@@ -143,9 +141,7 @@ export const strings = {
     },
     projects: {
       'halsen-g15': 'Less hassle. More football.',
-      'ai-meetup-larvik': 'An evening about AI. No dress code.',
-      'larvik-beach-volley': 'Sand belongs indoors too.',
-      diggski: "Not quite ready. But headed somewhere.",
+      'simons-solfilm': 'Sun out. View in.',
     } as Record<string, string>,
   },
 } as const;

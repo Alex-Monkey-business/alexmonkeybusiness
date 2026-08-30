@@ -21,23 +21,10 @@ export const projects: Project[] = [
     year: '2026',
   },
   {
-    slug: 'ai-meetup-larvik',
-    title: 'AI Meetup',
-    titleEm: 'Larvik',
+    slug: 'simons-solfilm',
+    title: 'Simons',
+    titleEm: 'Solfilm',
     year: '2026',
-    url: 'https://ai-meetup-larvik.netlify.app/',
-  },
-  {
-    slug: 'larvik-beach-volley',
-    title: 'Larvik Beach',
-    titleEm: 'Volley',
-    year: '2026',
-    url: 'https://larvik-beach-volley.netlify.app/',
-  },
-  {
-    slug: 'diggski',
-    title: 'DiggSki',
-    year: '2026',
-    status: 'wip',
+    url: 'https://simonssolfilm.no',
   },
 ];
