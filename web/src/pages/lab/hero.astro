@@ -1,0 +1,43 @@
+---
+/**
+ * Not linked from anywhere and not meant to ship — a bench for looking at the
+ * masked hero at three stroke weights before picking one.
+ */
+import Layout from '../../layouts/Layout.astro';
+import HeroMask from '../../components/HeroMask.astro';
+
+const rows = [
+  { weight: 400, note: '400 — the system’s display weight' },
+  { weight: 600, note: '600' },
+  { weight: 800, note: '800' },
+];
+---
+
+<Layout title="Lab — masked hero">
+  {rows.map(({ weight, note }) => (
+    <section class="bench">
+      <p class="note">{note}</p>
+      <div class="display"><HeroMask weight={weight} start={0.4} end={4.2} scale={1.35} /></div>
+    </section>
+  ))}
+</Layout>
+
+<style>
+  .bench {
+    padding: var(--s-8) var(--s-8) var(--s-10);
+    border-bottom: 1px solid color-mix(in srgb, var(--fg1) 12%, transparent);
+  }
+  .note {
+    font-family: var(--font-ui);
+    font-size: var(--t-14);
+    color: var(--fog-ink);
+    margin: 0 0 var(--s-5);
+  }
+  .display {
+    font-family: var(--font-display);
+    font-size: clamp(52px, 11.5vw, 120px);
+    line-height: var(--lh-tight);
+    letter-spacing: var(--tr-tight);
+    color: var(--fg1);
+  }
+</style>

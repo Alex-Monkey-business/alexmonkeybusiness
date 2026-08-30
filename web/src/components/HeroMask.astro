@@ -1,0 +1,156 @@
+---
+/**
+ * The name with footage running inside the letterforms — not behind them.
+ * A full-bleed video hero would fight the cream/velvet system and put someone
+ * else's picture where the page says who Alex is. Clipped into the type, the
+ * motion is the only thing moving on an otherwise wordless screen.
+ *
+ * Built as a knockout, not a CSS mask: the overlay is a rect in the canvas
+ * colour with the text cut out of it, so what shows through the letters is the
+ * video underneath. A `mask-image` data-URI cannot see the page's webfont, and
+ * `background-clip: text` cannot take a video at all.
+ *
+ * The video plane is the whole two-line block, not one line. A single line is
+ * an 8:1 box, and `object-fit: cover` on that crops 16:9 footage down to a
+ * band of nothing — the first build read as flat white with a smudge in it.
+ */
+interface Props {
+  /** Stroke mass. Garamond 400 leaves too little letter for footage to read. */
+  weight?: number;
+  /** Zoom on the source, since a 640x360 rip has no detail to spare. */
+  scale?: number;
+  /** Loop window in seconds. Footage only reads inside letterforms where it
+      has tonal range; a white field with a dot in it reads as solid white. */
+  start?: number;
+  end?: number;
+  lines?: string[];
+}
+const {
+  weight = 600,
+  scale = 1,
+  start = 0,
+  end = 0,
+  lines = ['Alex', 'Monkey business'],
+} = Astro.props;
+const id = `knock-${Math.random().toString(36).slice(2, 8)}`;
+/** Baselines in em of the display size, one line apart at the tight leading. */
+const step = 1.06;
+const top = 0.86;
+---
+
+<div class="masked" style={`--w:${weight}; --scale:${scale}; --lines:${lines.length}; --step:${step}; --top:${top}`}>
+  <video
+    class="footage"
+    src="/hero/standin.mp4"
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="auto"
+    data-start={start}
+    data-end={end}
+    aria-hidden="true"></video>
+
+  <svg class="knockout" aria-hidden="true">
+    <defs>
+      {/* White keeps the fill, black cuts the hole. The text is real text in
+          the document, so it renders in EB Garamond like everything else. */}
+      <mask id={id}>
+        <rect width="100%" height="100%" fill="#fff" />
+        {lines.map((line, i) => (
+          <text x="0" y={`${top + i * step}em`} fill="#000">{line}</text>
+        ))}
+      </mask>
+    </defs>
+    <rect width="100%" height="100%" mask={`url(#${id})`} />
+  </svg>
+
+  {/* Plain ink type, revealed when motion is off. Not display:none — it is the
+      fallback face of the same words and has to stay in the tree. */}
+  <p class="plain">{lines.map((line) => <span>{line}</span>)}</p>
+</div>
+
+<script>
+  /* `loop` restarts at 0 and a #t= media fragment does not survive it, so the
+     window is held in script. timeupdate fires often enough at 4s and costs
+     nothing — no rAF loop for a seek that happens once a cycle. */
+  document.querySelectorAll<HTMLVideoElement>('video.footage').forEach((v) => {
+    const start = Number(v.dataset.start) || 0;
+    const end = Number(v.dataset.end) || 0;
+    if (!end) return;
+    const rewind = () => { v.currentTime = start; };
+    v.addEventListener('loadedmetadata', rewind, { once: true });
+    v.addEventListener('timeupdate', () => {
+      if (v.currentTime >= end || v.currentTime < start) rewind();
+    });
+  });
+</script>
+
+<style>
+  .masked {
+    position: relative;
+    /* Tall enough for every baseline plus the descenders under the last one. */
+    height: calc((var(--top) + (var(--lines) - 1) * var(--step) + 0.3) * 1em);
+    line-height: 1;
+    isolation: isolate;
+    /* The knockout only covers this box, so a zoomed video that spills past it
+       shows raw footage on the canvas — the page inverts into a photo with a
+       black slab on it. */
+    overflow: hidden;
+  }
+
+  .footage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* The ridge line, not the empty sky above it. */
+    object-position: 50% 62%;
+    transform: scale(var(--scale, 1));
+    /* Toned to the page rather than dropped in raw: full-colour video inside a
+       two-colour system reads as a stock-photo accident. On cream the dark
+       half of the frame becomes the ink, which is what type already does. */
+    filter: grayscale(1) contrast(1.25) brightness(0.92);
+  }
+  /* Velvet needs the negative. Left as-is, the frame's mid-tones land as grey
+     letters on a near-black page — the word goes quiet exactly where it is the
+     only thing on screen. Inverted, the sky becomes the light in the strokes
+     and the snow becomes the texture. */
+  :global(html.dark) .footage {
+    filter: grayscale(1) invert(1) contrast(1.3) brightness(1.12);
+  }
+
+  .knockout {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* The cut-out sits on the canvas, so it has to be the canvas colour in
+       both themes — a fixed value would leave a pale slab in dark mode. */
+    fill: var(--bg);
+  }
+  .knockout text {
+    font-family: var(--font-display);
+    font-size: 1em;
+    font-weight: var(--w, 600);
+    letter-spacing: var(--tr-tight);
+  }
+
+  .plain {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    font-weight: var(--w, 600);
+    letter-spacing: var(--tr-tight);
+    clip-path: inset(50%);
+  }
+  .plain span { display: block; line-height: var(--step); }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Still type beats a slab of canvas colour with holes in it. */
+    .footage,
+    .knockout { display: none; }
+    .plain { clip-path: none; color: var(--fg1); }
+  }
+</style>
