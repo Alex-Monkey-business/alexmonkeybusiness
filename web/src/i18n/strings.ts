@@ -77,7 +77,7 @@ export const strings = {
     },
     projects: {
       'halsen-g15': 'Mindre styr. Mer fotball.',
-      'simons-solfilm': 'Sola ut. Utsikten inn.',
+      'simons-solfilm': 'Nettside for en kompis i Larvik.',
     } as Record<string, string>,
   },
 
@@ -141,7 +141,7 @@ export const strings = {
     },
     projects: {
       'halsen-g15': 'Less hassle. More football.',
-      'simons-solfilm': 'Sun out. View in.',
+      'simons-solfilm': 'A website for a friend in Larvik.',
     } as Record<string, string>,
   },
 } as const;
