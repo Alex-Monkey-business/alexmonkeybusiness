@@ -1,0 +1,234 @@
+---
+/**
+ * Not linked and not meant to ship — three ways a project card could hold the
+ * project's own footage, side by side, so the choice is made by looking.
+ *
+ * All three play on hover only. Two cards autoplaying on arrival would put
+ * more motion on the landing page than the whole rest of the site has.
+ */
+import Layout from '../../layouts/Layout.astro';
+
+const cards = [
+  { n: '01', title: 'Bench', em: 'Boss', line: 'Mindre styr. Mer fotball.' },
+  { n: '02', title: 'Simons', em: 'Solfilm', line: 'Nettside for en kompis i Larvik.' },
+];
+
+/* The same four seconds the hero prototype uses — the only stretch of the clip
+   with tonal range in it. */
+const clip = { src: '/hero/standin.mp4', start: 0.4, end: 4.2 };
+
+const variants = [
+  { id: 'disc', note: 'A — the arrow disc becomes the window' },
+  { id: 'title', note: 'B — the title fills with the footage' },
+  { id: 'surface', note: 'C — the footage is the card' },
+];
+---
+
+<Layout title="Lab — footage in the cards">
+  {variants.map(({ id, note }) => (
+    <section class="bench">
+      <p class="note">{note}</p>
+      <ul class:list={['grid', id]}>
+        {cards.map((c, i) => (
+          <li>
+            <a href="#" class="card">
+              {id !== 'title' && (
+                <video class="footage" src={clip.src} data-start={clip.start} data-end={clip.end}
+                  muted loop playsinline preload="metadata" aria-hidden="true"></video>
+              )}
+              <span class="veil"></span>
+              <span class="body">
+                <span class="card-top">
+                  <span class="badge-square">{c.n}</span>
+                  <span class="card-year">2026</span>
+                </span>
+                {id === 'title' ? (
+                  <h3 class="card-title masked-title">
+                    <video class="footage" src={clip.src} data-start={clip.start} data-end={clip.end}
+                      muted loop playsinline preload="metadata" aria-hidden="true"></video>
+                    <svg class="knockout" aria-hidden="true">
+                      <defs>
+                        <mask id={`k-${c.n}`}>
+                          <rect width="100%" height="100%" fill="#fff" />
+                          <text x="0" y="0.82em" fill="#000">{c.title} {c.em}</text>
+                        </mask>
+                      </defs>
+                      <rect width="100%" height="100%" mask={`url(#k-${c.n})`} />
+                    </svg>
+                    <span class="plain">{c.title} <em>{c.em}</em></span>
+                  </h3>
+                ) : (
+                  <h3 class="card-title">{c.title} <em>{c.em}</em></h3>
+                )}
+                <p class="card-sub">{c.line}</p>
+                <span class="card-cta">
+                  <svg viewBox="0 0 16 16" aria-hidden="true"
+                    ><path d="M3 8h9M8.5 4l4 4-4 4" fill="none" stroke="currentColor"
+                      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</Layout>
+
+<script>
+  /* Play only while pointed at. Nothing on this page should be moving until
+     someone asks it to. */
+  document.querySelectorAll<HTMLAnchorElement>('.card').forEach((card) => {
+    const v = card.querySelector('video');
+    if (!v) return;
+    const start = Number(v.dataset.start) || 0;
+    const end = Number(v.dataset.end) || 0;
+    v.addEventListener('timeupdate', () => {
+      if (end && (v.currentTime >= end || v.currentTime < start)) v.currentTime = start;
+    });
+    card.addEventListener('pointerenter', () => { v.currentTime = start; v.play().catch(() => {}); });
+    card.addEventListener('pointerleave', () => { v.pause(); v.currentTime = start; });
+  });
+</script>
+
+<style>
+  .bench { padding: var(--s-8) var(--s-8) var(--s-10); }
+  .note {
+    font-family: var(--font-ui);
+    font-size: var(--t-14);
+    color: var(--fog-ink);
+    margin: 0 0 var(--s-5);
+  }
+
+  .grid {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-8);
+  }
+  @media (max-width: 820px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+  .card {
+    position: relative;
+    height: 100%;
+    display: block;
+    overflow: hidden;
+    background: var(--lumen-cream);
+    color: var(--vast-ink);
+    border: var(--border-w) solid var(--vast-ink);
+    border-radius: var(--r-lg);
+    text-decoration: none;
+    transition: background var(--dur-base) var(--ease-out);
+  }
+  .body {
+    position: relative;
+    z-index: 2;
+    display: flex; flex-direction: column; gap: var(--s-3);
+    height: 100%;
+    padding: var(--s-8);
+  }
+  .card-top { display: flex; align-items: center; gap: var(--s-2); margin-bottom: var(--s-2); }
+  .card-year { margin-left: auto; font-size: var(--t-14); color: var(--fog-ink); }
+  .card-title {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 48px); line-height: var(--lh-snug);
+    letter-spacing: -0.02em; margin: 0;
+  }
+  .card-title em { font-style: italic; color: var(--forest-ink); }
+  .card-sub { margin: 0; font-size: var(--t-16); line-height: var(--lh-normal); color: var(--charcoal); max-width: 34ch; }
+  .card-cta {
+    margin-top: auto; align-self: flex-start;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 46px; height: 46px; overflow: hidden;
+    border: var(--border-w) solid var(--vast-ink); border-radius: var(--r-pill);
+    transition: background var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+  }
+  .card-cta svg { width: 18px; height: 18px; position: relative; z-index: 2; }
+
+  .footage {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0; z-index: 1;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+  .veil { display: none; }
+
+  /* ===== A — the disc is the only window ===================================
+     The smallest possible dose. Nothing about the card changes except the one
+     46px circle the eye is already heading for, and the arrow stays legible
+     because it sits on top in cream. */
+  .disc .card:hover { background: var(--lavender); }
+  .disc .footage {
+    position: absolute;
+    left: var(--s-8); bottom: var(--s-8);
+    width: 46px; height: 46px;
+    border-radius: var(--r-pill);
+    inset: auto auto var(--s-8) var(--s-8);
+  }
+  .disc .card:hover .footage { opacity: 1; }
+  .disc .card:hover .card-cta { color: var(--lumen-cream); background: transparent; }
+
+  /* ===== B — the footage fills the title ==================================
+     Same knockout as the hero prototype, at a quarter of the size: an overlay
+     in the card's own colour with the words cut out of it, over the video.
+     The title is the only display type on the card, so it is the only element
+     with enough stroke to hold a picture.
+
+     The card does NOT turn lavender here. Two surfaces changing at once reads
+     as a state change; one reads as a reveal. */
+  .masked-title {
+    position: relative;
+    height: 1.15em;
+    line-height: 1;
+    overflow: hidden;
+  }
+  .masked-title .knockout {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    z-index: 3;
+    fill: var(--lumen-cream);
+  }
+  .masked-title .knockout text {
+    font-family: var(--font-display);
+    font-size: 1em;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  /* The ink face, shown until the footage arrives, so the card never blinks. */
+  .masked-title .plain {
+    position: absolute; inset: 0; z-index: 4;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+  .title .card:hover .masked-title .plain { opacity: 0; }
+  /* The video lives inside the title box here, not across the card: the
+     knockout only covers the title, so a card-wide video would show raw
+     footage everywhere the mask does not reach. */
+  .masked-title .footage {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    z-index: 2;
+    object-position: 50% 62%;
+    filter: grayscale(1) contrast(1.25) brightness(0.92);
+  }
+  .title .card:hover .footage { opacity: 1; }
+
+  /* ===== C — the footage is the card ======================================
+     The whole surface turns into the project. Reads hardest, and costs the
+     most: ink on video has no contrast, so the type has to invert and sit on
+     a flat scrim — a solid one, since this system does not do gradients. */
+  .surface .card:hover .footage { opacity: 1; }
+  .surface .veil {
+    display: block;
+    position: absolute; inset: 0; z-index: 1;
+    background: var(--vast-ink);
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+  .surface .card:hover .veil { opacity: 0.55; }
+  .surface .card:hover { color: var(--lumen-cream); }
+  .surface .card:hover .card-sub,
+  .surface .card:hover .card-year { color: var(--lumen-cream); }
+  .surface .card:hover .card-title em { color: var(--lavender); }
+  .surface .card:hover .card-cta { border-color: var(--lumen-cream); }
+  .surface .card:hover .badge-square { background: var(--lumen-cream); color: var(--vast-ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footage { display: none; }
+  }
+</style>
