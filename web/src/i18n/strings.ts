@@ -23,8 +23,9 @@ export const strings = {
       aboutTitle: 'Om — Alex Monkey Business',
     },
     nav: { projects: 'Prosjekter', about: 'Om', cta: 'Ta kontakt', menu: 'Meny', close: 'Lukk' },
-    /** Same word as the nav item, so clicking «Prosjekter» lands on «Prosjekter». */
-    work: { label: 'Prosjekter' },
+    /** Warmer than «Prosjekter», and it says what the section actually is.
+        It no longer matches the nav item — see the note in the nav strings. */
+    work: { label: 'Ting jeg har laget' },
     /** The one card on the landing page that is not a project. */
     aboutCard: { title: 'Om', titleEm: 'meg' },
     card: { readCase: 'Les caset', visitSite: 'Se siden', inProgress: 'Underveis' },
@@ -78,8 +79,8 @@ export const strings = {
       ],
     },
     projects: {
-      'halsen-g15': 'Mindre styr. Mer fotball.',
-      'simons-solfilm': 'Nettside for en kompis i Larvik.',
+      'halsen-g15': 'Trenerapp for fotballpappaer.',
+      'simons-solfilm': 'Nettside for et solfilmfirma i Larvik.',
     } as Record<string, string>,
   },
 
@@ -90,8 +91,9 @@ export const strings = {
       aboutTitle: 'About — Alex Monkey Business',
     },
     nav: { projects: 'Projects', about: 'About', cta: 'Get in touch', menu: 'Menu', close: 'Close' },
-    /** Same word as the nav item, so clicking "Projects" lands on "Projects". */
-    work: { label: 'Projects' },
+    /** Warmer than "Projects", and it says what the section actually is.
+        It no longer matches the nav item — see the note in the nav strings. */
+    work: { label: "Things I've made" },
     /** The one card on the landing page that is not a project. */
     aboutCard: { title: 'About', titleEm: 'me' },
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
@@ -144,8 +146,8 @@ export const strings = {
       ],
     },
     projects: {
-      'halsen-g15': 'Less hassle. More football.',
-      'simons-solfilm': 'A website for a friend in Larvik.',
+      'halsen-g15': 'A coaching app for football dads.',
+      'simons-solfilm': 'A site for a window-tint shop in Larvik.',
     } as Record<string, string>,
   },
 } as const;

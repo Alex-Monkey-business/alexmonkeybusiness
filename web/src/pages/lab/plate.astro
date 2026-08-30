@@ -1,0 +1,159 @@
+---
+/**
+ * VARIANT 1 — PLATE
+ *
+ * The one grip worth stealing from Le Camp: content sits on inset plates with
+ * margin all round, not in full-bleed bands. Here the hero becomes a plate
+ * too, so the page opens on velvet from the first pixel and both plates share
+ * one continuous left edge down the screen. That shared edge is the whole
+ * elegance — nothing is drawn to make it, it is just two identical insets.
+ *
+ * Text: a name, a label, two rows of three words. No paragraph anywhere.
+ */
+import Layout from '../../layouts/Layout.astro';
+import RiseIn from '../../components/RiseIn.astro';
+import '../../styles/variant-base.css';
+import { t, path, langFromUrl } from '../../i18n';
+import { projects } from '../../data/projects';
+
+const lang = langFromUrl(Astro.url);
+const s = t(lang);
+---
+
+<Layout title="Variant — Plate">
+  <div class="variant plate">
+    <!-- Plate one: the name, and nothing else. -->
+    <section class="plate-hero">
+      <h1 class="name">
+        <span class="line" data-rise style="--i:0">Alex</span>
+        <span class="line" data-rise style="--i:1">Monkey business<span class="stop">.</span></span>
+      </h1>
+    </section>
+
+    <!-- Plate two: the work. Same inset, so the edges line up. -->
+    <section class="plate-work" id="projects">
+      <h2 class="label" data-rise>{s.work.label}</h2>
+
+      <ul class="rows">
+        {projects.map((p, i) => {
+          const href = p.url ?? path(lang, `/projects/${p.slug}`);
+          const external = Boolean(p.url);
+          return (
+            <li data-rise style={`--i:${i + 1}`}>
+              <a
+                class="row"
+                href={href}
+                target={external ? '_blank' : undefined}
+                rel={external ? 'noopener noreferrer' : undefined}
+              >
+                <span class="row-name">
+                  {p.title}{p.titleEm && <em>{' '}{p.titleEm}</em>}
+                </span>
+                <span class="row-line">{s.projects[p.slug]}</span>
+                <span class="row-year">{p.year}</span>
+              </a>
+            </li>
+          );
+        })}
+        <li data-rise style={`--i:${projects.length + 1}`}>
+          <a class="row row-about" href={path(lang, '/about')}>
+            <span class="row-name">{s.aboutCard.title} <em>{s.aboutCard.titleEm}</em></span>
+            <span class="row-line" />
+            <span class="row-year" />
+          </a>
+        </li>
+      </ul>
+    </section>
+  </div>
+  <RiseIn />
+</Layout>
+
+<style>
+  /* One inset, used twice. Both plates read the same value, so the left edge
+     is a single line down the page without anything drawing it. */
+  .plate { --inset: clamp(12px, 2.5vw, 40px); }
+
+  .plate-hero,
+  .plate-work {
+    margin: var(--inset);
+    padding: clamp(24px, 5vw, 72px);
+    border-radius: var(--r-xl);
+    background: var(--surface-chamber);
+    color: var(--lumen-cream);
+  }
+  .plate-hero {
+    /* Floored and capped, same as the live hero: on a tall display an
+       unbounded plate becomes a void with a name floating in it. */
+    min-height: min(84svh, 760px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    margin-top: calc(var(--inset) + 72px);
+  }
+  .plate-work { margin-top: 0; }
+
+  .name {
+    font-family: var(--font-display);
+    font-size: clamp(44px, 9.5vw, 108px);
+    font-weight: 400;
+    line-height: var(--lh-tight);
+    letter-spacing: var(--tr-tight);
+    margin: 0;
+  }
+  .name .line { display: block; }
+  .name .line:first-child { color: var(--fg3); }
+  .stop { color: var(--lavender); }
+
+  .label {
+    margin: 0 0 clamp(24px, 4vw, 48px);
+    font-family: var(--font-ui);
+    font-size: var(--t-14);
+    font-weight: 500;
+    /* The plate is velvet in both themes, so this is a plain value rather than
+       a token that would flip against a background that never does. */
+    color: var(--fog);
+  }
+
+  .rows { list-style: none; margin: 0; padding: 0; }
+
+  /* A ruled list, not cards: the plate is already the container, and a card
+     inside a plate is two boxes doing one job. */
+  .row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 'name year' 'line year';
+    align-items: baseline;
+    gap: 2px var(--s-6);
+    padding: clamp(18px, 2.6vw, 30px) 0;
+    border-top: 1px solid var(--border-hair);
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--dur-base) var(--ease-out);
+  }
+  .rows li:last-child .row { border-bottom: 1px solid var(--border-hair); }
+
+  .row-name {
+    grid-area: name;
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4.4vw, 52px);
+    line-height: var(--lh-snug);
+    letter-spacing: -0.02em;
+    /* The one movement on the page that is not a fade: the name steps aside. */
+    display: inline-block;
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+  .row-name em { font-style: italic; color: var(--em-color); }
+  .row-line { grid-area: line; font-size: var(--t-16); color: var(--fg3); }
+  .row-year { grid-area: year; font-size: var(--t-14); color: var(--fg3); }
+
+  .row:hover .row-name,
+  .row:focus-visible .row-name { transform: translateX(10px); }
+  .row:hover,
+  .row:focus-visible { border-top-color: var(--lavender); }
+  .rows li:last-child .row:hover { border-bottom-color: var(--lavender); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .row-name,
+    .row:hover .row-name { transition: none; transform: none; }
+  }
+</style>

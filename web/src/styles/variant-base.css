@@ -1,0 +1,45 @@
+/* Shared ground for the /lab variants (31 Aug 2026).
+   Three rules, applied identically so the comparison is about composition and
+   nothing else:
+
+   1. ONE chromatic voice. Lavender stays — it is already `--accent` and it is
+      the only one of the three that reads on velvet, which is where the site
+      spends half its life. Forest and ember are switched off, so an italic in
+      a title is plain ink and the label has no dot in front of it. This is the
+      single biggest cleanliness gain available in the system and it costs no
+      words.
+   2. No paragraph. Nothing on these pages runs past one line.
+   3. Motion carries what the words used to. Every reveal is opacity plus a
+      short translate, never a scale or a bounce — the system is flat and
+      restrained, and springs read as personality the type has not asked for.
+*/
+.variant {
+  --em-color: var(--fg1);
+  --forest-ink: var(--fg1);
+  --ember-glow: transparent;
+}
+
+/* The reveal primitive. Hidden only behind `html.js`, which the Layout sets
+   before first paint, so a no-JS visitor gets everything and nothing flashes
+   in and back out. */
+:global(html.js) .variant [data-rise] {
+  opacity: 0;
+  transform: translateY(14px);
+}
+:global(html.js) .variant [data-rise].in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 640ms var(--ease-out),
+    transform 640ms var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 80ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(html.js) .variant [data-rise],
+  :global(html.js) .variant [data-rise].in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

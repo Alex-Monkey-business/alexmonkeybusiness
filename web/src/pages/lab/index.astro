@@ -1,0 +1,70 @@
+---
+/**
+ * Index for everything under /lab. Not linked from the site and noindexed.
+ */
+import Layout from '../../layouts/Layout.astro';
+
+const groups = [
+  {
+    title: 'Varianter — 31. aug',
+    note: 'Én aksent (lavendel), ingen avsnitt, motion i stedet for ord. Samme kopi i alle tre.',
+    items: [
+      { href: '/lab/plate/', name: 'Plate', line: 'To innfelte plater med samme marg. Siden åpner på velvet.' },
+      { href: '/lab/hairline/', name: 'Hairline', line: 'Ingen kort. Arbeidet er en linjert liste på lerretet.' },
+      { href: '/lab/reveal/', name: 'Reveal', line: 'Bare navn i ro. Linja folder seg ut når du peker.' },
+    ],
+  },
+  {
+    title: 'Eksperimenter',
+    note: 'Bygget 30.–31. aug. Beholdt fordi de viser hva som ikke virker.',
+    items: [
+      { href: '/lab/lecamp/', name: 'Le Camp', line: 'Style reference-en implementert som skrevet.' },
+      { href: '/lab/cards/', name: 'Kort med film', line: 'Tre doser footage i et prosjektkort. C er den som virker.' },
+      { href: '/lab/hero/', name: 'Maske-hero', line: 'Film inni bokstavene, ved 400 / 600 / 800.' },
+    ],
+  },
+];
+---
+
+<Layout title="Lab">
+  <div class="lab band">
+    {groups.map((g) => (
+      <section>
+        <h2>{g.title}</h2>
+        <p class="note">{g.note}</p>
+        <ul>
+          {g.items.map((i) => (
+            <li>
+              <a href={i.href}>{i.name}</a>
+              <span>{i.line}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</Layout>
+
+<style>
+  .lab { padding: clamp(120px, 18vh, 200px) var(--s-8) var(--s-20); }
+  section + section { margin-top: var(--s-12); }
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 32px;
+    margin: 0 0 var(--s-2);
+  }
+  .note { margin: 0 0 var(--s-6); font-size: var(--t-16); color: var(--fog-ink); }
+  :global(html.dark) .note { color: var(--fg3); }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-5);
+    padding: var(--s-4) 0;
+    border-top: 1px solid var(--border-hair);
+  }
+  li a { font-weight: 500; min-width: 12ch; }
+  li span { color: var(--fog-ink); }
+  :global(html.dark) li span { color: var(--fg3); }
+</style>

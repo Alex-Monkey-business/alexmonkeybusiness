@@ -1,0 +1,27 @@
+---
+/**
+ * One IntersectionObserver for every [data-rise] on the page. Inlined by Astro
+ * into the HTML, so there is no separate file that can fail and strand the
+ * content invisible.
+ */
+---
+<script>
+  const items = Array.from(document.querySelectorAll<HTMLElement>('[data-rise]'));
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (still || !('IntersectionObserver' in window)) {
+    items.forEach((el) => el.classList.add('in'));
+  } else {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      },
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.1 },
+    );
+    items.forEach((el) => io.observe(el));
+  }
+</script>

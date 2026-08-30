@@ -1,0 +1,178 @@
+---
+/**
+ * VARIANT 3 — REVEAL
+ *
+ * The shortest the page can possibly be: at rest it is three names on a
+ * canvas. Every describing line is folded away and unfolds on hover or focus.
+ * The words still exist — they are read out, they are indexed, they are one
+ * gesture away — but the resting page has none of them.
+ *
+ * The trap this has to answer: a phone has no hover, so a reveal that only
+ * hover can trigger is a page that says nothing to half its visitors. On a
+ * coarse pointer every line is simply open. That is `@media (hover: hover)`
+ * gating the fold, not JS sniffing the device.
+ */
+import Layout from '../../layouts/Layout.astro';
+import RiseIn from '../../components/RiseIn.astro';
+import '../../styles/variant-base.css';
+import { t, path, langFromUrl } from '../../i18n';
+import { projects } from '../../data/projects';
+
+const lang = langFromUrl(Astro.url);
+const s = t(lang);
+---
+
+<Layout title="Variant — Reveal">
+  <div class="variant reveal band">
+    <section class="hero">
+      <h1 class="name">
+        <span class="line" data-rise style="--i:0">Alex</span>
+        <span class="line" data-rise style="--i:1">Monkey business<span class="stop">.</span></span>
+      </h1>
+    </section>
+
+    <section id="projects">
+      <h2 class="label" data-rise>{s.work.label}</h2>
+
+      <ul class="stack">
+        {projects.map((p, i) => {
+          const href = p.url ?? path(lang, `/projects/${p.slug}`);
+          const external = Boolean(p.url);
+          return (
+            <li data-rise style={`--i:${i + 1}`}>
+              <a
+                class="item"
+                href={href}
+                target={external ? '_blank' : undefined}
+                rel={external ? 'noopener noreferrer' : undefined}
+              >
+                <span class="item-name">
+                  {p.title}{p.titleEm && <em>{' '}{p.titleEm}</em>}
+                </span>
+                {/* Folded, not removed — height animates from 0, and the text
+                    stays in the accessibility tree the whole time. */}
+                <span class="fold"><span class="fold-line">{s.projects[p.slug]}</span></span>
+              </a>
+            </li>
+          );
+        })}
+        <li data-rise style={`--i:${projects.length + 1}`}>
+          <a class="item" href={path(lang, '/about')}>
+            <span class="item-name">{s.aboutCard.title} <em>{s.aboutCard.titleEm}</em></span>
+            <span class="fold"><span class="fold-line">{s.about.title}</span></span>
+          </a>
+        </li>
+      </ul>
+    </section>
+  </div>
+  <RiseIn />
+</Layout>
+
+<style>
+  .reveal { padding-bottom: var(--s-20); }
+
+  .hero {
+    min-height: min(72svh, 680px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: clamp(88px, 12vh, 168px);
+  }
+  .name {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 10.5vw, 116px);
+    font-weight: 400;
+    line-height: var(--lh-tight);
+    letter-spacing: var(--tr-tight);
+    margin: 0;
+    color: var(--fg1);
+  }
+  .name .line { display: block; }
+  .name .line:first-child { color: var(--fg3); }
+  .stop { color: var(--em-color); }
+
+  .label {
+    margin: 0 0 var(--s-10);
+    font-family: var(--font-ui);
+    font-size: var(--t-14);
+    font-weight: 500;
+    color: var(--fog-ink);
+  }
+  :global(html.dark) .label { color: var(--fg3); }
+
+  .stack { list-style: none; margin: 0; padding: 0; }
+
+  .item {
+    display: block;
+    padding: clamp(10px, 1.6vw, 18px) 0;
+    color: inherit;
+    text-decoration: none;
+  }
+  .item-name {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: clamp(40px, 7.5vw, 88px);
+    line-height: var(--lh-tight);
+    letter-spacing: -0.025em;
+    color: var(--fg1);
+  }
+  .item-name em { font-style: italic; }
+
+  /* grid-template-rows 0fr → 1fr is the one way to animate to auto height
+     without measuring anything in script. The inner span must have min-height:0
+     or it refuses to be squeezed. */
+  .fold {
+    display: grid;
+    grid-template-rows: 1fr;
+  }
+  .fold-line {
+    min-height: 0;
+    overflow: hidden;
+    font-size: var(--t-16);
+    color: var(--fog-ink);
+  }
+  :global(html.dark) .fold-line { color: var(--fg3); }
+
+  /* Only a device that can hover gets the fold. A phone shows every line, or
+     the page tells it nothing at all. */
+  @media (hover: hover) and (pointer: fine) {
+    /* Fog until pointed at, ink once it is: the list lights one row at a time.
+       Gated with the fold, not global — on a coarse pointer nothing ever
+       hovers, so a global rule would leave every name permanently muted and
+       the whole list would read as disabled. */
+    .item-name {
+      color: var(--fg3);
+      transition: color var(--dur-base) var(--ease-out);
+    }
+    .item:hover .item-name,
+    .item:focus-visible .item-name { color: var(--fg1); }
+
+    .fold {
+      grid-template-rows: 0fr;
+      transition: grid-template-rows var(--dur-slow) var(--ease-out);
+    }
+    .fold-line {
+      opacity: 0;
+      transform: translateY(-4px);
+      transition:
+        opacity var(--dur-base) var(--ease-out),
+        transform var(--dur-base) var(--ease-out);
+    }
+    .item:hover .fold,
+    .item:focus-visible .fold { grid-template-rows: 1fr; }
+    .item:hover .fold-line,
+    .item:focus-visible .fold-line {
+      opacity: 1;
+      transform: none;
+      transition-delay: 90ms;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Nothing folds when motion is off — a height that snaps is worse than a
+       line that was always there. */
+    .fold { grid-template-rows: 1fr !important; transition: none; }
+    .fold-line { opacity: 1 !important; transform: none !important; transition: none; }
+    .item-name { transition: none; }
+  }
+</style>

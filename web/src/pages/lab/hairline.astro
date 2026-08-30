@@ -1,0 +1,172 @@
+---
+/**
+ * VARIANT 2 — HAIRLINE
+ *
+ * No cards, no chamber, no plate. The canvas is the page and the work is a
+ * ruled list on it. This is the quietest the site can be while still showing
+ * anything: at rest it is a name, a label, and three horizontal lines.
+ *
+ * The elegant touch is the rule itself. On hover a lavender line wipes across
+ * the hairline from the left — one transform on one pseudo-element, no layout
+ * shift, no colour change anywhere else. It is the only thing that moves.
+ */
+import Layout from '../../layouts/Layout.astro';
+import RiseIn from '../../components/RiseIn.astro';
+import '../../styles/variant-base.css';
+import { t, path, langFromUrl } from '../../i18n';
+import { projects } from '../../data/projects';
+
+const lang = langFromUrl(Astro.url);
+const s = t(lang);
+
+const rows = [
+  ...projects.map((p) => ({
+    key: p.slug,
+    title: p.title,
+    titleEm: p.titleEm,
+    line: s.projects[p.slug],
+    year: p.year,
+    href: p.url ?? path(lang, `/projects/${p.slug}`),
+    external: Boolean(p.url),
+  })),
+  {
+    key: 'about',
+    title: s.aboutCard.title,
+    titleEm: s.aboutCard.titleEm,
+    line: '',
+    year: '',
+    href: path(lang, '/about'),
+    external: false,
+  },
+];
+---
+
+<Layout title="Variant — Hairline">
+  <div class="variant hairline band">
+    <section class="hero">
+      <h1 class="name">
+        <span class="line" data-rise style="--i:0">Alex</span>
+        <span class="line" data-rise style="--i:1">Monkey business<span class="stop">.</span></span>
+      </h1>
+    </section>
+
+    <section id="projects">
+      <h2 class="label" data-rise>{s.work.label}</h2>
+      <ul class="rows">
+        {rows.map((r, i) => (
+          <li data-rise style={`--i:${i + 1}`}>
+            <a
+              class="row"
+              href={r.href}
+              target={r.external ? '_blank' : undefined}
+              rel={r.external ? 'noopener noreferrer' : undefined}
+            >
+              <span class="row-name">{r.title}{r.titleEm && <em>{' '}{r.titleEm}</em>}</span>
+              {r.line && <span class="row-line">{r.line}</span>}
+              {r.year && <span class="row-year">{r.year}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+  <RiseIn />
+</Layout>
+
+<style>
+  .hairline { padding-bottom: var(--s-20); }
+
+  .hero {
+    min-height: min(78svh, 720px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: clamp(88px, 12vh, 168px);
+  }
+  .name {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 10.5vw, 116px);
+    font-weight: 400;
+    line-height: var(--lh-tight);
+    letter-spacing: var(--tr-tight);
+    margin: 0;
+    color: var(--fg1);
+  }
+  .name .line { display: block; }
+  .name .line:first-child { color: var(--fg3); }
+  .stop { color: var(--em-color); }
+
+  .label {
+    margin: 0 0 var(--s-8);
+    font-family: var(--font-ui);
+    font-size: var(--t-14);
+    font-weight: 500;
+    /* fog-ink, not fog: at 14px on cream the lighter value is 3.4:1. */
+    color: var(--fog-ink);
+  }
+  :global(html.dark) .label { color: var(--fg3); }
+
+  .rows { list-style: none; margin: 0; padding: 0; }
+
+  .row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: baseline;
+    gap: var(--s-6);
+    padding: clamp(20px, 3vw, 34px) 0;
+    color: inherit;
+    text-decoration: none;
+  }
+  /* The rule is drawn by the row, so the wipe has something to ride on and the
+     list needs no borders of its own. */
+  .row::before,
+  .row::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+  }
+  .row::before { background: var(--border-hair); }
+  .row::after {
+    background: var(--lavender);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+  .rows li:last-child .row { border-bottom: 1px solid var(--border-hair); }
+
+  .row:hover::after,
+  .row:focus-visible::after { transform: scaleX(1); }
+
+  .row-name {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 5vw, 60px);
+    line-height: var(--lh-snug);
+    letter-spacing: -0.02em;
+  }
+  .row-name em { font-style: italic; color: var(--em-color); }
+  .row-line { font-size: var(--t-16); color: var(--fog-ink); }
+  :global(html.dark) .row-line { color: var(--fg3); }
+  .row-year { font-size: var(--t-14); color: var(--fog-ink); min-width: 4ch; text-align: right; }
+  :global(html.dark) .row-year { color: var(--fg3); }
+
+  /* Three columns need a wide row. Below that the line drops under the name,
+     which is the reading order anyway. */
+  @media (max-width: 820px) {
+    .row {
+      grid-template-columns: 1fr auto;
+      grid-template-areas: 'name year' 'line year';
+      gap: 2px var(--s-5);
+    }
+    .row-name { grid-area: name; }
+    .row-line { grid-area: line; }
+    .row-year { grid-area: year; align-self: start; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .row::after { transition: none; }
+  }
+</style>
