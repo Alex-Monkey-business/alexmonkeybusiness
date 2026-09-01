@@ -66,6 +66,25 @@
  * that ever crossed the ridge is voted out. Nothing here would work on a
  * moving camera, which is exactly why it is worth checking first.
  *
+ * THE 4K SOURCE THIS ASSET WAS TRACED FROM NO LONGER EXISTS. The clip in
+ * `public/hero/` was replaced with the 1920 cut on 31 Aug 2026 to get the page
+ * weight down, which was the right call for shipping and destroyed the tracer's
+ * input: a column's edge is found by where the vertical luminance gradient
+ * peaks, and a sharper source gives a sharper peak to snap to.
+ *
+ * Measured, so nobody has to guess: re-tracing the committed silhouette from
+ * the 720p file more than doubles the wobble — median deviation over a ±3-point
+ * window goes from 3.1 px to 7.4 px at 1280 wide, p90 from 8.8 to 20.0. Every
+ * smoothing knob was already on (median 11, binomial 5) and widening them makes
+ * it worse, not better, because the noise is in the edge detection and not in
+ * the simplification.
+ *
+ * SO: `matterhorn-sky.svg` cannot currently be reproduced or improved, and it
+ * is better than anything this tool can now produce. Do not re-run it against
+ * the shipped mp4 and commit the result. To improve the trace, re-download the
+ * 3840×2160 original from Pexels first, or move to swissALTI3D and stop tracing
+ * photographs.
+ *
  *   node tools/trace-skyline.mjs --src http://localhost:4321/hero/matterhorn.mp4 \
  *     --name matterhorn-sky --frames 40
  */
