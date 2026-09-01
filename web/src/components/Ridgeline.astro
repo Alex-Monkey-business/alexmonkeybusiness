@@ -1,0 +1,133 @@
+---
+/**
+ * The Matterhorn as a ridgeline plot, drawn back to front.
+ *
+ * Built by tools/make-ridgeline.mjs from open elevation data. The file ships
+ * one <g> per profile, far to near, each holding an opaque mask and the line
+ * that rides on top of it — that pairing IS the hidden-line removal, so the
+ * document order must be preserved and the mask must be painted in the page
+ * colour. `fill: var(--bg)` is what makes it follow the theme; a hard-coded
+ * colour leaves a grey mountain on cream.
+ *
+ * The reveal is opacity plus a short translate per row, staggered from the
+ * farthest ridge forward, so the mountain assembles toward the reader. It is
+ * NOT a line-draw: each row has to arrive complete, because a mask fading in
+ * ahead of its own line would cut holes in the rows standing behind it.
+ */
+import raw from '../assets/terrain/matterhorn.svg?raw';
+
+/* The file's own <svg> wrapper carries the viewBox this drawing needs, so it
+   is kept and only the attributes this component owns are added. */
+const svg = raw.replace('<svg xmlns', '<svg class="ridgeline" xmlns');
+---
+
+<div class="ridge-stage">
+  <Fragment set:html={svg} />
+</div>
+
+<style>
+  /* The drawing spans the full width and keeps its own aspect ratio, rather
+     than being fitted into a box. Fitted, it stops short of both sides and the
+     fade below never reaches the ends of the profiles — which leaves two hard
+     vertical edges and turns terrain back into a chart on a sheet. */
+  .ridge-stage {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* Two fades intersected. Sideways, so the profiles do not end in two hard
+       vertical edges; downward, because the rows nearest the viewer are the
+       densest in the drawing and left alone they turn the bottom of the page
+       into hatching that the signature has to sit on top of. */
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent),
+      linear-gradient(180deg, #000 55%, transparent 96%);
+    mask-image:
+      linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent),
+      linear-gradient(180deg, #000 55%, transparent 96%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+
+  .ridge-stage :global(.ridgeline) {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: var(--fg1);
+  }
+
+  /* The mask is the page, not a colour. */
+  .ridge-stage :global(.ridge-mask) { fill: var(--bg); }
+  .ridge-stage :global(.ridge-line) {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.4;
+    transition:
+      opacity var(--dur-slow) var(--ease-out),
+      stroke var(--dur-slow) var(--ease-out);
+  }
+  :global(html.dark) .ridge-stage :global(.ridge-line) { opacity: 0.45; }
+
+  /* Back to front. Hidden behind html.js, set before first paint, so no-JS
+     gets the whole mountain and nothing flashes in and back out. */
+  :global(html.js) .ridge-stage :global(.ridge) {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  :global(html.js) .ridge-stage.in :global(.ridge) {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 700ms var(--ease-out),
+      transform 700ms var(--ease-out);
+    transition-delay: calc(var(--i) * 42ms);
+  }
+
+  /* Hover on a link picks one profile out of the stack. Same idea the contour
+     version used on elevation, moved to depth: there are no rings here, but
+     there are forty lines and only three of them are ever spoken for. */
+  /* Both themes spelled out. `html.dark .ridge-stage .ridge-line` scores one
+     class higher than `.ridge-stage.dim .ridge-line`, so a single dim rule is
+     silently outranked in dark mode and nothing recedes — the same shape of
+     bug as `.nav ul` beating a bare `.nav-wide`. */
+  .ridge-stage.dim :global(.ridge-line) { opacity: 0.09; }
+  :global(html.dark) .ridge-stage.dim :global(.ridge-line) { opacity: 0.12; }
+  .ridge-stage :global(.ridge.hot .ridge-line),
+  :global(html.dark) .ridge-stage :global(.ridge.hot .ridge-line) {
+    opacity: 1;
+    stroke: var(--hot);
+    stroke-width: 1.6;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html.js) .ridge-stage :global(.ridge),
+    :global(html.js) .ridge-stage.in :global(.ridge) {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .ridge-stage :global(.ridge-line) { transition: none; }
+  }
+
+  /* A phone is too narrow for the drawing to have any height at its own
+     aspect, so it is blown up and allowed to run off both sides. */
+  @media (max-width: 640px) {
+    .ridge-stage {
+      left: -46%;
+      right: -46%;
+      bottom: 6%;
+      opacity: 0.8;
+    }
+  }
+</style>
+
+<script>
+  const stage = document.querySelector<HTMLElement>('.ridge-stage');
+  if (stage) requestAnimationFrame(() => stage.classList.add('in'));
+</script>

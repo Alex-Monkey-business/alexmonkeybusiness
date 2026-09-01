@@ -48,3 +48,8 @@ web/tools/case/rec/
 # Stand-in footage for the masked hero — rights are not ours, never ship it.
 web/public/hero/standin.mp4
 web/public/hero/solfilm.mp4
+# matterhorn.mp4 is NOT here on purpose: Pexels licence, free for commercial
+# use, modification allowed, no attribution required. It ships.
+
+# Vite dep-cache at the repo root
+.vite/

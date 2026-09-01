@@ -1,0 +1,207 @@
+---
+/**
+ * VARIANT 4 — TERRENG
+ *
+ * The whole site as one screen: three link texts and a contour drawing. No
+ * hero, no label, no lines, no cards, no scroll. The only prose left is the
+ * signature at the bottom.
+ *
+ * The link and the background are ONE system, not two layers. Every row owns
+ * one profile of the mountain, so pointing at a name lifts that line out of
+ * the stack and drops the other thirty-nine back. The index was already there
+ * — `data-i` on every ridge — and using it costs no words at all.
+ *
+ * The name itself rolls: the ink copy leaves upward, an accent copy arrives
+ * from below. One transform each, no layout shift.
+ */
+import Layout from '../../layouts/Layout.astro';
+import Ridgeline from '../../components/Ridgeline.astro';
+import '../../styles/variant-base.css';
+import { t, path, langFromUrl } from '../../i18n';
+import { projects } from '../../data/projects';
+
+const lang = langFromUrl(Astro.url);
+const s = t(lang);
+
+/* Top of the list is the back of the mountain. Forty profiles, three rows —
+   the first takes the summit ridge, the others sit a third and two thirds of
+   the way forward. Thirty-seven lines stay unclaimed, which is what keeps the
+   drawing from reading as a menu with decoration on it. */
+const ridges = [2, 18, 33];
+
+const rows = [
+  ...projects.map((p) => ({
+    key: p.slug,
+    title: p.title,
+    titleEm: p.titleEm,
+    href: p.url ?? path(lang, `/projects/${p.slug}`),
+    external: Boolean(p.url),
+  })),
+  {
+    key: 'about',
+    title: s.aboutCard.title,
+    titleEm: s.aboutCard.titleEm,
+    href: path(lang, '/about'),
+    external: false,
+  },
+].map((r, i) => ({ ...r, ridge: ridges[i] }));
+---
+
+<Layout title="Variant — Terreng">
+  <div class="variant terreng">
+    <Ridgeline />
+
+    <ul class="rows">
+      {rows.map((r, i) => (
+        <li style={`--i:${i}`}>
+          <a
+            class="row"
+            href={r.href}
+            data-ridge={r.ridge}
+            target={r.external ? '_blank' : undefined}
+            rel={r.external ? 'noopener noreferrer' : undefined}
+          >
+            <span class="roll">
+              <span class="face a">{r.title}{r.titleEm && <em>{' '}{r.titleEm}</em>}</span>
+              <span class="face b" aria-hidden="true">{r.title}{r.titleEm && <em>{' '}{r.titleEm}</em>}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="sig">Alex Monkey business.</p>
+  </div>
+</Layout>
+
+<style>
+  /* One screen. The Layout's footer belongs to a page that scrolls; this one
+     does not have a bottom to put it at. */
+  .terreng :global(~ footer),
+  :global(main:has(.terreng) footer) { display: none; }
+  /* The language hint is a bar across the bottom of a page that has room for
+     one. This page's whole argument is that nothing else is on it. */
+  :global(body:has(.terreng) .lang-hint) { display: none; }
+  :global(html:has(.terreng)),
+  :global(body:has(.terreng)) { overflow: hidden; }
+  :global(main:has(.terreng)) { min-height: 0; }
+  :global(main:has(.terreng) .page) { max-width: none; padding: 0; }
+
+  .terreng {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    align-content: center;
+    padding: clamp(24px, 5vw, 64px);
+    padding-top: clamp(96px, 14vh, 160px);
+  }
+
+  .rows {
+    position: relative;
+    z-index: 1;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-self: center;
+    /* Type sits in the open left third; the summit is anchored right. */
+    max-width: min(60ch, 62vw);
+  }
+
+  .row {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(40px, 8.4vw, 104px);
+    line-height: 1.12;
+    letter-spacing: var(--tr-tight);
+  }
+  .row em { font-style: italic; }
+
+  /* The roll. `.b` is stacked exactly on `.a` and pushed a full box down, so
+     nothing here depends on measuring line height in script. */
+  .roll {
+    position: relative;
+    display: block;
+    overflow: hidden;
+  }
+  .face {
+    display: block;
+    transition: transform 560ms var(--ease-out);
+  }
+  .b {
+    position: absolute;
+    inset: 0;
+    color: var(--hot);
+    transform: translateY(100%);
+  }
+  .row:hover .a,
+  .row:focus-visible .a { transform: translateY(-100%); }
+  .row:hover .b,
+  .row:focus-visible .b { transform: translateY(0); }
+
+  /* Rows arrive after the mountain has started drawing, not before it. */
+  :global(html.js) .rows li {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: rise 720ms var(--ease-out) forwards;
+    animation-delay: calc(560ms + var(--i) * 110ms);
+  }
+  @keyframes rise {
+    to { opacity: 1; transform: none; }
+  }
+
+  .sig {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    font-size: var(--t-14);
+    color: var(--fog-ink);
+  }
+  :global(html.dark) .sig { color: var(--fg3); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .face { transition: none; }
+    :global(html.js) .rows li { opacity: 1; transform: none; animation: none; }
+  }
+
+  /* A phone is portrait, so the summit crop is tighter and the type has to
+     give the drawing its own half. */
+  /* Portrait puts the drawing under the type rather than beside it, so the
+     names move up to sit in the sky above the summit instead of on the slope
+     below it. */
+  @media (max-width: 640px) {
+    .rows { max-width: none; align-self: start; padding-top: 12vh; }
+    .terreng { padding-top: clamp(88px, 16vh, 140px); }
+  }
+</style>
+
+<script>
+  /* Hover state is set on the stage rather than derived with :has(), because
+     the rule would have to compare two attributes to each other and CSS
+     cannot. */
+  const stage = document.querySelector<HTMLElement>('.ridge-stage');
+  const rows = document.querySelectorAll<HTMLAnchorElement>('.row');
+
+  if (stage) {
+    const lift = (el: HTMLAnchorElement) => {
+      const ridge = stage.querySelector(`.ridge[data-i="${el.dataset.ridge}"]`);
+      if (!ridge) return;
+      stage.classList.add('dim');
+      ridge.classList.add('hot');
+    };
+    const drop = () => {
+      stage.classList.remove('dim');
+      stage.querySelectorAll('.ridge.hot').forEach((r) => r.classList.remove('hot'));
+    };
+
+    rows.forEach((el) => {
+      el.addEventListener('pointerenter', () => lift(el));
+      el.addEventListener('pointerleave', drop);
+      el.addEventListener('focus', () => lift(el));
+      el.addEventListener('blur', drop);
+    });
+  }
+</script>

@@ -1,0 +1,502 @@
+---
+/**
+ * The drawing becomes the mountain.
+ *
+ * Two lines traced from the footage draw themselves out of the summit — one
+ * down each ridge — the footage fades in behind them, and they STAY, faint.
+ * They are not decoration: the two ridges are the menu, so they have to be
+ * visible before anyone points at anything.
+ *
+ * REGISTRATION IS BY CONSTRUCTION, NOT BY LUCK.
+ * The old version leaned on `object-fit: cover` (video) behaving identically to
+ * `preserveAspectRatio="slice"` (svg). It does — but only while the two
+ * elements have byte-identical boxes AND the video's intrinsic aspect matches
+ * the viewBox to the last decimal. Both are true today and neither is
+ * guaranteed tomorrow. So the frame is sized explicitly instead: one box with
+ * the viewBox's own aspect ratio, the video stretched to fill it (`fill`) and
+ * the svg stretched to fill it (`none`). Two identical linear maps. Any
+ * rounding in the box distorts both by exactly the same amount, so the line
+ * cannot come off the ridge no matter how the frame is scaled or placed.
+ *
+ * That is also what buys the framing controls below: --fw/--fx/--fy/--ax/--ay
+ * can put any point of the photograph at any point of the screen, at any zoom,
+ * and the drawing follows for free.
+ *
+ * Both layers live in ONE wrapper because the slow push is a transform on it.
+ * Two wrappers with "the same" animation is a bet on two compositor layers
+ * agreeing every frame; one wrapper is not a bet.
+ *
+ * The clip is locked off — the camera never moves — so the push is ours, not
+ * the footage's. The speed is a design decision instead of whatever the drone
+ * was doing.
+ */
+import raw from '../assets/terrain/matterhorn-sky.svg?raw';
+
+const d = raw.match(/class="skyline" d="([^"]+)"/)?.[1] ?? '';
+/* Read from the file, never typed here: the tracer's `--width` decides it, and
+   a viewBox that disagrees with the frame slides the line off the ridge. */
+const viewBox = raw.match(/viewBox="([^"]+)"/)?.[1] ?? '0 0 1280 720';
+const [, , vbw, vbh] = viewBox.split(/\s+/).map(Number);
+
+/**
+ * THE SEGMENTS ARE THE REAL RIDGES.
+ *
+ * Seen from the north-east — which is what this clip is — the two halves of
+ * the Matterhorn's outline are two named climbing routes, and they meet at the
+ * summit. Left of the top is the ZMUTTGRAT, the north-west ridge. Right of it
+ * is the HÖRNLIGRAT, the north-east ridge and the normal route, the one
+ * Whymper's party took in 1865. The face between them, pointed at the camera,
+ * is the Nordwand.
+ *
+ * So hovering a name does not light "a stretch of line" — it lights a route up
+ * the mountain, and the two are true without a word of explanation.
+ *
+ * The split point is COMPUTED, not typed: it is the highest point on the
+ * traced path, which is the summit by definition. Hand-picked fractions drift
+ * the moment the trace is regenerated with a different crop.
+ */
+const pts = d
+  .slice(1)
+  .split('L')
+  .map((s) => s.trim().split(/\s+/).map(Number) as [number, number]);
+
+let total = 0;
+const cum = [0];
+for (let i = 1; i < pts.length; i++) {
+  total += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  cum.push(total);
+}
+let top = 0;
+for (let i = 1; i < pts.length; i++) if (pts[i][1] < pts[top][1]) top = i;
+const summit = cum[top] / total;
+/** Where the peak sits inside the frame, 0–1. The mobile framing hangs off it. */
+const peak = { x: pts[top][0] / vbw, y: pts[top][1] / vbh };
+
+/**
+ * EVERY LINE GROWS OUT OF THE SUMMIT — the entrance and the hover both.
+ *
+ * With `pathLength="1"` a sub-range [a,b] is drawn by `dasharray: (b-a) 1` and
+ * `dashoffset: -a`. Growing a range from ONE END is therefore two different
+ * jobs depending on which end is anchored:
+ *
+ *   Hörnligrat runs forward from the summit, so the anchor `a` never moves:
+ *   the dash length grows and the offset stays at -summit.
+ *   Zmuttgrat runs backward INTO the summit, so `a` has to walk left as the
+ *   length grows: dasharray 0→summit while dashoffset walks -summit→0.
+ *
+ * Both start at `dashoffset: -summit`, which is the summit itself: at length 0
+ * every line is a point on the peak, and the mountain unfolds from there.
+ */
+const segs = [
+  { key: 'zmuttgrat', len: summit, o0: -summit, o1: 0 },
+  { key: 'hornligrat', len: 1 - summit, o0: -summit, o1: -summit },
+];
+
+/**
+ * THE TRACE IS A STAIRCASE — it was measured column by column, so every point
+ * sits on a whole pixel and the line climbs in visible one-pixel steps. At the
+ * scales this thing is blown up to that reads as aliasing on a drawing that is
+ * supposed to look drawn.
+ *
+ * Centripetal Catmull-Rom (alpha = 0.5) fixes it for free: the curve passes
+ * through EVERY traced point exactly, so the line is no less accurate than the
+ * measurement, and it cannot overshoot at a sharp corner the way the uniform
+ * variant does — which matters here, because the sharpest corner in the data
+ * is the summit.
+ */
+const smooth = (q: [number, number][]) => {
+  const out = [`M${q[0][0]} ${q[0][1]}`];
+  const at = (i: number) => q[Math.max(0, Math.min(q.length - 1, i))];
+  for (let i = 0; i < q.length - 1; i++) {
+    const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
+    const t = (a: number[], b: number[]) => Math.hypot(b[0] - a[0], b[1] - a[1]) ** 0.5 || 1e-6;
+    const [t0, t1, t2] = [t(p0, p1), t(p1, p2), t(p2, p3)];
+    const c1 = [0, 1].map((k) => p1[k] + ((p2[k] - p0[k]) * t1) / (3 * (t0 + t1)));
+    const c2 = [0, 1].map((k) => p2[k] - ((p3[k] - p1[k]) * t1) / (3 * (t1 + t2)));
+    out.push(`C${c1[0].toFixed(2)} ${c1[1].toFixed(2)} ${c2[0].toFixed(2)} ${c2[1].toFixed(2)} ${p2[0]} ${p2[1]}`);
+  }
+  return out.join('');
+};
+const line = smooth(pts);
+
+/**
+ * THE PHOTOGRAPH IS CUT TO THE MOUNTAIN.
+ *
+ * The old version faded the video out at its own edges. That works only while
+ * the frame is about the size of the screen — in portrait the frame is nearly
+ * twice the screen's width, so every edge stop falls off the screen and the
+ * photograph ends in a hard horizontal line across the phone. And it cannot be
+ * fixed by moving the stops: there is only 9% of frame height above the
+ * summit, so any fade soft enough to be invisible runs straight through the
+ * peak.
+ *
+ * So the skyline itself becomes the mask. Everything below the traced line is
+ * the photograph; everything above it is the page. There is no rectangle left
+ * to hide, at any framing — and the drawn line now sits on the boundary of the
+ * image rather than on top of it, which is as registered as a line can get.
+ *
+ * Left of x=243 the ridge is inside cloud and was never traced, so the polygon
+ * leaves the frame on the slope the trace was running when it stopped.
+ */
+const [x0, y0] = pts[0];
+const [x1, y1] = pts[1];
+const lead = Math.round(y0 + ((y0 - y1) / (x1 - x0)) * x0);
+const silhouette =
+  `M0 ${lead}L${x0} ${y0}` + line.slice(line.indexOf('C')) +
+  `L${vbw} ${vbh}L0 ${vbh}Z`;
+const sil =
+  'url("data:image/svg+xml,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vbw} ${vbh}" preserveAspectRatio="none"><path d="${silhouette}" fill="#fff"/></svg>`,
+  ).replace(/'/g, '%27') +
+  '")';
+
+---
+
+<div class="sky" style={`--ar: ${vbw} / ${vbh}; --peak-x: ${(peak.x * 100).toFixed(2)}%; --peak-y: ${(peak.y * 100).toFixed(2)}%; --sil: ${sil}; --trace-x0: ${((x0 / vbw) * 100).toFixed(2)}%;`}>
+  <div class="sky-push">
+    {/* `preload="none"`: the script turns it up to `auto` only when motion is
+        allowed, so a reader who has asked for stillness downloads the 48 kB
+        poster and not five megabytes of video. The poster is also what paints
+        while the file is still on the wire. */}
+    <video
+      class="sky-video"
+      src="/hero/matterhorn.mp4"
+      poster="/hero/matterhorn.webp"
+      muted
+      loop
+      playsinline
+      preload="none"
+    ></video>
+
+    <svg class="sky-line" viewBox={viewBox} preserveAspectRatio="none" fill="none" aria-hidden="true">
+      {segs.map((s) => (
+        <Fragment>
+          <path
+            class="draw"
+            data-seg={s.key}
+            pathLength="1"
+            d={line}
+            style={`--len: ${s.len}; --o0: ${s.o0}; --o1: ${s.o1};`}
+          />
+          <path
+            class="seg"
+            data-seg={s.key}
+            pathLength="1"
+            d={line}
+            style={`--len: ${s.len}; --o0: ${s.o0}; --o1: ${s.o1};`}
+          />
+        </Fragment>
+      ))}
+    </svg>
+  </div>
+</div>
+
+<style>
+  .sky {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    /* Sized container, so the frame below can be measured against the SCREEN
+       (cqw/cqh) rather than against viewport units, which on iOS disagree with
+       a fixed element's real height while the toolbars are moving. */
+    container-type: size;
+
+    /* Drawing: a hair over half a second per ridge-length, started slow and
+       landed long. */
+    --draw: 2200ms;
+    --ease-draw: cubic-bezier(0.45, 0, 0.15, 1);
+    /* Hover has to feel like it beat you to it. */
+    --ease-climb: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /**
+   * THE FRAME. `--fx,--fy` name a point in the photograph; `--ax,--ay` name a
+   * point on the screen; the translate puts the first on the second. Percentage
+   * translates resolve against the element's own box, which is what makes that
+   * one line do the whole job.
+   *
+   * Landscape default is plain cover: the frame is grown until it beats the
+   * screen on both axes, centred.
+   */
+  .sky-push {
+    --fw: max(100cqw, calc(100cqh * var(--ar)));
+    --fx: 50%;
+    /* Vertically the frame hangs from the summit, not from its own middle. A
+       16:9 frame covering a 21:9 window — or a phone on its side — is far
+       taller than the screen, and centring it puts the peak above the top
+       edge. Hanging it here keeps the summit at a fixed height on every
+       landscape shape, and the frame still covers: it is at least as tall as
+       the screen and only 10% of it sits above the summit. */
+    --fy: var(--peak-y);
+    --ax: 50%;
+    /* A pixel floor as well as a percentage, because the thing the summit has
+       to clear is the nav pill, and that is 84px tall on every screen. At 10%
+       of a 393-tall phone on its side the peak is behind it. The floor still
+       covers: the frame is at least as tall as the screen and only 8.9% of it
+       sits above the summit, so any anchor past 0.089 × height reaches the
+       bottom edge. */
+    --ay: max(116px, 11%);
+    --zoom: 1.12;
+    /* The push pulls toward the mountain, not toward the middle of the frame. */
+    --px: 58%;
+    --py: 38%;
+
+    position: absolute;
+    left: var(--ax);
+    top: var(--ay);
+    width: var(--fw);
+    aspect-ratio: var(--ar);
+    translate: calc(-1 * var(--fx)) calc(-1 * var(--fy));
+    transform-origin: var(--px) var(--py);
+  }
+  /* `translate` is its own property and composes BEFORE `transform`, so the
+     push can scale without touching the framing. 40s and 1 → 1.12: slow enough
+     that you never catch it starting, far enough that the frame is not the
+     same one a minute later. */
+  :global(html.js) .sky.go .sky-push {
+    animation: push 40s var(--ease-out) forwards;
+  }
+  @keyframes push {
+    from { transform: scale(1); }
+    to   { transform: scale(var(--zoom)); }
+  }
+
+  .sky-video,
+  .sky-line {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* `fill`, not `cover`, and `none` on the svg: the box already carries the
+     viewBox's aspect, so both are the same uniform scale — and if the box is
+     ever a rounding hair off square, the two stay wrong together instead of
+     drifting apart. */
+  .sky-video {
+    object-fit: fill;
+    opacity: 0;
+    /* The photograph comes out of the summit, inside the drawing. A circle is
+       not the shape the two lines make — they reach further right than left —
+       but it starts where they start and it is always behind them, which is
+       the only part the eye is checking. Set on `clip-path` rather than on the
+       mask so it composes with the silhouette instead of replacing it. */
+    clip-path: circle(0% at var(--peak-x) var(--peak-y));
+    /* Desaturated, but not to zero: a fully grey plate goes lifeless, and the
+       last fifteen per cent of the original blue is what keeps it looking like
+       weather rather than like a scan. Contrast is pushed back up because both
+       the mask and the opacity flatten it on the way down. */
+    filter: grayscale(0.85) contrast(1.22) brightness(0.98);
+    transition:
+      opacity 1400ms var(--ease-out),
+      clip-path 2200ms var(--ease-draw);
+
+    /* The mask is the mountain — see the silhouette note in the frontmatter.
+       `no-repeat` and an explicit size because a mask image has no intrinsic
+       one to fall back on. */
+    /* Second layer: the trace stops at x=243, where the ridge goes into
+       cloud, and the silhouette has to leave the frame on a guessed slope from
+       there. Guessing is fine; showing the guess as a straight edge with a
+       corner on it is not. So the photograph is faded out across exactly that
+       stretch and the guess is never seen. */
+    --mask: var(--sil), linear-gradient(90deg, transparent calc(var(--trace-x0) - 2%), #000 calc(var(--trace-x0) + 14%));
+    -webkit-mask-image: var(--mask);
+    mask-image: var(--mask);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+  .sky.lit .sky-video {
+    opacity: 0.62;
+    clip-path: circle(150% at var(--peak-x) var(--peak-y));
+  }
+  /* On cream the photograph has to be printed, not pasted: multiply keeps the
+     paper showing through the light half instead of laying grey over it.
+     (This is also why there is no mask on `.sky` itself — a mask isolates the
+     stacking context and multiply would have nothing left to blend with.) */
+  :global(html:not(.dark)) .sky-video {
+    mix-blend-mode: multiply;
+    filter: grayscale(0.85) contrast(1.24) brightness(1.02);
+  }
+  :global(html:not(.dark)) .sky.lit .sky-video { opacity: 0.7; }
+
+  .draw,
+  .seg {
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  /**
+   * The faint outline. There is deliberately no `vector-effect` here: a
+   * non-scaling stroke measures the dash in device space while `pathLength`
+   * measures it in user space, and the line arrives in pieces.
+   *
+   * Opacity is never touched by an animation — only by classes and
+   * transitions. A `forwards` animation keeps hold of a property for the life
+   * of the page, and the hover rules below would never get a turn.
+   */
+  .draw {
+    stroke: var(--fg1);
+    stroke-width: 1.4;
+    stroke-dasharray: var(--len) 1;
+    stroke-dashoffset: var(--o1);
+    opacity: 0.34;
+    transition: opacity 1200ms var(--ease-out);
+  }
+  :global(html.js) .draw {
+    stroke-dasharray: 0 1;
+    stroke-dashoffset: var(--o0);
+    opacity: 0;
+  }
+  :global(html.js) .sky.go .draw {
+    animation: climb var(--draw) var(--ease-draw) 120ms forwards;
+    opacity: 0.9;
+    transition-duration: 500ms;
+  }
+  /* ORDER MATTERS BELOW. Astro hangs a scoping attribute on every compound, so
+     these three all land on the same specificity and the last one wins. They
+     are written worst-case first: settle, then the hover dim, then the one
+     ridge that is exempt from it. */
+  :global(html.js) .sky.settled .draw {
+    opacity: 0.34;
+    transition-duration: 1400ms;
+  }
+  /* Ink on paper needs more of itself than a light line on ink does: the same
+     0.34 that reads as a drawn edge in the dark disappears into mid-grey rock
+     at the top of the mountain. */
+  :global(html:not(.dark)) .sky.settled .draw { opacity: 0.5; }
+  /* Changing level remaps which name owns which ridge, so the mountain says
+     so — one breath brighter, then back. Cheaper and quieter than redrawing
+     it, which is a thing this page should only do once. */
+  :global(html.js) .sky.shift .draw {
+    opacity: 0.66;
+    transition-duration: 260ms;
+  }
+  /* The mountain steps back so the lit route is unmistakably ONE route rather
+     than the whole thing getting brighter. */
+  .sky:has(.seg.hot) .draw {
+    opacity: 0.08;
+    transition-duration: var(--dur-base);
+  }
+  /* …except the faint line under the route being climbed, which stays: it is
+     the rest of the way up, and watching the hot line eat it is the point. */
+  .sky .draw.under {
+    opacity: 0.3;
+    transition-duration: var(--dur-base);
+  }
+
+  @keyframes climb {
+    to {
+      stroke-dasharray: var(--len) 1;
+      stroke-dashoffset: var(--o1);
+    }
+  }
+
+  /**
+   * One route per menu item, laid exactly over the faint outline. It DRAWS
+   * from the summit down when its name is pointed at and retracts back up to
+   * the summit when the pointer leaves — the leave timing lives on the base
+   * rule, which is the only place it can.
+   */
+  .seg {
+    stroke: var(--hot);
+    stroke-width: 2.4;
+    stroke-dasharray: 0 1;
+    stroke-dashoffset: var(--o0);
+    opacity: 0;
+    transition:
+      stroke-dasharray 560ms var(--ease-in),
+      stroke-dashoffset 560ms var(--ease-in),
+      opacity 260ms linear 300ms;
+  }
+  .sky .seg.hot {
+    stroke-dasharray: var(--len) 1;
+    stroke-dashoffset: var(--o1);
+    opacity: 1;
+    transition:
+      stroke-dasharray 760ms var(--ease-climb),
+      stroke-dashoffset 760ms var(--ease-climb),
+      opacity 120ms linear;
+  }
+
+  /**
+   * PORTRAIT IS A DIFFERENT PHOTOGRAPH.
+   *
+   * Cover on a 16:9 frame in a 9:19.5 window shows 26% of the width: the
+   * summit lands at 16% from the left and 7% from the top, and two thirds of
+   * the ridge is off the screen. The menu is the ridges, so that framing
+   * deletes the idea.
+   *
+   * Instead the frame is pinned by its PEAK: 1.9 screen-widths wide, with the
+   * summit put at 58% down the middle. The mountain then sits in the lower
+   * half with both ridges running out to the bottom corners, and the whole top
+   * half is sky for the type. --fw is a multiple of the width alone (no cqh
+   * term), so every phone sees the same slice of the photograph regardless of
+   * how tall it is.
+   */
+  @media (orientation: portrait) and (max-width: 820px) {
+    .sky-push {
+      /* 1.9 screen-widths, but never so short that the frame stops above the
+         bottom of the screen: only 91% of the frame hangs below the summit,
+         and the summit is pinned at 58%, so the frame has to be at least
+         0.46 screen-heights tall. A 21:9 phone fails the first term alone. */
+      --fw: max(190cqw, calc(48cqh * var(--ar)));
+      --fx: var(--peak-x);
+      --fy: var(--peak-y);
+      --ax: 50%;
+      --ay: 58%;
+      --px: var(--peak-x);
+      --py: var(--peak-y);
+      --zoom: 1.08;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html.js) .sky.go .sky-push { animation: none; }
+    :global(html.js) .draw,
+    :global(html.js) .sky.go .draw {
+      animation: none;
+      stroke-dasharray: var(--len) 1;
+      stroke-dashoffset: var(--o1);
+      opacity: 0.34;
+      transition: none;
+    }
+    .sky-video {
+      transition: none;
+      clip-path: none;
+    }
+    .seg,
+    .sky .seg.hot { transition: opacity 120ms linear; }
+  }
+</style>
+
+<script>
+  const sky = document.querySelector<HTMLElement>('.sky');
+  const video = document.querySelector<HTMLVideoElement>('.sky-video');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (sky && video) {
+    requestAnimationFrame(() => sky.classList.add('go'));
+
+    /* The footage arrives while the ridges are still running down, so the two
+       read as one move rather than as two events. Reduced motion gets the
+       poster and no playback. */
+    const reveal = () => sky.classList.add('lit');
+    if (still) {
+      reveal();
+      sky.classList.add('settled');
+    } else {
+      video.preload = 'auto';
+      video.play().catch(() => {});
+      setTimeout(reveal, 500);
+      setTimeout(() => sky.classList.add('settled'), 2500);
+    }
+  }
+</script>
