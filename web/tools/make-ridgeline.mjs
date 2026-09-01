@@ -53,7 +53,25 @@ const BOX = Number(args.box ?? 420);
 const WIDE = Number(args.wide ?? 1);
 /** Compass direction the viewer stands in. 45 = north-east. */
 const BEARING = Number(args.bearing ?? 45);
-/** Profiles drawn. Under ~30 it reads as a chart; over ~70 it fills in solid. */
+/**
+ * Profiles drawn. Under ~30 it reads as a chart; around 46 it reads as a
+ * mountain drawing.
+ *
+ * ABOVE ~150 IT BECOMES SOMETHING ELSE, and it is worth knowing that it is a
+ * different picture rather than more of the same one. At engraved density the
+ * eye stops following individual profiles and starts reading the field as a
+ * shaded surface — which is exactly the depth cue a plan-view contour map
+ * cannot give (see make-contours.mjs, and the reason its output was rejected).
+ * Density does the work that hachure does in nineteenth-century cartography.
+ *
+ * The trade is legibility of the SUBJECT: a dense field of a whole range is a
+ * texture, and there is no single silhouette left in it to point at. Which
+ * picture you want decides `--lines` and `--pitch` together, because pitch has
+ * to come down as lines go up or the drawing grows taller than the screen.
+ *
+ *   drawing   --lines 46  --pitch 9    a mountain, one silhouette
+ *   engraved  --lines 220 --pitch 2    a range, a surface, no subject
+ */
 const LINES = Number(args.lines ?? 46);
 /** Points sampled along each profile before simplification. */
 const SAMPLES = Number(args.samples ?? 240);
@@ -77,6 +95,25 @@ const TOL = Number(args.tol ?? 0.6);
 /** Box-blur radius. 0 keeps the rock; the contour tool needs 2, this one does
     not, because a silhouette tolerates jaggedness that a closed curve cannot. */
 const BLUR = Number(args.blur ?? 1);
+/**
+ * A FOREGROUND FIR BAND. Conifers scattered along the nearest profiles, each
+ * one standing on the terrain it was placed on.
+ *
+ * This is not decoration — it is the scale cue the drawing otherwise has none
+ * of. A stack of ridges is scaleless: the same picture works as a dune field
+ * or as the Alps, and the eye has nothing to measure against. One recognisable
+ * object of known size in the front row settles it, and settles the depth of
+ * everything behind it at the same time.
+ *
+ * They are placed with a seeded PRNG, so re-running the tool does not reshuffle
+ * the forest. 0 turns the band off.
+ */
+const FIRS = Number(args.firs ?? 0);
+/** How many of the nearest rows carry firs. */
+const FIR_ROWS = Number(args['fir-rows'] ?? 9);
+/** Height of a fir on the nearest row, in SVG units. Far rows scale down. */
+const FIR_SIZE = Number(args['fir-size'] ?? 13);
+const SEED = Number(args.seed ?? 7);
 const OUT = args.out ?? `src/assets/terrain/${NAME}.svg`;
 
 const WIDTH = 1000;
@@ -282,13 +319,78 @@ const result = await page.evaluate(
     };
 
     const fmt = (v) => Math.round(v * 10) / 10;
+
+    /**
+     * THE FIR BAND.
+     *
+     * Mulberry32 rather than Math.random: the forest has to be the same forest
+     * on every run, or a re-trace reshuffles every tree and the drawing is not
+     * the same drawing.
+     */
+    let seed = o.seed >>> 0;
+    const rnd = () => {
+      seed = (seed + 0x6d2b79f5) >>> 0;
+      let t = seed;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+
+    /* A two-tier conifer, drawn as one closed silhouette. Two tiers is the
+       fewest that still reads as a conifer rather than as a triangle, and at
+       the sizes in play — six to thirteen units — a third tier is mud. */
+    const fir = (x, y, h) => {
+      const w = h * 0.30;
+      return (
+        `M${fmt(x - w)} ${fmt(y)}` +
+        `L${fmt(x - w * 0.42)} ${fmt(y - h * 0.44)}` +
+        `L${fmt(x - w * 0.72)} ${fmt(y - h * 0.42)}` +
+        `L${fmt(x)} ${fmt(y - h)}` +
+        `L${fmt(x + w * 0.72)} ${fmt(y - h * 0.42)}` +
+        `L${fmt(x + w * 0.42)} ${fmt(y - h * 0.44)}` +
+        `L${fmt(x + w)} ${fmt(y)}Z`
+      );
+    };
+
     const ridges = projected.map((pts, j) => {
       const s = rdp(pts, o.tol);
       const line = 'M' + s.map(([x, y]) => `${fmt(x)} ${fmt(y)}`).join('L');
       /* The mask closes down past the bottom edge, never along it, so the
          shape has no visible foot of its own. */
       const fill = `${line}L${fmt(s[s.length - 1][0])} ${H + 40}L${fmt(s[0][0])} ${H + 40}Z`;
-      return { j, line, fill, points: s.length };
+
+      /**
+       * Firs live INSIDE the ridge group, after its own line — so the next
+       * row's opaque mask paints over them. That is the same hidden-line trick
+       * the ridges use, and it is what makes a tree on the fourth row from the
+       * front peek over the third row instead of floating on top of it.
+       *
+       * They stand on the UNSIMPLIFIED profile, sampled at the tree's own x,
+       * because Douglas–Peucker moves the line by up to a tolerance and a tree
+       * hovering half a unit above the ground is the one error the eye catches
+       * immediately.
+       */
+      const near = j / (o.lines - 1);
+      const rowsFromFront = o.lines - 1 - j;
+      const firs = [];
+      if (o.firs > 0 && rowsFromFront < o.firRows) {
+        /* Front row gets the most, and it thins out backwards — a band, not a
+           uniform sprinkle, which is how a treeline actually sits. */
+        const share = 1 - rowsFromFront / o.firRows;
+        const count = Math.round((o.firs / o.firRows) * share * 2);
+        for (let k = 0; k < count; k++) {
+          const t = rnd();
+          const i = Math.min(pts.length - 1, Math.max(0, Math.round(t * (pts.length - 1))));
+          const [fx2, fy2] = pts[i];
+          /* Size jitters ±22%, and scales with the row's own perspective, so
+             the band has depth inside itself rather than reading as a row of
+             identical stamps. */
+          const h = o.firSize * (0.55 + 0.45 * near) * (0.78 + rnd() * 0.44);
+          firs.push(fir(fx2, fy2 + h * 0.06, h));
+        }
+      }
+
+      return { j, line, fill, firs, points: s.length };
     });
 
     return { W, H, lo: Math.round(lo), hi: Math.round(hi), ridges };
@@ -307,6 +409,10 @@ const result = await page.evaluate(
     persp: PERSP,
     tol: TOL,
     blur: BLUR,
+    firs: FIRS,
+    firRows: FIR_ROWS,
+    firSize: FIR_SIZE,
+    seed: SEED,
     width: WIDTH,
     peakPx,
     peakPy,
@@ -317,7 +423,11 @@ await browser.close();
 
 const { W, H, lo, hi, ridges } = result;
 const pts = ridges.reduce((a, r) => a + r.points, 0);
-console.log(`elevation ${lo}–${hi} m · ${ridges.length} ridges · ${pts} points`);
+const firCount = ridges.reduce((a, r) => a + r.firs.length, 0);
+console.log(
+  `elevation ${lo}–${hi} m · ${ridges.length} ridges · ${pts} points` +
+    (firCount ? ` · ${firCount} firs` : ''),
+);
 
 /* Far to near in document order, which is also paint order — the hidden-line
    removal is nothing more than that plus an opaque fill. `data-i` lets a page
@@ -328,7 +438,9 @@ ${ridges
   .map(
     (r) => `  <g class="ridge" data-i="${r.j}" style="--i:${r.j}">
     <path class="ridge-mask" d="${r.fill}"/>
-    <path class="ridge-line" d="${r.line}"/>
+    <path class="ridge-line" d="${r.line}"/>${r.firs
+      .map((d) => `\n    <path class="fir" d="${d}"/>`)
+      .join('')}
   </g>`,
   )
   .join('\n')}

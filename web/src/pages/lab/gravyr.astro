@@ -1,0 +1,44 @@
+---
+/**
+ * VARIANT 7 — GRAVYR. The engraved range: 170 stacked profiles of the Pennine
+ * Alps with a foreground fir band, and an ordinary menu on top of it.
+ *
+ * The other two one-screen variants make the mountain the interface. This one
+ * makes it atmosphere, because at this density it cannot be an interface — see
+ * `Gravyr.astro`.
+ *
+ * IT IS ALSO THE ONE VARIANT THAT MOVES THE TYPE, and the reason is worth
+ * stating rather than hiding. `Skyline` and `Strek` leave the left third of the
+ * screen empty by construction: one mountain, one silhouette, sky beside it. A
+ * full-bleed engraved field has no empty third — that is what makes it read as
+ * a surface. So the type goes where the drawing actually leaves room, which is
+ * the foreground below the range, and the alternative would have been a scrim
+ * over the mountains to keep the words legible. A wash over a drawing to
+ * rescue text is a worse answer than putting the text where it can be read.
+ */
+import Layout from '../../layouts/Layout.astro';
+import OneScreen from '../../components/OneScreen.astro';
+import Gravyr from '../../components/Gravyr.astro';
+---
+
+<Layout title="Variant — Gravyr">
+  <OneScreen>
+    <Gravyr />
+  </OneScreen>
+</Layout>
+
+<style>
+  /* The menu drops to the foreground. `.menu` is OneScreen's, so this is the
+     page overriding the shared composition on purpose — the only such override
+     in the three one-screen variants. */
+  :global(.one-screen .menu) {
+    align-self: end;
+    padding-top: 0;
+    padding-bottom: clamp(8px, 2vh, 24px);
+  }
+  /* The signature would sit directly under the menu and read as a third menu
+     item. Pushed to the opposite corner, where it is a mark rather than a row. */
+  :global(.one-screen .sig) {
+    text-align: right;
+  }
+</style>

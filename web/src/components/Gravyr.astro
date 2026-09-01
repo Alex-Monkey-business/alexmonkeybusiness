@@ -1,0 +1,202 @@
+---
+/**
+ * THE ENGRAVED RANGE — the same joy plot as `/lab/terreng`, at twenty times
+ * the line density, across a whole massif instead of one peak.
+ *
+ * This is variant B of a choice, and the choice is the point. `Skyline` and
+ * `Strek` make the mountain the INTERFACE: one legible silhouette, two named
+ * ridges, hover a word and its route lights. That needs a subject. This makes
+ * the mountain ATMOSPHERE behind an ordinary menu, and at engraved density
+ * there is no subject left to point at — a few hundred profiles read as one
+ * shaded surface, which is what makes it look expensive, and there is nothing
+ * in it that a link could own.
+ *
+ * So the ridges-as-menu idea is gone here. That is not a regression; it is the
+ * price, shown rather than argued about.
+ *
+ * WHY DENSITY IS THE WHOLE TECHNIQUE. Contours seen from above carry no depth
+ * cue and were rejected for exactly that reason — «umulig å se at det er et
+ * fjell». Stacked profiles carry one, and past roughly 150 lines the eye stops
+ * tracking individual profiles and reads the field as shading. That is what
+ * nineteenth-century cartography did with hachure, and it needs no photograph,
+ * no shader and no three.js: the reference implementation of this look uses
+ * WebGL because its field animates every frame. This one does not move, so it
+ * is 220 static paths.
+ *
+ * THE FIRS ARE A SCALE CUE, not decoration. A stack of ridges is scaleless —
+ * the same drawing works as a dune field — and one object of known size in the
+ * front row fixes the size of everything behind it.
+ *
+ * The range is the Pennine Alps around Zermatt at 714–4503 m, seen from due
+ * north, so the Matterhorn is somewhere in it. Finding it is not possible, and
+ * that is the honest summary of this variant.
+ */
+import raw from '../assets/terrain/pennine-engraved.svg?raw';
+
+/* The asset is emitted with no styling and no dimensions of its own — colour,
+   weight and opacity are the page's business. Stripping the wrapper lets the
+   band be sized by CSS instead of by whatever the tool happened to write. */
+const inner = raw.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+const viewBox = raw.match(/viewBox="([^"]+)"/)?.[1] ?? '0 0 1000 573';
+---
+
+<div class="sky">
+  <div class="range">
+    <svg viewBox={viewBox} preserveAspectRatio="xMidYMax slice" fill="none" aria-hidden="true" set:html={inner} />
+  </div>
+</div>
+
+<style>
+  .sky {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  /**
+   * FULL BLEED, BOTTOM ANCHORED — not a strip along the bottom.
+   *
+   * A thin band was the first attempt and it is the wrong shape twice over. The
+   * asset has to be squashed to fit it, which flattens 3.5 km of relief into
+   * something crinkled; and to keep the on-screen line spacing above a pixel
+   * the profile count has to come down, which is the one thing that cannot come
+   * down, because the spacing IS the engraving. At 240 lines in a 355px band
+   * the rows land 0.87px apart and the field turns to mud.
+   *
+   * So the drawing covers the whole screen and `xMidYMax slice` crops the sides
+   * rather than the peaks. The sky is the empty upper half of the drawing's own
+   * frame, which is where the type goes.
+   *
+   * Line spacing on screen is the number to watch: pitch 2.2 of a 676-unit tall
+   * frame drawn at ~970px is 3.2px, which is what reads as engraved.
+   */
+  /**
+   * NOT `.band`. That name is already a global site primitive in landing.css —
+   * a page-level content band with `max-width: var(--page-max)` and side
+   * padding — and Astro's scoping does not protect against it: the scoped rule
+   * gets an attribute selector, the global rule still matches the same class,
+   * and the higher-specificity `max-width: 1200px` wins. The range rendered as
+   * a 1200px island with black gutters on a 1440px screen and every measurement
+   * of the element looked correct in isolation.
+   *
+   * The asset's own aspect (1000 × 367) is cut to match this box, so `slice`
+   * only ever has to trim a few per cent off the sides.
+   */
+  .range {
+    position: absolute;
+    inset: 0;
+  }
+  .range svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* The stack is painted far to near, and the fill is what does the hidden-line
+     removal — so it has to be the page's own background, not a transparency.
+     A translucent fill turns 220 overlapping shapes into mud. */
+  :global(.range .ridge-mask) { fill: var(--bg); }
+
+  /**
+   * WEIGHT IS THE ONLY DIAL THAT MATTERS at this density. At 1px the field goes
+   * solid and the shading disappears into a grey wash; at 0.7 with the lines
+   * this close, the paper between them is doing as much work as the ink.
+   *
+   * Ink on paper needs less opacity than paper on ink, as everywhere else in
+   * this system.
+   */
+  :global(.range .ridge-line) {
+    stroke: var(--fg1);
+    stroke-width: 0.7;
+    opacity: 0.42;
+    fill: none;
+  }
+  :global(html.dark) .range :global(.ridge-line) { opacity: 0.5; }
+
+  /* Firs are filled in the page colour so they occlude the lines behind them —
+     a conifer you can see the terrain through is a chart symbol, not a tree. */
+  :global(.range .fir) {
+    fill: var(--bg);
+    stroke: var(--fg1);
+    stroke-width: 0.6;
+    opacity: 0.72;
+  }
+  :global(html.dark) .range :global(.fir) { opacity: 0.8; }
+
+  /**
+   * THE RANGE ARRIVES FROM THE BACK FORWARD — with ONE animated element.
+   *
+   * The tool writes `--i` onto every row, far row = 0, which is also paint
+   * order, so a per-row `animation-delay` is the obvious reveal. It was built
+   * that way first and it is the wrong trade: 170 ridge groups plus 346 firs is
+   * over five hundred separately animated SVG nodes, and at that count Chrome
+   * stops being reliable about what it rasterises — captured mid-run, glyphs
+   * from the menu were missing from the frame entirely while their computed
+   * opacity was 1. If the compositor drops text under that load on a desktop,
+   * a phone is not going to do better.
+   *
+   * A clip-path inset wiping downward gets the same reading for one animation
+   * on one element, and it is exactly equivalent here BECAUSE far rows are at
+   * the top: the wipe uncovers the range in depth order for free. The staggered
+   * version's only real advantage was that rows could fade rather than be
+   * uncovered, which nobody can see at this line spacing.
+   *
+   * `--i` stays in the asset. A surface with forty rows can afford the stagger.
+   */
+  :global(html.js) .range {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+  }
+  :global(html.js) .sky.go .range {
+    animation:
+      wipe 1800ms var(--ease-out) 120ms forwards,
+      fade 700ms linear forwards;
+  }
+  @keyframes wipe {
+    from { clip-path: inset(0 0 100% 0); }
+    to   { clip-path: inset(0 0 0 0); }
+  }
+  @keyframes fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* The push is on the wrapper, not the svg, so `slice` keeps cropping from the
+     same edge while it scales. 1 → 1.14 over 70s: a vector has no pixels to run
+     out of, which is the whole argument against the footage version. */
+  :global(html.js) .sky.go .range svg {
+    animation: push 70s var(--ease-out) forwards;
+    transform-origin: 50% 100%;
+  }
+  @keyframes push {
+    from { transform: scale(1); }
+    to   { transform: scale(1.14); }
+  }
+
+  /* Portrait: the range is a shallower band so the type has the top two thirds,
+     and it is pushed in so the peaks are not all sliced off at the sides. */
+  @media (orientation: portrait) and (max-width: 820px) {
+    /* Portrait shows a quarter of the range's width if it covers, so the frame
+       is widened past the screen instead and pulled left of centre — the same
+       trick the photographic variants use, for the same reason: covering a
+       9:19.5 window with a 1.48 frame deletes the composition. */
+    .range svg { width: 200%; margin-left: -50%; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html.js) .range,
+    :global(html.js) .sky.go .range {
+      animation: none;
+      clip-path: none;
+      opacity: 1;
+    }
+    :global(html.js) .sky.go .range svg { animation: none; }
+  }
+</style>
+
+<script>
+  const sky = document.querySelector<HTMLElement>('.sky');
+  if (sky) requestAnimationFrame(() => sky.classList.add('go'));
+</script>
