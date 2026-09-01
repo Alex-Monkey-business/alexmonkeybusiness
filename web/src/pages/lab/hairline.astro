@@ -6,7 +6,7 @@
  * ruled list on it. This is the quietest the site can be while still showing
  * anything: at rest it is a name, a label, and three horizontal lines.
  *
- * The elegant touch is the rule itself. On hover a lavender line wipes across
+ * The elegant touch is the rule itself. On hover an accent line wipes across
  * the hairline from the left — one transform on one pseudo-element, no layout
  * shift, no colour change anywhere else. It is the only thing that moves.
  */
@@ -131,7 +131,7 @@ const rows = [
   }
   .row::before { background: var(--border-hair); }
   .row::after {
-    background: var(--lavender);
+    background: var(--hot);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform var(--dur-slow) var(--ease-out);
