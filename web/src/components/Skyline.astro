@@ -7,6 +7,11 @@
  * They are not decoration: the two ridges are the menu, so they have to be
  * visible before anyone points at anything.
  *
+ * The geometry — the curve, the two ridge ranges, the summit split, the closed
+ * silhouette — is all in `lib/skyline`, because `Strek.astro` draws the same
+ * mountain without the photograph and the two must never disagree about where
+ * the ridge is.
+ *
  * REGISTRATION IS BY CONSTRUCTION, NOT BY LUCK.
  * The old version leaned on `object-fit: cover` (video) behaving identically to
  * `preserveAspectRatio="slice"` (svg). It does — but only while the two
@@ -29,131 +34,16 @@
  * The clip is locked off — the camera never moves — so the push is ours, not
  * the footage's. The speed is a design decision instead of whatever the drone
  * was doing.
+ *
+ * THE FILE IS SIX SECONDS LONG AND 1280×720, which is the weakest part of this
+ * surface: the loop cuts twice a minute and the frame is upscaled by the push.
+ * The script halves playback to soften the first; nothing fixes the second but
+ * a better file. See the pacing note in the script.
  */
-import raw from '../assets/terrain/matterhorn-sky.svg?raw';
-
-const d = raw.match(/class="skyline" d="([^"]+)"/)?.[1] ?? '';
-/* Read from the file, never typed here: the tracer's `--width` decides it, and
-   a viewBox that disagrees with the frame slides the line off the ridge. */
-const viewBox = raw.match(/viewBox="([^"]+)"/)?.[1] ?? '0 0 1280 720';
-const [, , vbw, vbh] = viewBox.split(/\s+/).map(Number);
-
-/**
- * THE SEGMENTS ARE THE REAL RIDGES.
- *
- * Seen from the north-east — which is what this clip is — the two halves of
- * the Matterhorn's outline are two named climbing routes, and they meet at the
- * summit. Left of the top is the ZMUTTGRAT, the north-west ridge. Right of it
- * is the HÖRNLIGRAT, the north-east ridge and the normal route, the one
- * Whymper's party took in 1865. The face between them, pointed at the camera,
- * is the Nordwand.
- *
- * So hovering a name does not light "a stretch of line" — it lights a route up
- * the mountain, and the two are true without a word of explanation.
- *
- * The split point is COMPUTED, not typed: it is the highest point on the
- * traced path, which is the summit by definition. Hand-picked fractions drift
- * the moment the trace is regenerated with a different crop.
- */
-const pts = d
-  .slice(1)
-  .split('L')
-  .map((s) => s.trim().split(/\s+/).map(Number) as [number, number]);
-
-let total = 0;
-const cum = [0];
-for (let i = 1; i < pts.length; i++) {
-  total += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
-  cum.push(total);
-}
-let top = 0;
-for (let i = 1; i < pts.length; i++) if (pts[i][1] < pts[top][1]) top = i;
-const summit = cum[top] / total;
-/** Where the peak sits inside the frame, 0–1. The mobile framing hangs off it. */
-const peak = { x: pts[top][0] / vbw, y: pts[top][1] / vbh };
-
-/**
- * EVERY LINE GROWS OUT OF THE SUMMIT — the entrance and the hover both.
- *
- * With `pathLength="1"` a sub-range [a,b] is drawn by `dasharray: (b-a) 1` and
- * `dashoffset: -a`. Growing a range from ONE END is therefore two different
- * jobs depending on which end is anchored:
- *
- *   Hörnligrat runs forward from the summit, so the anchor `a` never moves:
- *   the dash length grows and the offset stays at -summit.
- *   Zmuttgrat runs backward INTO the summit, so `a` has to walk left as the
- *   length grows: dasharray 0→summit while dashoffset walks -summit→0.
- *
- * Both start at `dashoffset: -summit`, which is the summit itself: at length 0
- * every line is a point on the peak, and the mountain unfolds from there.
- */
-const segs = [
-  { key: 'zmuttgrat', len: summit, o0: -summit, o1: 0 },
-  { key: 'hornligrat', len: 1 - summit, o0: -summit, o1: -summit },
-];
-
-/**
- * THE TRACE IS A STAIRCASE — it was measured column by column, so every point
- * sits on a whole pixel and the line climbs in visible one-pixel steps. At the
- * scales this thing is blown up to that reads as aliasing on a drawing that is
- * supposed to look drawn.
- *
- * Centripetal Catmull-Rom (alpha = 0.5) fixes it for free: the curve passes
- * through EVERY traced point exactly, so the line is no less accurate than the
- * measurement, and it cannot overshoot at a sharp corner the way the uniform
- * variant does — which matters here, because the sharpest corner in the data
- * is the summit.
- */
-const smooth = (q: [number, number][]) => {
-  const out = [`M${q[0][0]} ${q[0][1]}`];
-  const at = (i: number) => q[Math.max(0, Math.min(q.length - 1, i))];
-  for (let i = 0; i < q.length - 1; i++) {
-    const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
-    const t = (a: number[], b: number[]) => Math.hypot(b[0] - a[0], b[1] - a[1]) ** 0.5 || 1e-6;
-    const [t0, t1, t2] = [t(p0, p1), t(p1, p2), t(p2, p3)];
-    const c1 = [0, 1].map((k) => p1[k] + ((p2[k] - p0[k]) * t1) / (3 * (t0 + t1)));
-    const c2 = [0, 1].map((k) => p2[k] - ((p3[k] - p1[k]) * t1) / (3 * (t1 + t2)));
-    out.push(`C${c1[0].toFixed(2)} ${c1[1].toFixed(2)} ${c2[0].toFixed(2)} ${c2[1].toFixed(2)} ${p2[0]} ${p2[1]}`);
-  }
-  return out.join('');
-};
-const line = smooth(pts);
-
-/**
- * THE PHOTOGRAPH IS CUT TO THE MOUNTAIN.
- *
- * The old version faded the video out at its own edges. That works only while
- * the frame is about the size of the screen — in portrait the frame is nearly
- * twice the screen's width, so every edge stop falls off the screen and the
- * photograph ends in a hard horizontal line across the phone. And it cannot be
- * fixed by moving the stops: there is only 9% of frame height above the
- * summit, so any fade soft enough to be invisible runs straight through the
- * peak.
- *
- * So the skyline itself becomes the mask. Everything below the traced line is
- * the photograph; everything above it is the page. There is no rectangle left
- * to hide, at any framing — and the drawn line now sits on the boundary of the
- * image rather than on top of it, which is as registered as a line can get.
- *
- * Left of x=243 the ridge is inside cloud and was never traced, so the polygon
- * leaves the frame on the slope the trace was running when it stopped.
- */
-const [x0, y0] = pts[0];
-const [x1, y1] = pts[1];
-const lead = Math.round(y0 + ((y0 - y1) / (x1 - x0)) * x0);
-const silhouette =
-  `M0 ${lead}L${x0} ${y0}` + line.slice(line.indexOf('C')) +
-  `L${vbw} ${vbh}L0 ${vbh}Z`;
-const sil =
-  'url("data:image/svg+xml,' +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vbw} ${vbh}" preserveAspectRatio="none"><path d="${silhouette}" fill="#fff"/></svg>`,
-  ).replace(/'/g, '%27') +
-  '")';
-
+import { viewBox, vbw, vbh, line, segs, peak, silUrl, traceX0 } from '../lib/skyline';
 ---
 
-<div class="sky" style={`--ar: ${vbw} / ${vbh}; --peak-x: ${(peak.x * 100).toFixed(2)}%; --peak-y: ${(peak.y * 100).toFixed(2)}%; --sil: ${sil}; --trace-x0: ${((x0 / vbw) * 100).toFixed(2)}%;`}>
+<div class="sky" style={`--ar: ${vbw} / ${vbh}; --peak-x: ${(peak.x * 100).toFixed(2)}%; --peak-y: ${(peak.y * 100).toFixed(2)}%; --sil: ${silUrl}; --trace-x0: ${(traceX0 * 100).toFixed(2)}%;`}>
   <div class="sky-push">
     {/* `preload="none"`: the script turns it up to `auto` only when motion is
         allowed, so a reader who has asked for stillness downloads the 48 kB
@@ -494,6 +384,29 @@ const sil =
       sky.classList.add('settled');
     } else {
       video.preload = 'auto';
+
+      /**
+       * THE CLIP IS SIX SECONDS AND THE CAMERA NEVER MOVES, so the only fast
+       * thing on this page is the loop point: cloud dissolves for six seconds,
+       * then cuts back to the frame it started on. On a page whose whole
+       * argument is stillness, that cut is the one event the eye keeps
+       * catching — and it is what reads as "the video goes too fast", even
+       * though nothing in the frame is moving quickly at all.
+       *
+       * Half speed doubles the cycle to twelve seconds, which is most of the
+       * fix for one line.
+       *
+       * A PING-PONG WAS TRIED AND DOES NOT WORK. Flipping `playbackRate` to
+       * -0.5 at the end would remove the cut entirely, and Chrome refuses it:
+       * measured, the element fires `ended` instead and stops dead. So the cut
+       * is still there, just half as often.
+       *
+       * The real fix is not in this file — it is a PALINDROME ENCODE, the clip
+       * followed by its own reverse, which plain `loop` then plays seamlessly
+       * forever. That needs ffmpeg at build time. A longer clip is the other
+       * fix: anything past ~20s and the cut stops being something you wait for.
+       */
+      video.playbackRate = 0.5;
       video.play().catch(() => {});
       setTimeout(reveal, 500);
       setTimeout(() => sky.classList.add('settled'), 2500);

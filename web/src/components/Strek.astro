@@ -1,0 +1,313 @@
+---
+/**
+ * THE DRAWING IS THE MOUNTAIN — there is no photograph behind it.
+ *
+ * Same trace, same frame, same ridges-as-menu as `Skyline.astro`. The one
+ * difference is what fills the silhouette: a flat block of the page's own ink
+ * instead of five megabytes of film. Everything that follows from that is the
+ * argument for this version —
+ *
+ *   No loop. Footage of a locked-off camera has a cut in it every time the
+ *   file restarts, and a page whose whole claim is stillness cannot afford the
+ *   one thing on it that jumps.
+ *   No resolution ceiling. The push is 1 → 1.12 on a vector; it can be 1 → 3
+ *   and stay sharp, which a 720p file cannot survive at 1.12.
+ *   No weight. 48 kB of poster and 5.3 MB of clip become nothing.
+ *   No seam. The crop edge, the cloud bank, the guessed slope where the trace
+ *   ran out — all of it was a property of the photograph.
+ *
+ * What it gives up is weather, and weather was doing real work: a flat block
+ * has no interior, so the mountain has to hold the screen on its edge alone.
+ * That is what the comparison is for.
+ *
+ * THE MASS IS A SOLID, NOT A WASH. Ink at a low alpha over the page colour,
+ * one value, no gradient — the paper still reads through it, and the drawn
+ * line on its boundary is the only thing at full strength.
+ */
+import { viewBox, line, segs, peak, vbw, vbh, silUrl, traceX0 } from '../lib/skyline';
+---
+
+<div class="sky" style={`--ar: ${vbw} / ${vbh}; --peak-x: ${(peak.x * 100).toFixed(2)}%; --peak-y: ${(peak.y * 100).toFixed(2)}%; --sil: ${silUrl}; --trace-x0: ${(traceX0 * 100).toFixed(2)}%;`}>
+  <div class="sky-push">
+    {/* The mass is a plain box cut to the mountain by the same mask the
+        photograph used, so the two surfaces cannot disagree about the shape
+        even by a rounding error. */}
+    <div class="sky-mass"></div>
+
+    <svg class="sky-line" viewBox={viewBox} preserveAspectRatio="none" fill="none" aria-hidden="true">
+      {segs.map((s) => (
+        <Fragment>
+          <path
+            class="draw"
+            data-seg={s.key}
+            pathLength="1"
+            d={line}
+            style={`--len: ${s.len}; --o0: ${s.o0}; --o1: ${s.o1};`}
+          />
+          <path
+            class="seg"
+            data-seg={s.key}
+            pathLength="1"
+            d={line}
+            style={`--len: ${s.len}; --o0: ${s.o0}; --o1: ${s.o1};`}
+          />
+        </Fragment>
+      ))}
+    </svg>
+  </div>
+</div>
+
+<style>
+  .sky {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    container-type: size;
+
+    /* Slower than the photographic version by half. With no weather to look
+       at, the draw IS the event, and at 2.2s it was over before it registered. */
+    --draw: 3400ms;
+    --ease-draw: cubic-bezier(0.45, 0, 0.15, 1);
+    --ease-climb: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Frame and push are `Skyline.astro`'s, unchanged — see the framing note
+     there. The zoom is longer here because a vector has no pixels to run out
+     of: 1 → 1.2 over 60s, which is past the point where a photograph would
+     start to soften. */
+  .sky-push {
+    --fw: max(100cqw, calc(100cqh * var(--ar)));
+    --fx: 50%;
+    --fy: var(--peak-y);
+    --ax: 50%;
+    --ay: max(116px, 11%);
+    --zoom: 1.2;
+    --px: 58%;
+    --py: 38%;
+
+    position: absolute;
+    left: var(--ax);
+    top: var(--ay);
+    width: var(--fw);
+    aspect-ratio: var(--ar);
+    translate: calc(-1 * var(--fx)) calc(-1 * var(--fy));
+    transform-origin: var(--px) var(--py);
+  }
+  :global(html.js) .sky.go .sky-push {
+    animation: push 60s var(--ease-out) forwards;
+  }
+  @keyframes push {
+    from { transform: scale(1); }
+    to   { transform: scale(var(--zoom)); }
+  }
+
+  .sky-mass,
+  .sky-line {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /**
+   * THE LINE DISSOLVES WHERE THE MEASUREMENT RAN OUT.
+   *
+   * With the photograph gone, the traced line's left end simply stops in mid
+   * air — a stroke with a cap on it, hanging on an empty page, which reads as
+   * an unfinished drawing rather than as a ridge going into cloud. Fading the
+   * last stretch is both the honest thing and the better-looking one: the line
+   * ends exactly where the data ends, and it ends by running out.
+   *
+   * On the mask, not on the stroke, because the stroke's own opacity is spoken
+   * for by four different states below.
+   */
+  .sky-line {
+    --fade: linear-gradient(90deg, transparent calc(var(--trace-x0) - 1%), #000 calc(var(--trace-x0) + 11%));
+    -webkit-mask-image: var(--fade);
+    mask-image: var(--fade);
+  }
+
+  /**
+   * THE MASS. One flat colour, cut to the mountain, revealed out of the summit
+   * on the same circle the photograph used — so the mountain fills in from the
+   * peak downward while the ridges are still running out to the corners.
+   *
+   * Ink on paper needs less of itself than paper on ink: 0.07 of black on
+   * cream is already a legible block, where 0.07 of cream on velvet is nothing.
+   * Both values are the page's own text colour, so the mountain is made of the
+   * same material as the writing.
+   */
+  .sky-mass {
+    background: var(--fg1);
+    opacity: 0;
+    clip-path: circle(0% at var(--peak-x) var(--peak-y));
+    transition:
+      opacity 1800ms var(--ease-out),
+      clip-path 3400ms var(--ease-draw);
+
+    /**
+     * THE MASS IS SOLID ALL THE WAY OUT, unlike the photographic version.
+     *
+     * There, the left fifth had to be faded away: the trace stops where the
+     * ridge goes into cloud, the silhouette leaves the frame on a guessed
+     * slope from there, and a photograph shows that guess as a hard edge with
+     * a corner on it. A flat block has no interior to betray it — a straight
+     * slope at 0.07 alpha is just a slope — so the fade is not needed, and
+     * carrying it over would put a soft wash across the bottom-left of a
+     * page that is otherwise made of solids.
+     *
+     * The line is where the guess is still visible, so the fade moves there:
+     * see `.sky-line` below.
+     */
+    -webkit-mask-image: var(--sil);
+    mask-image: var(--sil);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+  .sky.lit .sky-mass {
+    opacity: 0.07;
+    clip-path: circle(150% at var(--peak-x) var(--peak-y));
+  }
+  :global(html.dark) .sky.lit .sky-mass { opacity: 0.1; }
+
+  .draw,
+  .seg {
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  /**
+   * The line is the whole page here, so it is drawn heavier and settles
+   * brighter than it does over rock — there is nothing else on the screen for
+   * it to compete with, and at 0.34 on an empty ground it reads as a mistake
+   * rather than as a drawing.
+   *
+   * No `vector-effect`: a non-scaling stroke measures the dash in device space
+   * while `pathLength` measures it in user space, and the line arrives in
+   * pieces. Opacity is never touched by an animation — only by classes and
+   * transitions — or the hover rules below never get a turn.
+   */
+  .draw {
+    stroke: var(--fg1);
+    stroke-width: 1.8;
+    stroke-dasharray: var(--len) 1;
+    stroke-dashoffset: var(--o1);
+    opacity: 0.7;
+    transition: opacity 1200ms var(--ease-out);
+  }
+  :global(html.js) .draw {
+    stroke-dasharray: 0 1;
+    stroke-dashoffset: var(--o0);
+    opacity: 0;
+  }
+  :global(html.js) .sky.go .draw {
+    animation: climb var(--draw) var(--ease-draw) 120ms forwards;
+    opacity: 1;
+    transition-duration: 600ms;
+  }
+  /* ORDER MATTERS: Astro hangs a scoping attribute on every compound, so these
+     all land on the same specificity and the last one wins. Worst case first —
+     settle, then the hover dim, then the ridge exempt from it. */
+  :global(html.js) .sky.settled .draw {
+    opacity: 0.7;
+    transition-duration: 1600ms;
+  }
+  :global(html.js) .sky.shift .draw {
+    opacity: 0.9;
+    transition-duration: 260ms;
+  }
+  .sky:has(.seg.hot) .draw {
+    opacity: 0.14;
+    transition-duration: var(--dur-base);
+  }
+  .sky .draw.under {
+    opacity: 0.5;
+    transition-duration: var(--dur-base);
+  }
+
+  @keyframes climb {
+    to {
+      stroke-dasharray: var(--len) 1;
+      stroke-dashoffset: var(--o1);
+    }
+  }
+
+  /* One route per menu item, laid exactly over the faint outline. */
+  .seg {
+    stroke: var(--hot);
+    stroke-width: 3;
+    stroke-dasharray: 0 1;
+    stroke-dashoffset: var(--o0);
+    opacity: 0;
+    transition:
+      stroke-dasharray 560ms var(--ease-in),
+      stroke-dashoffset 560ms var(--ease-in),
+      opacity 260ms linear 300ms;
+  }
+  .sky .seg.hot {
+    stroke-dasharray: var(--len) 1;
+    stroke-dashoffset: var(--o1);
+    opacity: 1;
+    transition:
+      stroke-dasharray 760ms var(--ease-climb),
+      stroke-dashoffset 760ms var(--ease-climb),
+      opacity 120ms linear;
+  }
+
+  /* Portrait is a different framing — the peak is pinned at 58% so the whole
+     top half is empty for the type. See the note in `Skyline.astro`. */
+  @media (orientation: portrait) and (max-width: 820px) {
+    .sky-push {
+      --fw: max(190cqw, calc(48cqh * var(--ar)));
+      --fx: var(--peak-x);
+      --fy: var(--peak-y);
+      --ax: 50%;
+      --ay: 58%;
+      --px: var(--peak-x);
+      --py: var(--peak-y);
+      --zoom: 1.12;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html.js) .sky.go .sky-push { animation: none; }
+    :global(html.js) .draw,
+    :global(html.js) .sky.go .draw {
+      animation: none;
+      stroke-dasharray: var(--len) 1;
+      stroke-dashoffset: var(--o1);
+      opacity: 0.7;
+      transition: none;
+    }
+    .sky-mass {
+      transition: none;
+      clip-path: none;
+    }
+    .seg,
+    .sky .seg.hot { transition: opacity 120ms linear; }
+  }
+</style>
+
+<script>
+  const sky = document.querySelector<HTMLElement>('.sky');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (sky) {
+    requestAnimationFrame(() => sky.classList.add('go'));
+
+    /* The mass fills in behind the ridges while they are still running out, so
+       the two read as one move. Nothing to download and nothing to decode, so
+       unlike the photographic version there is no wait to hide. */
+    if (still) {
+      sky.classList.add('lit', 'settled');
+    } else {
+      setTimeout(() => sky.classList.add('lit'), 700);
+      setTimeout(() => sky.classList.add('settled'), 3700);
+    }
+  }
+</script>
