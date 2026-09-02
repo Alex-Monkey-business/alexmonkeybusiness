@@ -67,6 +67,12 @@ html:has(.inst) .footer-meta {
   color: #93938a;
 }
 html:has(.inst) .footer-links a:hover { color: #ffffeb; }
+/* On a phone the footer was a screen of its own under two lines of content.
+   The contact page already IS the footer's links; the case ends on its stack
+   line. So below 820px it goes. */
+@media (max-width: 820px) {
+  html:has(.inst) .site-footer { display: none; }
+}
 
 /* ---- Shared type ---------------------------------------------------------- */
 
