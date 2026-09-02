@@ -33,7 +33,7 @@ export const strings = {
     /** The contact page. Four channels and nothing else — the rest of what
         used to be here was about; people come for a way in. */
     about: {
-      eyebrow: 'ALEXANDER SAMNØY · PRODUKTEIER · AVONOVA',
+      eyebrow: 'ALEXANDER SAMNØY · BUILDER',
       channels: { x: 'x', linkedin: 'linkedin', email: 'e-post', phone: 'telefon' },
       hint: 'melding', // what happens when you follow x/linkedin
     },
@@ -102,7 +102,7 @@ export const strings = {
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
     footer: { email: 'Email', github: 'GitHub', about: 'About' },
     about: {
-      eyebrow: 'ALEXANDER SAMNØY · PRODUCT OWNER · AVONOVA',
+      eyebrow: 'ALEXANDER SAMNØY · BUILDER',
       channels: { x: 'x', linkedin: 'linkedin', email: 'email', phone: 'phone' },
       hint: 'message',
     },

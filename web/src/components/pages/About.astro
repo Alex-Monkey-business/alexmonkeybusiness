@@ -30,13 +30,30 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
 <section class="about inst" data-idle={idle} data-busy={busy}>
   <div class="about-grid">
     <figure class="about-portrait">
+      {/* THE GRADE, as a filter the frame wears. Grayscale first, then one
+          curve per channel: the shadows go to a lavender-black and the mids
+          come down a third, blue a step above red the whole way, so the cast
+          is cold rather than tinted. True black stays at zero, so the sweater
+          and the file's edge go into the page; the highlights stay. Applied to the frame
+          so the pixel steps, the slips and the still all carry it. */}
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <filter id="about-grade" color-interpolation-filters="sRGB">
+          <feColorMatrix type="saturate" values="0" />
+          <feComponentTransfer>
+            <feFuncR type="table" tableValues="0 0.08 0.30 0.62 0.96" />
+            <feFuncG type="table" tableValues="0 0.06 0.26 0.57 0.94" />
+            <feFuncB type="table" tableValues="0 0.12 0.38 0.70 1.00" />
+          </feComponentTransfer>
+        </filter>
+      </svg>
       <div class="about-frame">
         <img class="about-img" src="/assets/about/alex.png" alt="Alexander Samnøy" width="1024" height="1024" decoding="async" />
         <canvas class="about-px" width="1024" height="1024" aria-hidden="true"></canvas>
         <img class="about-slice" src="/assets/about/alex.png" alt="" aria-hidden="true" />
         <img class="about-slice" src="/assets/about/alex.png" alt="" aria-hidden="true" />
-        <span class="about-scan" aria-hidden="true"></span>
       </div>
+      {/* Outside the frame, so it keeps its colour through the grade. */}
+      <span class="about-scan" aria-hidden="true"></span>
       <figcaption class="about-cap inst-label"><span class="about-state"></span><span class="inst-cur"></span></figcaption>
     </figure>
 

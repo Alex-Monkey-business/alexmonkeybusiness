@@ -12,7 +12,9 @@ const bare = stripLang(Astro.url.pathname);
 const switchHref = path(other, bare);
 const otherCode = other === 'nb' ? 'NO' : 'EN';
 const otherHreflang = other === 'nb' ? 'nb-NO' : 'en';
-const mailto = 'mailto:alexander.samnoy@gmail.com';
+/* The pill used to open mail. It goes to the contact page now, where mail is
+   one of three channels — the page is the better first step. */
+const contactHref = path(lang, '/about');
 ---
 
 <nav class="nav" id="nav">
@@ -22,9 +24,10 @@ const mailto = 'mailto:alexander.samnoy@gmail.com';
 
   {/* The full pill, desktop only. Below 640px it does not fit — the last
       attempt kept it and simply dropped "Prosjekter" on the floor. */}
+  {/* No separate "Kontakt" link: the pill IS the way to the contact page
+      now, and two contact items in one row read as a stutter. */}
   <ul class="nav-wide">
     <li><a href={path(lang, '/#projects')}>{s.nav.projects}</a></li>
-    <li><a href={path(lang, '/about')}>{s.nav.about}</a></li>
     <li>
       <button class="theme-toggle" type="button" aria-label="Toggle dark mode">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -40,7 +43,7 @@ const mailto = 'mailto:alexander.samnoy@gmail.com';
       <a class="nav-lang" href={switchHref} hreflang={otherHreflang} data-lang-switch>{otherCode}</a>
     </li>
     <li>
-      <a class="nav-cta" href={mailto}>{s.nav.cta}</a>
+      <a class="nav-cta" href={contactHref}>{s.nav.cta}</a>
     </li>
   </ul>
 
@@ -71,11 +74,10 @@ const mailto = 'mailto:alexander.samnoy@gmail.com';
 
   <ul class="nav-panel-links">
     <li><a href={path(lang, '/#projects')}>{s.nav.projects}</a></li>
-    <li><a href={path(lang, '/about')}>{s.nav.about}</a></li>
   </ul>
 
   <div class="nav-panel-foot">
-    <a class="nav-cta" href={mailto}>{s.nav.cta}</a>
+    <a class="nav-cta" href={contactHref}>{s.nav.cta}</a>
     <div class="nav-panel-utils">
       <button class="theme-toggle" type="button" aria-label="Toggle dark mode">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

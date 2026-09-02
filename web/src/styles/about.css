@@ -34,10 +34,12 @@
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  /* The sweater is black on black already; this takes the last of its hem
-     into the page so the figure has no bottom edge. */
-  -webkit-mask-image: linear-gradient(to bottom, #000 58%, transparent 96%);
-          mask-image: linear-gradient(to bottom, #000 58%, transparent 96%);
+  /* See the <filter> in About.astro. */
+  filter: url(#about-grade);
+  /* One soft ellipse: the light is on the face, and the hem, the shoulders
+     and the frame's corners all go into the page the same way. */
+  -webkit-mask-image: radial-gradient(ellipse 66% 72% at 50% 40%, #000 30%, transparent 100%);
+          mask-image: radial-gradient(ellipse 66% 72% at 50% 40%, #000 30%, transparent 100%);
 }
 .about-img,
 .about-px,
@@ -53,7 +55,6 @@
    step has drawn. No fade on the canvas — a fade would blur the squares. */
 .about-px {
   image-rendering: pixelated;
-  background: #000;
   transition: opacity 260ms steps(3);
 }
 .about-px.gone { opacity: 0; pointer-events: none; }
@@ -62,7 +63,9 @@
   pointer-events: none;
   will-change: transform, clip-path;
 }
-/* The scan: a one-pixel signal line down the picture, once per resolve. */
+/* The scan: a one-pixel signal line down the picture, once per resolve. It
+   sits over the frame, not in it — inside, the grade would take its colour. */
+.about-portrait { position: relative; }
 .about-scan {
   position: absolute;
   left: 0;
@@ -80,13 +83,13 @@
   92%  { opacity: 1; }
   100% { transform: translateY(100cqh); transform: translateY(440px); opacity: 0; }
 }
-.about-frame { container-type: size; }
-@supports (height: 1cqh) {
+.about-portrait { container-type: inline-size; }
+@supports (width: 1cqw) {
   @keyframes about-scan {
     0%   { transform: translateY(0); opacity: 0; }
     6%   { opacity: 1; }
     92%  { opacity: 1; }
-    100% { transform: translateY(100cqh); opacity: 0; }
+    100% { transform: translateY(100cqw); opacity: 0; }
   }
 }
 
