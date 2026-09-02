@@ -36,10 +36,22 @@
   overflow: hidden;
   /* See the <filter> in About.astro. */
   filter: url(#about-grade);
-  /* One soft ellipse: the light is on the face, and the hem, the shoulders
-     and the frame's corners all go into the page the same way. */
-  -webkit-mask-image: radial-gradient(ellipse 66% 72% at 50% 40%, #000 30%, transparent 100%);
-          mask-image: radial-gradient(ellipse 66% 72% at 50% 40%, #000 30%, transparent 100%);
+  /* One soft ellipse takes the frame's corners into the page; the shade
+     below does the rest. */
+  -webkit-mask-image: radial-gradient(ellipse 72% 78% at 46% 42%, #000 40%, transparent 100%);
+          mask-image: radial-gradient(ellipse 72% 78% at 46% 42%, #000 40%, transparent 100%);
+}
+/* The shadow side: black coming in from the right and up from the hem, so the
+   face is lit from one side and the figure has no edge anywhere. This is a
+   shadow on a photograph, not a surface — the one place a gradient is the
+   honest tool. */
+.about-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, transparent 58%, #000 96%),
+    linear-gradient(to left, #000 8%, rgba(0, 0, 0, 0.88) 26%, rgba(0, 0, 0, 0.35) 48%, transparent 66%);
 }
 .about-img,
 .about-px,

@@ -27,19 +27,18 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
 <section class="about inst">
   <div class="about-grid">
     <figure class="about-portrait">
-      {/* THE GRADE, as a filter the frame wears. Grayscale first, then one
-          curve per channel: the shadows go to a lavender-black and the mids
-          come down a third, blue a step above red the whole way, so the cast
-          is cold rather than tinted. True black stays at zero, so the sweater
-          and the file's edge go into the page; the highlights stay. Applied to the frame
-          so the pixel steps, the slips and the still all carry it. */}
+      {/* THE GRADE, as a filter the frame wears. Grayscale, then one S-curve:
+          the shadows crushed, the mids held back a little, the highlights left
+          clean. Neutral — a lavender cast on skin read as a filter, and the
+          page's one colour is the signal, not the face. The deepest shadows
+          alone lean a hair cold; anything more and it is a tint again. */}
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <filter id="about-grade" color-interpolation-filters="sRGB">
           <feColorMatrix type="saturate" values="0" />
           <feComponentTransfer>
-            <feFuncR type="table" tableValues="0 0.08 0.30 0.62 0.96" />
-            <feFuncG type="table" tableValues="0 0.06 0.26 0.57 0.94" />
-            <feFuncB type="table" tableValues="0 0.12 0.38 0.70 1.00" />
+            <feFuncR type="table" tableValues="0 0.05 0.40 0.74 1.00" />
+            <feFuncG type="table" tableValues="0 0.05 0.40 0.74 1.00" />
+            <feFuncB type="table" tableValues="0 0.08 0.41 0.74 1.00" />
           </feComponentTransfer>
         </filter>
       </svg>
@@ -48,6 +47,10 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
         <canvas class="about-px" width="1024" height="1024" aria-hidden="true"></canvas>
         <img class="about-slice" src="/assets/about/alex.png" alt="" aria-hidden="true" />
         <img class="about-slice" src="/assets/about/alex.png" alt="" aria-hidden="true" />
+        {/* The shadow side. The light in the file comes from the left, so the
+            right of the face and the shoulder fall off into the page's black,
+            and so does the hem. Painted over the frame, under the grade. */}
+        <span class="about-shade" aria-hidden="true"></span>
       </div>
       {/* Outside the frame, so it keeps its colour through the grade. */}
       <span class="about-scan" aria-hidden="true"></span>
