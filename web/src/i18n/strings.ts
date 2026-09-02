@@ -34,8 +34,9 @@ export const strings = {
         used to be here was about; people come for a way in. */
     about: {
       eyebrow: 'ALEXANDER SAMNØY · BUILDER',
+      /** The one line on the page that asks for something. */
+      tagline: 'Sitter du på en idé, eller vil du lage noe? Ta kontakt.',
       channels: { x: 'x', linkedin: 'linkedin', email: 'e-post', phone: 'telefon' },
-      hint: 'melding', // what happens when you follow x/linkedin
     },
     detail: { back: '← Tilbake', wip: 'underveis', comingSoon: 'Kommer snart.' },
     /** Offered to visitors whose browser is not Norwegian. */
@@ -103,8 +104,8 @@ export const strings = {
     footer: { email: 'Email', github: 'GitHub', about: 'About' },
     about: {
       eyebrow: 'ALEXANDER SAMNØY · BUILDER',
+      tagline: 'Got an idea, or want to build something? Get in touch.',
       channels: { x: 'x', linkedin: 'linkedin', email: 'email', phone: 'phone' },
-      hint: 'message',
     },
     detail: { back: '← Back', wip: 'in progress', comingSoon: 'Coming soon.' },
     switchHint: 'Les på norsk',

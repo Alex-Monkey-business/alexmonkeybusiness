@@ -93,12 +93,6 @@
   }
 }
 
-.about-cap {
-  margin: 18px 0 0;
-  display: flex;
-  align-items: center;
-  min-height: 1.4em;
-}
 
 /* ============ CHANNELS ============ */
 .about-copy {
@@ -107,6 +101,23 @@
   gap: clamp(28px, 4vh, 44px);
 }
 .about-eyebrow { margin: 0; }
+.about-tagline {
+  margin: 0;
+  font-size: clamp(18px, 1.7vw, 24px);
+  text-transform: none;
+  max-width: 33ch;
+}
+/* The page's one cursor, hung on the last word so it can never wrap alone. */
+.about-tagline .w:last-child::after {
+  content: '';
+  display: inline-block;
+  width: 0.55em;
+  height: 0.95em;
+  vertical-align: -0.12em;
+  margin-left: 0.25em;
+  background: var(--signal);
+  animation: inst-blink 1.1s steps(1) infinite;
+}
 
 .about-rows {
   list-style: none;

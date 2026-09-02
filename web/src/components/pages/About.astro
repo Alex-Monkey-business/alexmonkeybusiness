@@ -21,13 +21,10 @@ const { lang } = Astro.props;
 const s = t(lang).about;
 const nb = lang === 'nb';
 
-const idle = nb ? 'PORTRETT · 1024 × 1024' : 'PORTRAIT · 1024 × 1024';
-const busy = nb ? 'PORTRETT · LØSER OPP' : 'PORTRAIT · RESOLVING';
-
 const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), label: s.channels[c.key] }));
 ---
 
-<section class="about inst" data-idle={idle} data-busy={busy}>
+<section class="about inst">
   <div class="about-grid">
     <figure class="about-portrait">
       {/* THE GRADE, as a filter the frame wears. Grayscale first, then one
@@ -54,11 +51,12 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
       </div>
       {/* Outside the frame, so it keeps its colour through the grade. */}
       <span class="about-scan" aria-hidden="true"></span>
-      <figcaption class="about-cap inst-label"><span class="about-state"></span><span class="inst-cur"></span></figcaption>
     </figure>
 
     <div class="about-copy">
       <p class="about-eyebrow inst-label"><span data-type>{s.eyebrow}</span></p>
+      {/* The ask. Decodes in after the name, and carries the page's one cursor. */}
+      <p class="about-tagline inst-display"><span data-decode>{s.tagline}</span></p>
 
       {/* The channels. Index, label, address — one line each, the whole line
           the link. The address decodes; the label is plain, so the eye has
@@ -90,8 +88,10 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
     /* Text: the name types; the addresses decode, a row at a time. */
     const eyebrow = root.querySelector<HTMLElement>('.about-eyebrow [data-type]');
     if (eyebrow) typeSelf(eyebrow, { delay: 300, speed: 16 });
+    const tagline = root.querySelector<HTMLElement>('.about-tagline [data-decode]');
+    if (tagline) decode(tagline, { delay: 600, perChar: 16 });
     root.querySelectorAll<HTMLElement>('.about-value').forEach((el, i) => {
-      decode(el, { delay: 700 + i * 260, perChar: 26 });
+      decode(el, { delay: 1300 + i * 260, perChar: 26 });
     });
 
     /* Pointing at a row flickers its address once before it settles. */
@@ -111,18 +111,14 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
     const img = root.querySelector<HTMLImageElement>('.about-img');
     const px = root.querySelector<HTMLCanvasElement>('.about-px');
     const scan = root.querySelector<HTMLElement>('.about-scan');
-    const state = root.querySelector<HTMLElement>('.about-state');
     const frame = root.querySelector<HTMLElement>('.about-frame');
     const g = px?.getContext('2d');
     const STEPS = [8, 12, 18, 28, 44, 72, 120, 200];
 
-    const say = (s: string) => { if (state) state.textContent = s; };
-
     const resolve = (from = 0, stepMs = 115) =>
       new Promise<void>((done) => {
-        if (!img || !px || !g || still()) { px?.classList.add('gone'); say(root.dataset.idle ?? ''); done(); return; }
+        if (!img || !px || !g || still()) { px?.classList.add('gone'); done(); return; }
         px.classList.remove('gone');
-        say(root.dataset.busy ?? '');
         scan?.classList.remove('go');
         void scan?.offsetWidth;
         scan?.classList.add('go');
@@ -139,7 +135,7 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
           g.drawImage(off, 0, 0, n, n, 0, 0, px.width, px.height);
           i++;
           if (i < STEPS.length) setTimeout(step, stepMs);
-          else setTimeout(() => { px.classList.add('gone'); say(root.dataset.idle ?? ''); done(); }, stepMs);
+          else setTimeout(() => { px.classList.add('gone'); done(); }, stepMs);
         };
         step();
       });
