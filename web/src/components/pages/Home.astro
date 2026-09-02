@@ -257,6 +257,17 @@ const readout = nb
     .always-dark :global(.row) { font-size: clamp(17px, 5.2vw, 22px); }
     .always-dark :global(.level li::before) { left: -2em; }
     .always-dark :global(.readout) { white-space: normal; letter-spacing: 0.14em; }
+    /* The plate was two lines and a quarter of the screen. On a phone the
+       name is already the mark in the nav, so only what is owed stays — the
+       credit, one line, as small as it can be read. */
+    .always-dark :global(.sig) {
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      padding: 6px 8px;
+      margin: -6px -8px;
+    }
+    .always-dark :global(.sig-name) { display: none; }
+    .always-dark :global(.credit) { display: inline; margin: 0; }
   }
 
   @media (prefers-reduced-motion: reduce) {
