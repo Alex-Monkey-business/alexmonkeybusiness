@@ -1,0 +1,137 @@
+/* ============================================================
+   INSTRUMENT — the experiment's own chrome.
+   Black ground, one mono face, one signal colour. Type does not
+   roll or lift; it decodes and holds still. Applied by putting
+   `.inst` on the page's root element — everything else follows.
+   The Wispr system stays untouched for every page without it.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Martian+Mono:wght@200..500&display=swap');
+
+.inst {
+  --bg: #000;
+  --fg1: #ffffeb;
+  --fg2: #d8d8c6;
+  --fg3: #93938a;
+  --fg4: #55554e;
+  --border-hair: #2a2a28;
+
+  /* The one colour on the screen: Wispr's lavender, taken one step down so
+     it holds as a colour against black instead of reading as a warm white.
+     The ridge, the indices, the cursor and the nav pill all take it. */
+  --signal: #d6a4ff;
+  --hot: var(--signal);
+  --lavender: var(--signal);
+  --lavender-d: #c98bff;
+  --em-color: var(--signal);
+
+  --font-inst: 'Martian Mono', 'SF Mono', ui-monospace, Menlo, monospace;
+
+  /* The inherit chain has to start here: rows and links are `color: inherit`
+     and would otherwise carry a colour computed above this element. */
+  color: var(--fg1);
+}
+
+html:has(.inst),
+body:has(.inst) { background: #000; }
+/* The Layout's nav pill reads the site's lavender; retinted from the root so
+   the page does not carry a second accent. */
+html:has(.inst) { --lavender: #d6a4ff; --lavender-d: #c98bff; }
+
+/* ---- Footer, in the same voice ------------------------------------------ */
+/* Wispr's footer is a rounded chamber lifted off the canvas. Here it is the
+   bottom of a black page: flat, a hairline, the same type as everything. */
+html:has(.inst) .site-footer,
+html:has(.inst) .site-footer .band {
+  background: #000;
+  border-radius: 0;
+  box-shadow: none;
+}
+html:has(.inst) .site-footer { border-top: 1px solid #2a2a28; }
+html:has(.inst) .footer-word {
+  font-family: var(--font-inst);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: #ffffeb;
+}
+html:has(.inst) .footer-word em { font-style: normal; color: #d6a4ff; }
+html:has(.inst) .footer-links a,
+html:has(.inst) .footer-meta {
+  font-family: var(--font-inst);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #93938a;
+}
+html:has(.inst) .footer-links a:hover { color: #ffffeb; }
+
+/* ---- Shared type ---------------------------------------------------------- */
+
+/* A label: small caps mono, wide. Readouts, eyebrows, captions. */
+.inst-label {
+  font-family: var(--font-inst);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg3);
+}
+/* An index: 01, 02 — the signal, hung small. */
+.inst-idx {
+  font-family: var(--font-inst);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--signal);
+}
+/* A display line: light mono, lowercase, air between the letters. */
+.inst-display {
+  font-family: var(--font-inst);
+  font-weight: 300;
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  font-variant-ligatures: none;
+  color: var(--fg1);
+}
+/* Body: the same face, small, readable. */
+.inst-body {
+  font-family: var(--font-inst);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: var(--fg2);
+}
+
+/* The decode's noise state: glyphs still resolving sit one step back. Words
+   hold together; only the spaces between them may break. */
+.inst .w { display: inline-block; white-space: nowrap; }
+.inst .chi { display: inline-block; }
+.inst .chi.noise { color: var(--fg4); }
+/* Anything that decodes starts invisible until the script has taken it; a
+   reader without JS sees it plainly. */
+html.js .inst [data-decode]:not(.ready),
+html.js .inst [data-type]:not(.ready) { visibility: hidden; }
+
+/* The blinking block. */
+.inst-cur {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.95em;
+  vertical-align: -0.12em;
+  margin-left: 0.25em;
+  background: var(--signal);
+  animation: inst-blink 1.1s steps(1) infinite;
+}
+@keyframes inst-blink { 50% { opacity: 0; } }
+
+/* A hairline. */
+.inst-hair { height: 1px; background: var(--border-hair); }
+
+@media (prefers-reduced-motion: reduce) {
+  .inst-cur { animation: none; }
+}

@@ -1,6 +1,7 @@
 ---
 import PhoneVideo from '../halsen/PhoneVideo.astro';
 import { t, path, type Lang } from '../../i18n';
+import '../../styles/instrument.css';
 import '../../styles/halsen.css';
 
 interface Props { lang: Lang }
@@ -34,22 +35,25 @@ const features = s.features.map((f, i) => ({
 }));
 ---
 
-<div class="case">
-  <a href={path(lang, '/#projects')} class="case-back">{s.back}</a>
+<div class="case inst">
+  {/* The arrow in the string is Wispr's; the instrument writes it as `<`. */}
+  <a href={path(lang, '/#projects')} class="case-back">{s.back.replace('←', '<')}</a>
 
   <section class="case-hero">
+    <p class="case-eyebrow inst-label"><span class="inst-idx">00</span> <span data-type>{s.stack[0].toUpperCase()}</span></p>
     {/* Pairs with the landing card of the same slug — the name travels
-        between the two pages instead of the page blinking. */}
-    <h1 class="case-title" style="--vt: vt-halsen-g15">Bench<span class="em">Boss</span></h1>
-    <p class="case-lede">{s.lede}</p>
+        between the two pages instead of the page blinking. Two decode
+        targets, because the second half carries the signal. */}
+    <h1 class="case-title inst-display" style="--vt: vt-halsen-g15"><span data-decode>Bench</span><span class="em" data-decode>Boss</span></h1>
+    <p class="case-lede inst-body">{s.lede}</p>
   </section>
 
   {features.map((f, i) => (
     <section class={`case-feature${i % 2 === 1 ? ' flipped' : ''}`}>
       <div class="case-feature-copy">
-        <span class="ft-num">{f.n}</span>
-        <h2 class="ft-h">{f.h}</h2>
-        <p class="ft-p">{f.p}</p>
+        <span class="ft-num inst-idx">{f.n}</span>
+        <h2 class="ft-h inst-display" data-decode>{f.h}</h2>
+        <p class="ft-p inst-body">{f.p}</p>
       </div>
       <div class="case-feature-stage">
         <PhoneVideo src={f.src} poster={f.poster} start={f.start ?? 0.5} />
@@ -64,14 +68,14 @@ const features = s.features.map((f, i) => ({
     <ul>
       {s.hood.map((h, i) => (
         <li style={`--i:${i}`}>
-          <span class="n">{String(features.length + i + 1).padStart(2, '0')}</span>
+          <span class="n inst-idx">{String(features.length + i + 1).padStart(2, '0')}</span>
           <span class="text">{h.pre}<em>{h.em}</em>{h.rest}</span>
         </li>
       ))}
     </ul>
   </section>
 
-  <div class="case-stack">
+  <div class="case-stack inst-label">
     <span class="live">{s.stack[0]}</span>
     <span class="sep">·</span>
     <span>{s.stack[1]}</span>
@@ -81,21 +85,22 @@ const features = s.features.map((f, i) => ({
 </div>
 
 <script>
+  import { decode, typeSelf, onEnter } from '../../scripts/decode';
+
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // reveal feature sections + list rows on scroll
-  const revealObs = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-in');
-          revealObs.unobserve(e.target);
-        }
-      });
-    },
-    { threshold: 0.18 }
-  );
-  document.querySelectorAll('.case-feature, .case-list li').forEach((el) => revealObs.observe(el));
+  // The hero: eyebrow types, then the name decodes — the two halves together.
+  const eyebrow = document.querySelector<HTMLElement>('.case-eyebrow [data-type]');
+  if (eyebrow) typeSelf(eyebrow, { delay: 200, speed: 16 });
+  document.querySelectorAll<HTMLElement>('.case-title [data-decode]').forEach((el) => decode(el, { delay: 500, perChar: 70 }));
+
+  // reveal feature sections + list rows on scroll; a heading decodes as its
+  // section arrives
+  onEnter(document.querySelectorAll('.case-feature, .case-list li'), (el) => {
+    el.classList.add('is-in');
+    const h = el.querySelector<HTMLElement>('[data-decode]');
+    if (h) decode(h, { delay: 120, perChar: 20 });
+  }, 0.18);
 
   // play each real-app recording only while on screen; loop past the first paint
   const videos = Array.from(document.querySelectorAll<HTMLVideoElement>('.phone-video'));

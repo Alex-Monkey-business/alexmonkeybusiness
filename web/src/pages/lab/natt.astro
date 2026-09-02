@@ -27,6 +27,7 @@ import Layout from '../../layouts/Layout.astro';
 import OneScreen from '../../components/OneScreen.astro';
 import Natt from '../../components/Natt.astro';
 import { langFromUrl } from '../../i18n';
+import '../../styles/instrument.css';
 
 const lang = langFromUrl(Astro.url);
 const nb = lang === 'nb';
@@ -61,8 +62,7 @@ const readout = nb
 ---
 
 <Layout title="Variant — Natt">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@200..500&display=swap" />
-  <div class="always-dark" data-readout={JSON.stringify(readout)}>
+  <div class="always-dark inst" data-readout={JSON.stringify(readout)}>
     <OneScreen>
       <Natt />
       <span slot="credit" class="credit">
@@ -75,39 +75,8 @@ const readout = nb
 </Layout>
 
 <style>
-  .always-dark {
-    --bg: #000;
-    --fg1: #ffffeb;
-    --fg2: #d8d8c6;
-    --fg3: #93938a;
-    --fg4: #55554e;
-    --border-hair: #3a3a38;
-    /* The one colour on the screen. Not the site's lavender: a signal — the
-       orange-red of an instrument that wants to be read against black and
-       white and nothing else. The ridge takes it too. */
-    --signal: #ff4a1c;
-    --hot: var(--signal);
-    --lavender: var(--signal);
-    --font-inst: 'Martian Mono', 'SF Mono', ui-monospace, Menlo, monospace;
-
-    /**
-     * AND THE INHERIT CHAIN HAS TO START HERE. Redefining the tokens is not
-     * enough on its own: the menu rows are `color: inherit`, and in light theme
-     * they were inheriting a computed ink colour set on an ancestor ABOVE this
-     * element — measured as rgb(26,26,26) on a black ground, which is invisible
-     * rather than subtle. A token override only reaches declarations that
-     * RESOLVE inside it, never a colour already computed outside it.
-     */
-    color: var(--fg1);
-  }
-  /* The page's own ground, so the black behind the mountain is this surface's
-     and not whatever theme the rest of the site is in. */
-  :global(html:has(.always-dark)),
-  :global(body:has(.always-dark)) { background: #000; }
-  /* One accent per screen. The nav pill up top is the Layout's and reads the
-     site's lavender; on this page that would be a second colour, so the token
-     is retinted from the root — the pill follows without knowing. */
-  :global(html:has(.always-dark)) { --lavender: #ff4a1c; }
+  /* The palette, the face and the signal are `instrument.css`'s — shared with
+     /about and the case pages. This file is the one-screen layout only. */
 
   /* ---- The names as an instrument --------------------------------------- */
 

@@ -20,19 +20,22 @@ export const strings = {
     label: 'Norsk',
     site: {
       description: 'Små ting. Store planer. Og et par ting som faktisk ble ferdige.',
-      aboutTitle: 'Om — Alex Monkey Business',
+      aboutTitle: 'Kontakt — Alex Monkey Business',
     },
-    nav: { projects: 'Prosjekter', about: 'Om', cta: 'Ta kontakt', menu: 'Meny', close: 'Lukk' },
+    nav: { projects: 'Prosjekter', about: 'Kontakt', cta: 'Ta kontakt', menu: 'Meny', close: 'Lukk' },
     /** Warmer than «Prosjekter», and it says what the section actually is.
         It no longer matches the nav item — see the note in the nav strings. */
     work: { label: 'Ting jeg har laget' },
     /** The one card on the landing page that is not a project. */
-    aboutCard: { title: 'Om', titleEm: 'meg' },
+    aboutCard: { title: 'Kontakt', titleEm: 'meg' },
     card: { readCase: 'Les caset', visitSite: 'Se siden', inProgress: 'Underveis' },
     footer: { email: 'E-post', github: 'GitHub', about: 'Om' },
+    /** The contact page. Four channels and nothing else — the rest of what
+        used to be here was about; people come for a way in. */
     about: {
-      title: 'Webapplikasjoner, mobilapper, nettsider, presentasjoner',
-      body: 'Produkteier hos Avonova til daglig. Resten lager jeg på fritiden, mest fordi det er gøy.',
+      eyebrow: 'ALEXANDER SAMNØY · PRODUKTEIER · AVONOVA',
+      channels: { x: 'x', linkedin: 'linkedin', email: 'e-post', phone: 'telefon' },
+      hint: 'melding', // what happens when you follow x/linkedin
     },
     detail: { back: '← Tilbake', wip: 'underveis', comingSoon: 'Kommer snart.' },
     /** Offered to visitors whose browser is not Norwegian. */
@@ -88,19 +91,20 @@ export const strings = {
     label: 'English',
     site: {
       description: 'Small things. Big plans. And a couple that actually got finished.',
-      aboutTitle: 'About — Alex Monkey Business',
+      aboutTitle: 'Contact — Alex Monkey Business',
     },
-    nav: { projects: 'Projects', about: 'About', cta: 'Get in touch', menu: 'Menu', close: 'Close' },
+    nav: { projects: 'Projects', about: 'Contact', cta: 'Get in touch', menu: 'Menu', close: 'Close' },
     /** Warmer than "Projects", and it says what the section actually is.
         It no longer matches the nav item — see the note in the nav strings. */
     work: { label: "Things I've made" },
     /** The one card on the landing page that is not a project. */
-    aboutCard: { title: 'About', titleEm: 'me' },
+    aboutCard: { title: 'Contact', titleEm: 'me' },
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
     footer: { email: 'Email', github: 'GitHub', about: 'About' },
     about: {
-      title: 'Web apps, mobile apps, websites, presentations',
-      body: "Product owner at Avonova by day. The rest I make in my own time, mostly because it's fun.",
+      eyebrow: 'ALEXANDER SAMNØY · PRODUCT OWNER · AVONOVA',
+      channels: { x: 'x', linkedin: 'linkedin', email: 'email', phone: 'phone' },
+      hint: 'message',
     },
     detail: { back: '← Back', wip: 'in progress', comingSoon: 'Coming soon.' },
     switchHint: 'Les på norsk',

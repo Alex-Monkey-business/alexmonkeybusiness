@@ -1,12 +1,12 @@
 /* ============================================================
-   BenchBoss case study — WISPR EDITORIAL
-   Cream broadsheet chrome, EB Garamond 400 at display scale,
-   Figtree for UI. "Under the hood" is a velvet chamber, so the
-   page carries the cream -> velvet -> cream rhythm.
-   The phone block below stays app-faithful on purpose.
+   BenchBoss case study — INSTRUMENT
+   Black ground, mono, one signal. The shared voice is in
+   instrument.css; this file is the case's layout. The phone block
+   below stays app-faithful on purpose — the recordings are the
+   content, not the page's system.
    ============================================================ */
 
-/* App-faithful font for the phone screens (page chrome uses Figtree/Garamond) */
+/* App-faithful font for the phone screens */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .case {
@@ -19,65 +19,49 @@
 }
 
 .case-back {
-  font-family: var(--font-ui);
-  font-size: var(--t-16);
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--fg2);
+  font-family: var(--font-inst);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg3);
   text-decoration: none;
-  /* 19px tall was under the 24px target floor — pad it without moving it */
   display: inline-flex;
   align-items: center;
   min-height: 28px;
   transition: color var(--dur-fast) var(--ease-out);
 }
-.case-back:hover { color: var(--fg1); text-decoration: underline; }
+.case-back:hover { color: var(--fg1); }
 
 /* ============ HERO ============ */
 .case-hero {
   padding: 6vh 0 8vh;
-  border-bottom: var(--border-w) solid var(--border);
+  border-bottom: 1px solid var(--border-hair);
 }
 @media (max-width: 860px) {
   .case-hero { padding: 4vh 0 6vh; }
 }
+.case-eyebrow { margin: var(--s-8) 0 0; }
 
 .case-title {
-  font-family: var(--font-display);
-  font-size: clamp(52px, 11.5vw, 120px);
-  font-weight: 400;                 /* scale commands, never weight */
-  line-height: var(--lh-tight);
-  letter-spacing: var(--tr-tight);
-  text-transform: none;
-  /* The eyebrow used to hold this gap open; with it gone the title owns it. */
-  margin: var(--s-10) 0 0;
-  color: var(--fg1);
-}
-.case-title .em {
-  font-style: italic;
-  color: var(--em-color);
-}
-/* The other half of the pairing — see .card-title on the landing page. */
-.case-title {
+  font-size: clamp(44px, 9vw, 104px);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  margin: var(--s-5) 0 0;
   view-transition-name: var(--vt);
 }
+.case-title .em { color: var(--signal); }
 @media (prefers-reduced-motion: reduce) {
   .case-title { view-transition-name: none; }
 }
 
 .case-lede {
   margin: var(--s-8) 0 0;
-  /* Three sentences now instead of one. At 34ch it stacked into a narrow
-     column; 46ch keeps it a standfirst rather than a gutter of text. */
-  max-width: 46ch;
-  font-family: var(--font-ui);
-  font-size: var(--t-18);
-  line-height: var(--lh-normal);
-  color: var(--fg2);
+  max-width: 58ch;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: case-in 700ms var(--ease-out) 1400ms forwards;
 }
-
-.case-hero-stage { display: flex; justify-content: center; }
+@keyframes case-in { to { opacity: 1; transform: none; } }
 
 /* ============ FEATURE SECTIONS ============ */
 .case-feature {
@@ -88,7 +72,7 @@
   padding: 12vh 0;
   border-bottom: 1px solid var(--border-hair);
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(18px);
   transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
 }
 .case-feature.is-in { opacity: 1; transform: none; }
@@ -104,100 +88,48 @@
   .case-feature.flipped .case-feature-copy { order: 0; }
 }
 
-.case-feature-copy { max-width: 38ch; }
-
-/* The index gets the system's tight-radius square badge — the geometric
-   counterpoint to all the pills */
-.ft-num {
-  font-family: var(--font-ui);
-  font-size: var(--t-14);
-  font-weight: 500;
-  line-height: 1;
-  color: var(--lumen-cream);
-  background: var(--vast-ink);
-  border-radius: var(--r-xs);
-  padding: 8px 14px;
-  display: inline-flex;
-  margin-bottom: var(--s-5);
-}
-html.dark .ft-num {
-  background: var(--lumen-cream);
-  color: var(--vast-ink);
-}
-
+.case-feature-copy { max-width: 44ch; }
+.ft-num { display: block; margin-bottom: var(--s-5); }
 .ft-h {
-  font-family: var(--font-display);
-  font-size: clamp(32px, 4.6vw, 48px);
-  font-weight: 400;
-  line-height: var(--lh-snug);
-  letter-spacing: var(--tr-snug);
   margin: 0;
-  color: var(--fg1);
+  font-size: clamp(22px, 2.8vw, 34px);
 }
-.ft-p {
-  margin: var(--s-5) 0 0;
-  font-family: var(--font-ui);
-  font-size: var(--t-16);
-  /* The reference sets 1.3 everywhere; a three-line paragraph reads better
-     with a touch more leading, so body copy gets --lh-loose */
-  line-height: var(--lh-loose);
-  color: var(--fg2);
-}
+.ft-p { margin: var(--s-5) 0 0; }
 
 .case-feature-stage { display: flex; justify-content: center; }
 
-/* ============ UNDER THE HOOD — velvet chamber ============ */
-.case-list {
-  margin: var(--s-20) 0 0;
-  background: var(--surface-chamber);
-  color: var(--lumen-cream);
-  border-radius: var(--r-2xl);
-  padding: var(--s-20) var(--s-12);
-}
-@media (max-width: 900px) {
-  .case-list {
-    border-radius: var(--r-xl);
-    padding: var(--s-16) var(--s-5);
-    margin-top: var(--s-16);
-  }
-}
-
+/* ============ UNDER THE HOOD ============ */
+/* No chamber. The list is the tail of the same count as the features, and
+   it is set the same way: index, line, hairline. */
+.case-list { margin: var(--s-16) 0 0; }
 .case-list ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  border-top: 1px solid rgba(255, 255, 235, 0.22);
+  border-top: 1px solid var(--border-hair);
 }
 .case-list li {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--s-5);
+  grid-template-columns: 3em 1fr;
+  gap: var(--s-4);
   align-items: baseline;
-  padding: var(--s-5) 4px;
-  border-bottom: 1px solid rgba(255, 255, 235, 0.22);
+  padding: var(--s-5) 0;
+  border-bottom: 1px solid var(--border-hair);
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(8px);
   transition: opacity 600ms var(--ease-out), transform 600ms var(--ease-out);
   transition-delay: calc(var(--i, 0) * 80ms);
 }
 .case-list li.is-in { opacity: 1; transform: none; }
-.case-list .n {
-  font-family: var(--font-ui);
-  font-size: var(--t-14);
-  color: rgba(255, 255, 235, 0.6);
-}
 .case-list .text {
-  font-family: var(--font-display);
-  font-size: clamp(20px, 2.6vw, 32px);
-  font-weight: 400;
-  line-height: var(--lh-normal);
-  letter-spacing: -0.02em;
-  color: var(--lumen-cream);
+  font-family: var(--font-inst);
+  font-weight: 300;
+  font-size: clamp(15px, 1.7vw, 20px);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--fg1);
 }
-.case-list .text em {
-  font-style: italic;
-  color: var(--lavender);
-}
+.case-list .text em { font-style: normal; color: var(--signal); }
 
 /* ============ STACK FOOTER ============ */
 .case-stack {
@@ -205,35 +137,25 @@ html.dark .ft-num {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--s-3);
-  padding: var(--s-10) 0 0;
-  font-family: var(--font-ui);
-  font-size: var(--t-14);
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--fog-ink);
+  padding: var(--s-10) 0 var(--s-16);
 }
-html.dark .case-stack { color: var(--fg3); }
 .case-stack .live {
   color: var(--fg1);
-  font-weight: 500;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
-/* A literal live indicator — exactly what ember glow is specced for */
+/* Live: the block, blinking. */
 .case-stack .live::before {
   content: '';
-  width: 8px; height: 8px;
-  border-radius: var(--r-pill);
-  background: var(--ember-glow);
+  width: 0.55em;
+  height: 0.95em;
+  background: var(--signal);
   display: inline-block;
   flex: none;
-  animation: case-pulse 2s ease-in-out infinite;
+  animation: inst-blink 1.1s steps(1) infinite;
 }
-@keyframes case-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-/* Was --fg4 (stone): 1.3:1 on cream and 2.5:1 on velvet, so the dots
-   vanished and the line ran together. A middot may share the text colour. */
-.case-stack .sep { color: inherit; }
+.case-stack .sep { color: var(--fg4); }
 
 /* ============================================================
    PHONE — faithful to the real BenchBoss app (warm minimal, Inter,

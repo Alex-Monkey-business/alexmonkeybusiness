@@ -1,25 +1,164 @@
 ---
+/**
+ * CONTACT, AS AN INSTRUMENT. The page used to be "about" and carried a title
+ * and a paragraph; Alex cut both. What people come here for is a way in, so
+ * the page is the portrait and four channels — each a row, each a link — in
+ * the idiom `/lab/natt` set: black ground, mono, one signal.
+ *
+ * The portrait is the event. A cut-out on a black sweater against a black
+ * page, so the figure has no edge to speak of, and it RESOLVES rather than
+ * fades — from eight pixels across to sharp, the way the rows decode, with a
+ * scan line running down it as it does. Then it stands still and, every so
+ * often, a slice of it slips for a frame.
+ */
 import { t, type Lang } from '../../i18n';
+import { contact } from '../../data/contact';
+import '../../styles/instrument.css';
 import '../../styles/about.css';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const s = t(lang).about;
+const nb = lang === 'nb';
+
+const idle = nb ? 'PORTRETT · 1024 × 1024' : 'PORTRAIT · 1024 × 1024';
+const busy = nb ? 'PORTRETT · LØSER OPP' : 'PORTRAIT · RESOLVING';
+
+const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), label: s.channels[c.key] }));
 ---
 
-<section class="about">
+<section class="about inst" data-idle={idle} data-busy={busy}>
   <div class="about-grid">
     <figure class="about-portrait">
-      <img src="/assets/about/alex.png" alt="Alexander Samnøy" />
+      <div class="about-frame">
+        <img class="about-img" src="/assets/about/alex.png" alt="Alexander Samnøy" width="1024" height="1024" decoding="async" />
+        <canvas class="about-px" width="1024" height="1024" aria-hidden="true"></canvas>
+        <img class="about-slice" src="/assets/about/alex.png" alt="" aria-hidden="true" />
+        <img class="about-slice" src="/assets/about/alex.png" alt="" aria-hidden="true" />
+        <span class="about-scan" aria-hidden="true"></span>
+      </div>
+      <figcaption class="about-cap inst-label"><span class="about-state"></span><span class="inst-cur"></span></figcaption>
     </figure>
 
     <div class="about-copy">
-      <h1 class="about-title">
-        <span class="line" style="--i:1">{s.title}<em>.</em></span>
-      </h1>
-      <p class="about-body">
-        <span class="line" style="--i:2">{s.body}</span>
-      </p>
+      <p class="about-eyebrow inst-label"><span data-type>{s.eyebrow}</span></p>
+
+      {/* The channels. Index, label, address — one line each, the whole line
+          the link. The address decodes; the label is plain, so the eye has
+          something to hold while the rest lands. */}
+      <ul class="about-rows">
+        {rows.map((r) => (
+          <li class="about-row" style={`--i:${r.n}`}>
+            <a
+              href={r.href}
+              target={r.external ? '_blank' : undefined}
+              rel={r.external ? 'noopener noreferrer' : undefined}
+            >
+              <span class="inst-idx">{r.n}</span>
+              <span class="about-label inst-display">{r.label}</span>
+              <span class="about-value inst-display" data-decode>{r.value}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   </div>
 </section>
+
+<script>
+  import { decode, typeSelf, scramble, still } from '../../scripts/decode';
+
+  const root = document.querySelector<HTMLElement>('.about');
+  if (root) {
+    /* Text: the name types; the addresses decode, a row at a time. */
+    const eyebrow = root.querySelector<HTMLElement>('.about-eyebrow [data-type]');
+    if (eyebrow) typeSelf(eyebrow, { delay: 300, speed: 16 });
+    root.querySelectorAll<HTMLElement>('.about-value').forEach((el, i) => {
+      decode(el, { delay: 700 + i * 260, perChar: 26 });
+    });
+
+    /* Pointing at a row flickers its address once before it settles. */
+    root.querySelectorAll<HTMLElement>('.about-row a').forEach((a) => {
+      a.addEventListener('pointerenter', () => {
+        if (still()) return;
+        a.querySelectorAll<HTMLElement>('.about-value .chi').forEach((c, i) => scramble(c, 80 + i * 10, 30));
+      });
+    });
+
+    /**
+     * THE PORTRAIT RESOLVES. A canvas over the photograph draws it at 8 px
+     * across, then 12, 18, 28, 44, 72, 120, 200 — nearest-neighbour, so the
+     * steps are honest squares — and then gets out of the way. Same idea as
+     * the letters: the picture is information arriving.
+     */
+    const img = root.querySelector<HTMLImageElement>('.about-img');
+    const px = root.querySelector<HTMLCanvasElement>('.about-px');
+    const scan = root.querySelector<HTMLElement>('.about-scan');
+    const state = root.querySelector<HTMLElement>('.about-state');
+    const frame = root.querySelector<HTMLElement>('.about-frame');
+    const g = px?.getContext('2d');
+    const STEPS = [8, 12, 18, 28, 44, 72, 120, 200];
+
+    const say = (s: string) => { if (state) state.textContent = s; };
+
+    const resolve = (from = 0, stepMs = 115) =>
+      new Promise<void>((done) => {
+        if (!img || !px || !g || still()) { px?.classList.add('gone'); say(root.dataset.idle ?? ''); done(); return; }
+        px.classList.remove('gone');
+        say(root.dataset.busy ?? '');
+        scan?.classList.remove('go');
+        void scan?.offsetWidth;
+        scan?.classList.add('go');
+        let i = from;
+        const off = document.createElement('canvas');
+        const og = off.getContext('2d')!;
+        const step = () => {
+          const n = STEPS[i];
+          off.width = n; off.height = n;
+          og.clearRect(0, 0, n, n);
+          og.drawImage(img, 0, 0, n, n);
+          g.imageSmoothingEnabled = false;
+          g.clearRect(0, 0, px.width, px.height);
+          g.drawImage(off, 0, 0, n, n, 0, 0, px.width, px.height);
+          i++;
+          if (i < STEPS.length) setTimeout(step, stepMs);
+          else setTimeout(() => { px.classList.add('gone'); say(root.dataset.idle ?? ''); done(); }, stepMs);
+        };
+        step();
+      });
+
+    const start = () => setTimeout(() => resolve(), 200);
+    if (img?.complete) start(); else img?.addEventListener('load', start, { once: true });
+
+    /* Pointing at it re-samples it, fast, from a coarser step. */
+    let busy = false;
+    frame?.addEventListener('pointerenter', async () => {
+      if (busy || still()) return;
+      busy = true;
+      await resolve(2, 60);
+      busy = false;
+    });
+
+    /**
+     * THE SLIP. Every six to eleven seconds, for one or two frames, two thin
+     * horizontal bands of the picture sit a few pixels to the side. It is the
+     * only motion on the page once everything has landed, and it is small
+     * enough to be doubted.
+     */
+    const slices = Array.from(root.querySelectorAll<HTMLElement>('.about-slice'));
+    const slip = () => {
+      if (still()) return;
+      for (const s of slices) {
+        const y = 15 + Math.random() * 70;
+        const h = 2 + Math.random() * 5;
+        const dx = (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 10);
+        s.style.clipPath = `inset(${y}% 0 ${100 - y - h}% 0)`;
+        s.style.transform = `translateX(${dx}px)`;
+        s.style.opacity = '1';
+      }
+      setTimeout(() => { for (const s of slices) s.style.opacity = '0'; }, 90 + Math.random() * 80);
+      setTimeout(slip, 6000 + Math.random() * 5000);
+    };
+    setTimeout(slip, 5000);
+  }
+</script>
