@@ -58,8 +58,6 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
 
     <div class="about-copy">
       <p class="about-eyebrow inst-label"><span data-type>{s.eyebrow}</span></p>
-      {/* The ask. Decodes in after the name, and carries the page's one cursor. */}
-      <p class="about-tagline inst-display"><span data-decode>{s.tagline}</span></p>
 
       {/* The channels. Index, label, address — one line each, the whole line
           the link. The address decodes; the label is plain, so the eye has
@@ -91,10 +89,8 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
     /* Text: the name types; the addresses decode, a row at a time. */
     const eyebrow = root.querySelector<HTMLElement>('.about-eyebrow [data-type]');
     if (eyebrow) typeSelf(eyebrow, { delay: 300, speed: 16 });
-    const tagline = root.querySelector<HTMLElement>('.about-tagline [data-decode]');
-    if (tagline) decode(tagline, { delay: 600, perChar: 16 });
     root.querySelectorAll<HTMLElement>('.about-value').forEach((el, i) => {
-      decode(el, { delay: 1300 + i * 260, perChar: 26 });
+      decode(el, { delay: 700 + i * 260, perChar: 26 });
     });
 
     /* Pointing at a row flickers its address once before it settles. */
