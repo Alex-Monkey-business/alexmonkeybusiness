@@ -34,19 +34,20 @@ const credit = nb ? { photo: 'Foto', edited: 'bearbeidet' } : { photo: 'Photo', 
 const SOURCE = 'https://commons.wikimedia.org/wiki/File:Alps_of_Switzerland_Matterhorn_(23979169808).jpg';
 const LICENCE = 'https://creativecommons.org/licenses/by/2.0/';
 
-/* The readout. Idle: the mountain, once, and it stays. Pointing at a name: its
-   ridge, its side, the year it was first climbed — Whymper's party on the
-   Hörnli in 1865, Mummery on the Zmutt in 1879. All true, none of it
-   decorative. (A cycle through snow and sand was tried and cut — a line that
-   keeps changing on its own is a ticker, and this is not a ticker.) */
+/* The readout. Idle: Costanza, in both languages — the quote is the quote.
+   Pointing at a name: its ridge, its side, the year it was first climbed —
+   Whymper's party on the Hörnli in 1865, Mummery on the Zmutt in 1879. (The
+   mountain's coordinates sat here first, then a cycle through snow and sand;
+   Alex cut both. A line that keeps changing on its own is a ticker.) */
+const QUOTE = '«IT\'S NOT A LIE IF YOU BELIEVE IT.» — GEORGE COSTANZA';
 const readout = nb
   ? {
-      idle: 'MATTERHORN · 4478 M · 45.9766° N · 7.6585° E',
+      idle: QUOTE,
       hornligrat: 'HÖRNLIGRAT · NORDØSTRYGGEN · 1865',
       zmuttgrat: 'ZMUTTGRAT · NORDVESTRYGGEN · 1879',
     }
   : {
-      idle: 'MATTERHORN · 4478 M · 45.9766° N · 7.6585° E',
+      idle: QUOTE,
       hornligrat: 'HÖRNLIGRAT · NORTH-EAST RIDGE · 1865',
       zmuttgrat: 'ZMUTTGRAT · NORTH-WEST RIDGE · 1879',
     };
