@@ -34,27 +34,19 @@ const credit = nb ? { photo: 'Foto', edited: 'bearbeidet' } : { photo: 'Photo', 
 const SOURCE = 'https://commons.wikimedia.org/wiki/File:Alps_of_Switzerland_Matterhorn_(23979169808).jpg';
 const LICENCE = 'https://creativecommons.org/licenses/by/2.0/';
 
-/* The readout. Idle, it cycles: the mountain; then the snow on it, read the way
-   a freerider reads a face; then, once, sand — the other surface Alex plays on,
-   and the net is 2.43 m. Pointing at a name: its ridge, its side, the year it
-   was first climbed — Whymper's party on the Hörnli in 1865, Mummery on the
-   Zmutt in 1879. All true, none of it decorative. */
+/* The readout. Idle: the mountain, once, and it stays. Pointing at a name: its
+   ridge, its side, the year it was first climbed — Whymper's party on the
+   Hörnli in 1865, Mummery on the Zmutt in 1879. All true, none of it
+   decorative. (A cycle through snow and sand was tried and cut — a line that
+   keeps changing on its own is a ticker, and this is not a ticker.) */
 const readout = nb
   ? {
-      idle: [
-        'MATTERHORN · 4478 M · 45.9766° N · 7.6585° E',
-        'HELNING 38° · NORDVENDT · 40 CM PUDDER',
-        'SAND · 28 °C · 2 M/S PÅLANDS · NETT 2.43 M',
-      ],
+      idle: 'MATTERHORN · 4478 M · 45.9766° N · 7.6585° E',
       hornligrat: 'HÖRNLIGRAT · NORDØSTRYGGEN · 1865',
       zmuttgrat: 'ZMUTTGRAT · NORDVESTRYGGEN · 1879',
     }
   : {
-      idle: [
-        'MATTERHORN · 4478 M · 45.9766° N · 7.6585° E',
-        'SLOPE 38° · NORTH FACING · 40 CM POWDER',
-        'SAND · 28 °C · 2 M/S ONSHORE · NET 2.43 M',
-      ],
+      idle: 'MATTERHORN · 4478 M · 45.9766° N · 7.6585° E',
       hornligrat: 'HÖRNLIGRAT · NORTH-EAST RIDGE · 1865',
       zmuttgrat: 'ZMUTTGRAT · NORTH-WEST RIDGE · 1879',
     };
@@ -291,8 +283,8 @@ const readout = nb
   if (root && menu) {
     const GLYPHS = '0123456789ABCDEFXZ<>/\\|[]{}=+*#_—·';
     const rnd = () => GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
-    const texts = JSON.parse(root.dataset.readout || '{}') as { idle: string[] } & Record<string, string | string[]>;
-    const seg = (k: string) => (typeof texts[k] === 'string' ? (texts[k] as string) : '');
+    const texts = JSON.parse(root.dataset.readout || '{}') as Record<string, string>;
+    const seg = (k: string) => texts[k] ?? '';
 
     /* Remember every character's real value once; the decode writes over it. */
     for (const el of menu.querySelectorAll<HTMLElement>('.chi')) {
@@ -377,17 +369,11 @@ const readout = nb
       erase();
     };
 
-    /* The idle cycle: one line every seven seconds, paused while a name is
-       pointed at, resumed from the top when the pointer leaves. */
-    let idleAt = 0;
-    let cycle = 0;
+    /* Idle: the mountain. Typed once, retyped when the pointer leaves a name. */
     let pointing = false;
     const idle = () => {
-      window.clearTimeout(cycle);
       if (pointing) return;
-      type(texts.idle[idleAt % texts.idle.length], 12);
-      idleAt++;
-      if (!still) cycle = window.setTimeout(idle, 7000);
+      type(texts.idle ?? '', 12);
     };
 
     let first = true;
@@ -424,7 +410,7 @@ const readout = nb
       over = row;
       flicker(row);
       const s = seg(row.dataset.seg ?? '');
-      if (s) { pointing = true; window.clearTimeout(cycle); type(s, 12); }
+      if (s) { pointing = true; type(s, 12); }
     });
     const back = (e: Event) => {
       const to = (e as PointerEvent).relatedTarget as HTMLElement | null;
@@ -432,7 +418,6 @@ const readout = nb
       over = null;
       if (!pointing) return;
       pointing = false;
-      idleAt = 0;
       idle();
     };
     menu.addEventListener('pointerout', back);
@@ -440,8 +425,8 @@ const readout = nb
     menu.addEventListener('focusin', (e) => {
       const row = (e.target as HTMLElement).closest<HTMLElement>('.row');
       const s = seg(row?.dataset.seg ?? '');
-      if (s) { pointing = true; window.clearTimeout(cycle); type(s, 12); }
+      if (s) { pointing = true; type(s, 12); }
     });
-    menu.addEventListener('focusout', () => { if (pointing) { pointing = false; idleAt = 0; idle(); } });
+    menu.addEventListener('focusout', () => { if (pointing) { pointing = false; idle(); } });
   }
 </script>
