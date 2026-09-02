@@ -41,41 +41,11 @@ html:has(.inst) { --lavender: #d6a4ff; --lavender-d: #c98bff; }
    carries the other language as a row, so the pill is a second way to say it. */
 html:has(.inst) .lang-hint { display: none; }
 
-/* ---- Footer, in the same voice ------------------------------------------ */
-/* Wispr's footer is a rounded chamber lifted off the canvas. Here it is the
-   bottom of a black page: flat, a hairline, the same type as everything. */
-html:has(.inst) .site-footer,
-html:has(.inst) .site-footer .band {
-  background: #000;
-  border-radius: 0;
-  box-shadow: none;
-}
-html:has(.inst) .site-footer { border-top: 1px solid #2a2a28; }
-html:has(.inst) .footer-word {
-  font-family: var(--font-inst);
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1.5;
-  letter-spacing: 0.06em;
-  text-transform: lowercase;
-  color: #ffffeb;
-}
-html:has(.inst) .footer-word em { font-style: normal; color: #d6a4ff; }
-html:has(.inst) .footer-links a,
-html:has(.inst) .footer-meta {
-  font-family: var(--font-inst);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #93938a;
-}
-html:has(.inst) .footer-links a:hover { color: #ffffeb; }
-/* On a phone the footer was a screen of its own under two lines of content.
-   The contact page already IS the footer's links; the case ends on its stack
-   line. So below 820px it goes. */
-@media (max-width: 820px) {
-  html:has(.inst) .site-footer { display: none; }
-}
+/* ---- No footer ------------------------------------------------------------ */
+/* The instrument pages end where their content ends. The footer's links are
+   the contact page; its name is the mark in the nav. Nothing left to put at
+   the bottom. */
+html:has(.inst) .site-footer { display: none; }
 
 /* ---- Shared type ---------------------------------------------------------- */
 
