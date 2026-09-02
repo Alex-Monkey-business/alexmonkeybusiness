@@ -1,30 +1,31 @@
 ---
 /**
- * THE PLATE — the photograph exposed the way Alex's reference is exposed, on a
- * ground that is always black.
+ * THE PLATE — a photograph in the exposure of Alex's reference, on a ground
+ * that is always black. `Strek` with the photograph inside the shape instead of
+ * flat ink.
  *
- * This is `Strek` with a photograph inside the shape instead of flat ink, and
- * it is the reference he liked, reached from our own material. What took a
- * detour to understand:
+ * THE SOURCE IS THE WHOLE DIFFERENCE. The reference (Stéphane Godin, Matterhorn
+ * from the south) is not a grade: its black is SHADOW, from a low sun to one
+ * side, and its edge is a sharp still. Our video frame was the opposite on
+ * every count — overcast, flat, 720p upscaled, Laplacian variance 67 against
+ * the reference's 2205 — and no curve manufactures a shadow side that was not
+ * lit into the picture. The first plate, cut from that frame with the sky
+ * filled in, was the honest result and it looked like it: soft, grey, rimmed.
  *
- * THE BLACK SKY IN THAT REFERENCE IS A CAPTURE, NOT A TREATMENT. Measured on
- * our source: the sky is red 197 with a blue/red ratio of 1.05 — neutral haze,
- * where a deep alpine sky runs 1.4–1.8 and would go near-black under the red
- * filter this look is usually built with. And its luminance is ~205 against the
- * snow's 126. The sky is the BRIGHTEST thing in the frame, so no curve inverts
- * it: crush the sky and the mountain goes with it.
+ * This one is cut from a still by kuhnmi (Wikimedia Commons, CC BY 2.0): same
+ * north-east side, afternoon sun from the left, the east face in its own
+ * shadow, sky at luminance 68. A black point of 70 puts the sky at zero on its
+ * own, so the plate needs no silhouette mask in CSS and there is no rim to
+ * hide. Variance 11 790. See `tools/make-plate.mjs` for the grade and
+ * `tools/trace-still.mjs` for the ridges.
  *
- * THE MASK HAD ALREADY SOLVED IT. Cutting the photograph to the silhouette
- * removes the sky entirely, so inside the shape there is no bright sky left to
- * fight, and the contrast can be set on the mountain's own range — rock at 67,
- * snow at 126 — instead of on the whole frame. Black point 42, white point 185.
- * That single change is the whole difference from `Skyline`.
+ * THE SKY IS BAKED TO EXACTLY #000 anyway — the haze low on the left lifts it
+ * to 12 after the crush, and 12 on 0 is a visible rectangle. The tracer's
+ * full-width edge (`matterhorn-still-sky.svg`) cuts it, and takes two lift
+ * pylons on the slope with it.
  *
- * A STILL, NOT THE CLIP. The reference is a photograph and behaves like one;
- * the plate is also a treatment CSS cannot do (the local contrast is an unsharp
- * mask at slope scale), so it has to be baked. 115 kB against the clip's 5.3 MB,
- * no loop to cut, and the motion is the slow push — which a still carries.
- * See `tools/make-plate.mjs`.
+ * A STILL, NOT THE CLIP: 2400 px wide, 0.5 MB, no loop to cut; the motion is
+ * the slow push, which a still carries.
  *
  * ALWAYS VELVET, IN BOTH THEMES. The whole idea is type in the photograph's own
  * black, and on cream there is no black to put it in. So this surface declares
@@ -32,12 +33,15 @@
  * is the one surface in the set that does not flip, and that is a real cost:
  * the toggle still works everywhere else, and here it does nothing.
  */
-import { viewBox, line, segs, peak, vbw, vbh, traceX0 } from '../lib/skyline';
+import { still } from '../lib/skyline';
+
+/* The still's own trace — not the video's. See the note in `skyline.ts`. */
+const { viewBox, line, segs, peak, vbw, vbh } = still;
 ---
 
-<div class="sky" style={`--ar: ${vbw} / ${vbh}; --peak-x: ${(peak.x * 100).toFixed(2)}%; --peak-y: ${(peak.y * 100).toFixed(2)}%; --trace-x0: ${(traceX0 * 100).toFixed(2)}%;`}>
+<div class="sky" style={`--ar: ${vbw} / ${vbh}; --peak-x: ${(peak.x * 100).toFixed(2)}%; --peak-y: ${(peak.y * 100).toFixed(2)}%;`}>
   <div class="sky-push">
-    <img class="sky-plate" src="/hero/matterhorn-plate.webp" alt="" width={1600} height={900} decoding="async" />
+    <img class="sky-plate" src="/hero/matterhorn-still.webp" alt="" width={2400} height={1350} decoding="async" />
 
     <svg class="sky-line" viewBox={viewBox} preserveAspectRatio="none" fill="none" aria-hidden="true">
       {segs.map((s) => (
@@ -64,7 +68,7 @@ import { viewBox, line, segs, peak, vbw, vbh, traceX0 } from '../lib/skyline';
   }
 
   /* Frame and push are `Skyline.astro`'s — see the framing note there. The zoom
-     runs further and slower than the clip's because a 1600-wide still has more
+     runs further and slower than the clip's because a 2400-wide still has more
      to give than a 1280 video frame did. */
   .sky-push {
     --fw: max(100cqw, calc(100cqh * var(--ar)));
@@ -120,26 +124,12 @@ import { viewBox, line, segs, peak, vbw, vbh, traceX0 } from '../lib/skyline';
       clip-path 2600ms var(--ease-draw);
 
     /**
-     * NO SILHOUETTE MASK HERE — the plate is already cut, and its sky is
-     * already the page colour. That is deliberate and it is the whole reason
-     * this surface works: masking a crushed plate in CSS shows a bright rim,
-     * because the sky is luminance ~205 and a white point of 185 maps it to
-     * pure white, so every pixel the mask keeps goes maximum white. Eroding
-     * cannot clear it — the trace carries up to 9 units of error on the
-     * Zmuttgrat — and feathering only softens it. Baking the fill makes the
-     * trace's accuracy irrelevant instead of exposed.
-     *
-     * The one mask that stays: the trace stops where the ridge enters cloud and
-     * the silhouette leaves the frame on a guessed slope, and the photograph
-     * inside that stretch is bright cloud. Fade it out rather than show it.
+     * NO MASK AT ALL. The sky in the file is #000 up to the traced edge, and
+     * the page behind it is #000, so the plate has no rectangle to hide and no
+     * cutout to fade. The earlier plate needed a fade on the left, where the
+     * ridge ran into cloud and the trace had to guess; this one is measured
+     * edge to edge.
      */
-    --mask: linear-gradient(90deg, transparent calc(var(--trace-x0) - 2%), #000 calc(var(--trace-x0) + 14%));
-    -webkit-mask-image: var(--mask);
-    mask-image: var(--mask);
-    -webkit-mask-size: 100% 100%;
-    mask-size: 100% 100%;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
   }
   /* Full strength, unlike Skyline's 0.62. A plate graded to sit on black does
      not want to be faded into it — dimming it is just undoing the grade. */

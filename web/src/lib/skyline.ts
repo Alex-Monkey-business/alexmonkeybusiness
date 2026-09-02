@@ -6,15 +6,31 @@
  * this file is ever typed by hand. Two components draw it: `Skyline.astro`
  * cuts footage to it, `Strek.astro` draws it alone.
  */
-import raw from '../assets/terrain/matterhorn-sky.svg?raw';
+import rawVideo from '../assets/terrain/matterhorn-sky.svg?raw';
+import rawStill from '../assets/terrain/matterhorn-still.svg?raw';
 
+/**
+ * TWO TRACES, ONE GEOMETRY. The video surfaces (`Skyline`, `Strek`, and the
+ * ones cut from them) are registered to the clip and its trace; `Natt` is
+ * registered to the kuhnmi still and ITS trace, from `tools/trace-still.mjs`.
+ * They are different photographs of the same side of the mountain, so the
+ * summit sits in a different place and the ridges leave the frame at different
+ * heights — a surface that mixed them would draw the line off the rock.
+ *
+ * So the derivation is a function of the trace, run once per trace. Everything
+ * below the function is unchanged in what it computes; it just no longer
+ * assumes there is only one file.
+ */
+export type Skyline = ReturnType<typeof fromTrace>;
+
+export function fromTrace(raw: string) {
 const d = raw.match(/class="skyline" d="([^"]+)"/)?.[1] ?? '';
 /* Read from the file, never typed here: the tracer's `--width` decides it, and
    a viewBox that disagrees with the frame slides the line off the ridge. */
-export const viewBox = raw.match(/viewBox="([^"]+)"/)?.[1] ?? '0 0 1280 720';
+const viewBox = raw.match(/viewBox="([^"]+)"/)?.[1] ?? '0 0 1280 720';
 const [, , w, h] = viewBox.split(/\s+/).map(Number);
-export const vbw = w;
-export const vbh = h;
+const vbw = w;
+const vbh = h;
 
 const pts = d
   .slice(1)
@@ -50,7 +66,7 @@ for (let i = 1; i < pts.length; i++) if (pts[i][1] < pts[top][1]) top = i;
 const summit = cum[top] / total;
 
 /** Where the peak sits inside the frame, 0–1. The mobile framing hangs off it. */
-export const peak = { x: pts[top][0] / vbw, y: pts[top][1] / vbh };
+const peak = { x: pts[top][0] / vbw, y: pts[top][1] / vbh };
 
 /**
  * EVERY LINE GROWS OUT OF THE SUMMIT — the entrance and the hover both.
@@ -67,7 +83,7 @@ export const peak = { x: pts[top][0] / vbw, y: pts[top][1] / vbh };
  * Both start at `dashoffset: -summit`, which is the summit itself: at length 0
  * every line is a point on the peak, and the mountain unfolds from there.
  */
-export const segs = [
+const segs = [
   { key: 'zmuttgrat', len: summit, o0: -summit, o1: 0 },
   { key: 'hornligrat', len: 1 - summit, o0: -summit, o1: -summit },
 ];
@@ -99,7 +115,7 @@ const smooth = (q: [number, number][]) => {
 };
 
 /** The ridge itself: one open curve from the left edge of the trace to the right. */
-export const line = smooth(pts);
+const line = smooth(pts);
 
 /**
  * THE MOUNTAIN AS A CLOSED SHAPE — everything below the traced line.
@@ -134,9 +150,9 @@ const [x0, y0] = pts[0];
  */
 const base = pts[Math.min(Math.round(pts.length * 0.2), pts.length - 1)];
 const lead = Math.round(y0 - ((base[1] - y0) / (base[0] - x0)) * x0);
-export const silhouette =
+const silhouette =
   `M0 ${lead}L${x0} ${y0}` + line.slice(line.indexOf('C')) + `L${vbw} ${vbh}L0 ${vbh}Z`;
-export const traceX0 = x0 / vbw;
+const traceX0 = x0 / vbw;
 
 /**
  * The same shape as a mask image, for surfaces that cut a raster to it.
@@ -167,7 +183,7 @@ export const traceX0 = x0 / vbw;
  * different coordinate spaces, and the registration between them is the one
  * thing this file exists to protect.
  */
-export const silhouetteMask = (inset = 0, feather = 0) =>
+const silhouetteMask = (inset = 0, feather = 0) =>
   'url("data:image/svg+xml,' +
   encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vbw} ${vbh}" preserveAspectRatio="none">` +
@@ -178,4 +194,12 @@ export const silhouetteMask = (inset = 0, feather = 0) =>
   ).replace(/'/g, '%27') +
   '")';
 
-export const silUrl = silhouetteMask(0);
+const silUrl = silhouetteMask(0);
+
+  return { viewBox, vbw, vbh, peak, segs, line, silhouette, traceX0, silhouetteMask, silUrl };
+}
+
+/* The video trace keeps the bare names, so nothing that already imports them
+   moves. The still is its own object. */
+export const { viewBox, vbw, vbh, peak, segs, line, silhouette, traceX0, silhouetteMask, silUrl } = fromTrace(rawVideo);
+export const still = fromTrace(rawStill);

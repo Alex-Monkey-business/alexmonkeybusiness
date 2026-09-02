@@ -1,12 +1,13 @@
 ---
 /**
  * VARIANT 8 — NATT. `/lab/strek` with the photograph inside the shape instead
- * of flat ink, graded the way Alex's reference is graded, on a ground that is
- * always black.
+ * of flat ink, exposed the way Alex's reference is exposed, on a ground that is
+ * always black — #000, not the dark theme's #121211. The plate's sky is baked
+ * to zero and the page has to be the same zero, or the plate is a rectangle.
  *
  * Same copy, same menu, same ridges-as-menu as `/lab/skyline` and `/lab/strek`
- * — the only variable is still the mountain. See `Natt.astro` for why the black
- * sky could not be reached by processing and why the mask made that moot.
+ * — the only variable is still the mountain. See `Natt.astro` for why the
+ * source had to change before the grade could work.
  *
  * THE PALETTE IS DECLARED LOCALLY, NOT TOGGLED. Type in the photograph's own
  * black has nowhere to go on cream, so this surface is velvet in both themes.
@@ -14,25 +15,42 @@
  * still works everywhere else on the site, and on this page it does nothing.
  *
  * Written as token overrides rather than hardcoded colours, so the menu, the
- * signature and the ridge accent all follow without knowing about it — and the
- * values are `html.dark`'s own, straight out of tokens.css, not new ones.
+ * signature and the ridge accent all follow without knowing about it. The
+ * values are `html.dark`'s own, straight out of tokens.css — except the ground.
+ *
+ * THE PHOTOGRAPH IS CREDITED ON THE PAGE. CC BY 2.0 asks for the author, the
+ * licence and a note that the work was altered; the plate is a heavy grade of
+ * the original, so all three are there, running on from the signature — the
+ * one strip of this screen that is sky at every width. The corner opposite
+ * was tried and is rock.
  */
 import Layout from '../../layouts/Layout.astro';
 import OneScreen from '../../components/OneScreen.astro';
 import Natt from '../../components/Natt.astro';
+import { langFromUrl } from '../../i18n';
+
+const lang = langFromUrl(Astro.url);
+const credit = lang === 'nb' ? { photo: 'Foto', edited: 'bearbeidet' } : { photo: 'Photo', edited: 'edited' };
+const SOURCE = 'https://commons.wikimedia.org/wiki/File:Alps_of_Switzerland_Matterhorn_(23979169808).jpg';
+const LICENCE = 'https://creativecommons.org/licenses/by/2.0/';
 ---
 
 <Layout title="Variant — Natt">
   <div class="always-dark">
     <OneScreen>
       <Natt />
+      <span slot="credit" class="credit">
+        {credit.photo}: <a href={SOURCE} target="_blank" rel="noopener noreferrer">kuhnmi</a>
+        · <a href={LICENCE} target="_blank" rel="noopener noreferrer">CC BY 2.0</a>
+        · {credit.edited}
+      </span>
     </OneScreen>
   </div>
 </Layout>
 
 <style>
   .always-dark {
-    --bg: #121211;
+    --bg: #000;
     --fg1: #ffffeb;
     --fg2: #d8d8c6;
     --fg3: #93938a;
@@ -55,5 +73,28 @@ import Natt from '../../components/Natt.astro';
   /* The page's own ground, so the black behind the mountain is this surface's
      and not whatever theme the rest of the site is in. */
   :global(html:has(.always-dark)),
-  :global(body:has(.always-dark)) { background: #121211; }
+  :global(body:has(.always-dark)) { background: #000; }
+
+  /**
+   * THE SIGNATURE MOVES UP, under the names. On every other surface the
+   * bottom-left corner is paper or sky; on this one the photograph's own
+   * foreground — the snow pinnacle left of the Zmuttgrat — reaches it at desktop
+   * widths, and the summit's shoulder does at phone widths. The one place that
+   * is black at every size is the column the names already own, so the
+   * signature and the credit follow them there, one breath below.
+   */
+  .always-dark :global(.one-screen) {
+    grid-template-rows: auto auto;
+    align-content: start;
+  }
+  .always-dark :global(.sig) { margin-top: clamp(28px, 6vh, 64px); }
+
+  .credit a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid var(--fg4);
+    transition: border-color var(--dur-base) var(--ease-out);
+  }
+  .credit a:hover,
+  .credit a:focus-visible { border-color: var(--fg2); }
 </style>

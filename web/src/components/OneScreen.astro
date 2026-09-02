@@ -148,7 +148,13 @@ const levels = Object.entries(LEVELS).map(([name, rows]) => ({
     ))}
   </nav>
 
-  <p class="sig">Alex Monkey business.</p>
+  <p class="sig">
+    Alex Monkey business.
+    <!-- A surface that borrows a photograph puts its credit here, after the
+         signature: it is the one strip of the screen that is reliably sky at
+         every width. Empty on the surfaces that draw their own. -->
+    <slot name="credit" />
+  </p>
 </div>
 
 <style>
@@ -298,6 +304,16 @@ const levels = Object.entries(LEVELS).map(([name, rows]) => ({
     color: var(--fg2);
   }
   :global(html.dark) .sig { color: var(--fg3); }
+
+  /* The credit runs on from the signature, one step quieter — it is owed, not
+     said. Its own line on a phone, where the two together would wrap on rock. */
+  .one-screen :global(.credit) {
+    margin-left: 0.6em;
+    color: var(--fg4);
+  }
+  @media (orientation: portrait) and (max-width: 820px) {
+    .one-screen :global(.credit) { display: block; margin: 0.35em 0 0; }
+  }
 
   /* Portrait puts the mountain in the lower half and the names in the sky
      above it — see the framing block in Skyline.astro, which is what makes
