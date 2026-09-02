@@ -34,20 +34,20 @@ const credit = nb ? { photo: 'Foto', edited: 'bearbeidet' } : { photo: 'Photo', 
 const SOURCE = 'https://commons.wikimedia.org/wiki/File:Alps_of_Switzerland_Matterhorn_(23979169808).jpg';
 const LICENCE = 'https://creativecommons.org/licenses/by/2.0/';
 
-/* The readout. Idle: Costanza, in both languages — the quote is the quote.
+/* The readout. Idle: nothing — the block cursor alone, a terminal waiting.
    Pointing at a name: its ridge, its side, the year it was first climbed —
    Whymper's party on the Hörnli in 1865, Mummery on the Zmutt in 1879. (The
-   mountain's coordinates sat here first, then a cycle through snow and sand;
-   Alex cut both. A line that keeps changing on its own is a ticker.) */
-const QUOTE = '«IT\'S NOT A LIE IF YOU BELIEVE IT.» — GEORGE COSTANZA';
+   mountain's coordinates sat here first, then a cycle through snow and sand,
+   then Costanza; Alex cut them all, and chose the empty prompt over live
+   weather from the summit. Someone else's line is someone else's voice.) */
 const readout = nb
   ? {
-      idle: QUOTE,
+      idle: '',
       hornligrat: 'HÖRNLIGRAT · NORDØSTRYGGEN · 1865',
       zmuttgrat: 'ZMUTTGRAT · NORDVESTRYGGEN · 1879',
     }
   : {
-      idle: QUOTE,
+      idle: '',
       hornligrat: 'HÖRNLIGRAT · NORTH-EAST RIDGE · 1865',
       zmuttgrat: 'ZMUTTGRAT · NORTH-WEST RIDGE · 1879',
     };
