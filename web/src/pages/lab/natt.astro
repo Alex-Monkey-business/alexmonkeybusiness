@@ -1,0 +1,59 @@
+---
+/**
+ * VARIANT 8 — NATT. `/lab/strek` with the photograph inside the shape instead
+ * of flat ink, graded the way Alex's reference is graded, on a ground that is
+ * always black.
+ *
+ * Same copy, same menu, same ridges-as-menu as `/lab/skyline` and `/lab/strek`
+ * — the only variable is still the mountain. See `Natt.astro` for why the black
+ * sky could not be reached by processing and why the mask made that moot.
+ *
+ * THE PALETTE IS DECLARED LOCALLY, NOT TOGGLED. Type in the photograph's own
+ * black has nowhere to go on cream, so this surface is velvet in both themes.
+ * That is a real cost and it is stated rather than hidden: the theme toggle
+ * still works everywhere else on the site, and on this page it does nothing.
+ *
+ * Written as token overrides rather than hardcoded colours, so the menu, the
+ * signature and the ridge accent all follow without knowing about it — and the
+ * values are `html.dark`'s own, straight out of tokens.css, not new ones.
+ */
+import Layout from '../../layouts/Layout.astro';
+import OneScreen from '../../components/OneScreen.astro';
+import Natt from '../../components/Natt.astro';
+---
+
+<Layout title="Variant — Natt">
+  <div class="always-dark">
+    <OneScreen>
+      <Natt />
+    </OneScreen>
+  </div>
+</Layout>
+
+<style>
+  .always-dark {
+    --bg: #121211;
+    --fg1: #ffffeb;
+    --fg2: #d8d8c6;
+    --fg3: #93938a;
+    --fg4: #55554e;
+    --border-hair: #3a3a38;
+    /* `--hot` is lavender in dark and forest in light; this surface is always
+       dark, so it is always lavender. */
+    --hot: var(--lavender);
+
+    /**
+     * AND THE INHERIT CHAIN HAS TO START HERE. Redefining the tokens is not
+     * enough on its own: the menu rows are `color: inherit`, and in light theme
+     * they were inheriting a computed ink colour set on an ancestor ABOVE this
+     * element — measured as rgb(26,26,26) on a black ground, which is invisible
+     * rather than subtle. A token override only reaches declarations that
+     * RESOLVE inside it, never a colour already computed outside it.
+     */
+    color: var(--fg1);
+  }
+  /* The page's own ground, so the black behind the mountain is this surface's
+     and not whatever theme the rest of the site is in. */
+  :global(html:has(.always-dark)),
+  :global(body:has(.always-dark)) { background: #121211; }
+</style>

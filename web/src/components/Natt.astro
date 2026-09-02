@@ -1,0 +1,285 @@
+---
+/**
+ * THE PLATE — the photograph exposed the way Alex's reference is exposed, on a
+ * ground that is always black.
+ *
+ * This is `Strek` with a photograph inside the shape instead of flat ink, and
+ * it is the reference he liked, reached from our own material. What took a
+ * detour to understand:
+ *
+ * THE BLACK SKY IN THAT REFERENCE IS A CAPTURE, NOT A TREATMENT. Measured on
+ * our source: the sky is red 197 with a blue/red ratio of 1.05 — neutral haze,
+ * where a deep alpine sky runs 1.4–1.8 and would go near-black under the red
+ * filter this look is usually built with. And its luminance is ~205 against the
+ * snow's 126. The sky is the BRIGHTEST thing in the frame, so no curve inverts
+ * it: crush the sky and the mountain goes with it.
+ *
+ * THE MASK HAD ALREADY SOLVED IT. Cutting the photograph to the silhouette
+ * removes the sky entirely, so inside the shape there is no bright sky left to
+ * fight, and the contrast can be set on the mountain's own range — rock at 67,
+ * snow at 126 — instead of on the whole frame. Black point 42, white point 185.
+ * That single change is the whole difference from `Skyline`.
+ *
+ * A STILL, NOT THE CLIP. The reference is a photograph and behaves like one;
+ * the plate is also a treatment CSS cannot do (the local contrast is an unsharp
+ * mask at slope scale), so it has to be baked. 115 kB against the clip's 5.3 MB,
+ * no loop to cut, and the motion is the slow push — which a still carries.
+ * See `tools/make-plate.mjs`.
+ *
+ * ALWAYS VELVET, IN BOTH THEMES. The whole idea is type in the photograph's own
+ * black, and on cream there is no black to put it in. So this surface declares
+ * the dark palette locally rather than following the toggle — see the page. It
+ * is the one surface in the set that does not flip, and that is a real cost:
+ * the toggle still works everywhere else, and here it does nothing.
+ */
+import { viewBox, line, segs, peak, vbw, vbh, traceX0 } from '../lib/skyline';
+---
+
+<div class="sky" style={`--ar: ${vbw} / ${vbh}; --peak-x: ${(peak.x * 100).toFixed(2)}%; --peak-y: ${(peak.y * 100).toFixed(2)}%; --trace-x0: ${(traceX0 * 100).toFixed(2)}%;`}>
+  <div class="sky-push">
+    <img class="sky-plate" src="/hero/matterhorn-plate.webp" alt="" width={1600} height={900} decoding="async" />
+
+    <svg class="sky-line" viewBox={viewBox} preserveAspectRatio="none" fill="none" aria-hidden="true">
+      {segs.map((s) => (
+        <Fragment>
+          <path class="draw" data-seg={s.key} pathLength="1" d={line} style={`--len: ${s.len}; --o0: ${s.o0}; --o1: ${s.o1};`} />
+          <path class="seg" data-seg={s.key} pathLength="1" d={line} style={`--len: ${s.len}; --o0: ${s.o0}; --o1: ${s.o1};`} />
+        </Fragment>
+      ))}
+    </svg>
+  </div>
+</div>
+
+<style>
+  .sky {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    container-type: size;
+    --draw: 2600ms;
+    --ease-draw: cubic-bezier(0.45, 0, 0.15, 1);
+    --ease-climb: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Frame and push are `Skyline.astro`'s — see the framing note there. The zoom
+     runs further and slower than the clip's because a 1600-wide still has more
+     to give than a 1280 video frame did. */
+  .sky-push {
+    --fw: max(100cqw, calc(100cqh * var(--ar)));
+    --fx: 50%;
+    --fy: var(--peak-y);
+    --ax: 50%;
+    --ay: max(116px, 11%);
+    --zoom: 1.16;
+    --px: 58%;
+    --py: 38%;
+
+    position: absolute;
+    left: var(--ax);
+    top: var(--ay);
+    width: var(--fw);
+    aspect-ratio: var(--ar);
+    translate: calc(-1 * var(--fx)) calc(-1 * var(--fy));
+    transform-origin: var(--px) var(--py);
+  }
+  :global(html.js) .sky.go .sky-push {
+    animation: push 55s var(--ease-out) forwards;
+  }
+  @keyframes push {
+    from { transform: scale(1); }
+    to   { transform: scale(var(--zoom)); }
+  }
+
+  .sky-plate,
+  .sky-line {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /**
+   * `fill`, not `cover`: the box already carries the viewBox's aspect, so the
+   * image and the svg are the same uniform map, and a rounding hair in the box
+   * moves both by the same amount instead of drifting them apart.
+   *
+   * NO FILTER HERE. The plate is baked, and re-grading it in CSS would double
+   * the contrast curve. The only reason this surface exists is that the grade
+   * is right in the file.
+   */
+  .sky-plate {
+    object-fit: fill;
+    opacity: 0;
+    /* The photograph comes out of the summit, inside the drawing — the circle
+       starts where the two ridges start and stays behind them. */
+    clip-path: circle(0% at var(--peak-x) var(--peak-y));
+    transition:
+      opacity 1600ms var(--ease-out),
+      clip-path 2600ms var(--ease-draw);
+
+    /**
+     * NO SILHOUETTE MASK HERE — the plate is already cut, and its sky is
+     * already the page colour. That is deliberate and it is the whole reason
+     * this surface works: masking a crushed plate in CSS shows a bright rim,
+     * because the sky is luminance ~205 and a white point of 185 maps it to
+     * pure white, so every pixel the mask keeps goes maximum white. Eroding
+     * cannot clear it — the trace carries up to 9 units of error on the
+     * Zmuttgrat — and feathering only softens it. Baking the fill makes the
+     * trace's accuracy irrelevant instead of exposed.
+     *
+     * The one mask that stays: the trace stops where the ridge enters cloud and
+     * the silhouette leaves the frame on a guessed slope, and the photograph
+     * inside that stretch is bright cloud. Fade it out rather than show it.
+     */
+    --mask: linear-gradient(90deg, transparent calc(var(--trace-x0) - 2%), #000 calc(var(--trace-x0) + 14%));
+    -webkit-mask-image: var(--mask);
+    mask-image: var(--mask);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+  /* Full strength, unlike Skyline's 0.62. A plate graded to sit on black does
+     not want to be faded into it — dimming it is just undoing the grade. */
+  .sky.lit .sky-plate {
+    opacity: 1;
+    clip-path: circle(150% at var(--peak-x) var(--peak-y));
+  }
+
+  .draw,
+  .seg {
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  /**
+   * The drawn line is quieter here than on `Strek` and quieter than on
+   * `Skyline`: the plate's own edge is now a hard bright-against-black step, so
+   * the line has almost nothing left to do. It stays because the ridges are the
+   * menu and there has to be something to notice before anyone points — but at
+   * 0.9 it would read as an outline drawn around a photograph, which is the one
+   * thing this surface must not look like.
+   */
+  .draw {
+    stroke: var(--fg1);
+    stroke-width: 1.4;
+    stroke-dasharray: var(--len) 1;
+    stroke-dashoffset: var(--o1);
+    opacity: 0.22;
+    transition: opacity 1200ms var(--ease-out);
+  }
+  :global(html.js) .draw {
+    stroke-dasharray: 0 1;
+    stroke-dashoffset: var(--o0);
+    opacity: 0;
+  }
+  :global(html.js) .sky.go .draw {
+    animation: climb var(--draw) var(--ease-draw) 120ms forwards;
+    opacity: 0.8;
+    transition-duration: 500ms;
+  }
+  /* Worst case first, then the hover dim, then the ridge exempt from it — they
+     all land on the same specificity, so the last one wins. */
+  :global(html.js) .sky.settled .draw {
+    opacity: 0.22;
+    transition-duration: 1400ms;
+  }
+  :global(html.js) .sky.shift .draw {
+    opacity: 0.5;
+    transition-duration: 260ms;
+  }
+  .sky:has(.seg.hot) .draw {
+    opacity: 0.06;
+    transition-duration: var(--dur-base);
+  }
+  .sky .draw.under {
+    opacity: 0.24;
+    transition-duration: var(--dur-base);
+  }
+
+  @keyframes climb {
+    to {
+      stroke-dasharray: var(--len) 1;
+      stroke-dashoffset: var(--o1);
+    }
+  }
+
+  /* Lavender on a monochrome plate is the only colour on the screen, which is
+     exactly what a single accent is for. */
+  .seg {
+    stroke: var(--lavender);
+    stroke-width: 2.6;
+    stroke-dasharray: 0 1;
+    stroke-dashoffset: var(--o0);
+    opacity: 0;
+    transition:
+      stroke-dasharray 560ms var(--ease-in),
+      stroke-dashoffset 560ms var(--ease-in),
+      opacity 260ms linear 300ms;
+  }
+  .sky .seg.hot {
+    stroke-dasharray: var(--len) 1;
+    stroke-dashoffset: var(--o1);
+    opacity: 1;
+    transition:
+      stroke-dasharray 760ms var(--ease-climb),
+      stroke-dashoffset 760ms var(--ease-climb),
+      opacity 120ms linear;
+  }
+
+  /* Portrait pins the frame by its peak so the mountain sits in the lower half
+     and the top half is black for the type. See the note in `Skyline.astro`. */
+  @media (orientation: portrait) and (max-width: 820px) {
+    .sky-push {
+      --fw: max(190cqw, calc(48cqh * var(--ar)));
+      --fx: var(--peak-x);
+      --fy: var(--peak-y);
+      --ax: 50%;
+      --ay: 58%;
+      --px: var(--peak-x);
+      --py: var(--peak-y);
+      --zoom: 1.1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html.js) .sky.go .sky-push { animation: none; }
+    :global(html.js) .draw,
+    :global(html.js) .sky.go .draw {
+      animation: none;
+      stroke-dasharray: var(--len) 1;
+      stroke-dashoffset: var(--o1);
+      opacity: 0.22;
+      transition: none;
+    }
+    .sky-plate { transition: none; clip-path: none; }
+    .seg,
+    .sky .seg.hot { transition: opacity 120ms linear; }
+  }
+</style>
+
+<script>
+  const sky = document.querySelector<HTMLElement>('.sky');
+  const plate = document.querySelector<HTMLImageElement>('.sky-plate');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (sky && plate) {
+    requestAnimationFrame(() => sky.classList.add('go'));
+
+    /* Wait for the decode before revealing, so the plate does not pop in
+       halfway through the clip-path. A still has no buffering to hide behind
+       and 115 kB usually beats the 500ms anyway. */
+    const reveal = () => {
+      if (still) {
+        sky.classList.add('lit', 'settled');
+      } else {
+        setTimeout(() => sky.classList.add('lit'), 400);
+        setTimeout(() => sky.classList.add('settled'), 2900);
+      }
+    };
+    plate.decode?.().then(reveal, reveal) ?? reveal();
+  }
+</script>

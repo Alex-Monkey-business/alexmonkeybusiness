@@ -138,10 +138,44 @@ export const silhouette =
   `M0 ${lead}L${x0} ${y0}` + line.slice(line.indexOf('C')) + `L${vbw} ${vbh}L0 ${vbh}Z`;
 export const traceX0 = x0 / vbw;
 
-/** The same shape as a mask image, for surfaces that cut a raster to it. */
-export const silUrl =
+/**
+ * The same shape as a mask image, for surfaces that cut a raster to it.
+ *
+ * `inset` pushes the whole closed shape DOWN by that many viewBox units, which
+ * erodes the ridge edge and leaves the bottom (already below the frame) alone.
+ * `feather` blurs the mask edge, in the same units.
+ *
+ * BOTH EXIST BECAUSE OF ONE ARTEFACT, and it only shows on a high-contrast
+ * plate. A mask cut exactly on the traced line keeps the last row of SKY
+ * pixels — and on our source the sky is luminance ~205, which a plate graded to
+ * white point 185 maps to pure white. Every retained pixel becomes maximum
+ * white, so the leak reads as a bright rim around a bad cutout.
+ *
+ * ERODING ALONE DOES NOT FIX IT. The trace carries ±3 units of noise, so the
+ * inset has to clear that everywhere, and by the time it does it is biting
+ * visibly into the mountain — worse on the Zmuttgrat, which is the noisier half
+ * (3.3 against 2.9 median deviation). Feathering fixes what eroding cannot: a
+ * soft edge fades the leak out instead of cutting through it, and on a
+ * photograph a soft edge reads as atmosphere rather than as a mistake. 3 and 2
+ * together is the pair that works.
+ *
+ * The blur has to live INSIDE the mask SVG — CSS cannot blur a mask image from
+ * outside, and `filter` on the masked element would blur the photograph too.
+ *
+ * Translating a `<g>` rather than regenerating the path is deliberate: an
+ * offset baked into the path data would put the mask and the drawn line in two
+ * different coordinate spaces, and the registration between them is the one
+ * thing this file exists to protect.
+ */
+export const silhouetteMask = (inset = 0, feather = 0) =>
   'url("data:image/svg+xml,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vbw} ${vbh}" preserveAspectRatio="none"><path d="${silhouette}" fill="#fff"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${vbw} ${vbh}" preserveAspectRatio="none">` +
+      (feather
+        ? `<filter id="f" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="${feather}"/></filter>`
+        : '') +
+      `<g transform="translate(0 ${inset})"${feather ? ' filter="url(%23f)"' : ''}><path d="${silhouette}" fill="#fff"/></g></svg>`,
   ).replace(/'/g, '%27') +
   '")';
+
+export const silUrl = silhouetteMask(0);
