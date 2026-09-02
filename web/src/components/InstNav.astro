@@ -1,0 +1,237 @@
+---
+/**
+ * THE INSTRUMENT'S NAV. The mark on the left, one button on the right, and
+ * nothing else in the chrome — the pill with five things in it belonged to a
+ * page with cream to sit on.
+ *
+ * THE BUTTON IS TWO TRACKS. Two parallel lines are two skis. Point at them and
+ * they carve — the straight lines bend into one turn and back — which is the
+ * only place on the site the freeride shows, and it shows to whoever hovers.
+ * Open, the two lines cross: skis planted in the snow.
+ *
+ * THE PANEL is the page gone black over itself, with the rows the site has —
+ * work, contact, the other language — decoding in the way every other row
+ * does. No theme toggle: these pages are black in both themes, so the toggle
+ * would be a control that does nothing.
+ */
+import AmbMark from './brand/AmbMark.astro';
+import { t, path, otherLang, stripLang, type Lang } from '../i18n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const s = t(lang);
+const other = otherLang(lang);
+const bare = stripLang(Astro.url.pathname);
+
+const rows = [
+  { n: '01', label: s.work.label, href: path(lang, '/#projects') },
+  { n: '02', label: `${s.aboutCard.title} ${s.aboutCard.titleEm}`, href: path(lang, '/about') },
+  { n: '03', label: t(other).label, href: path(other, bare), hreflang: other === 'nb' ? 'nb-NO' : 'en' },
+];
+const year = new Date().getFullYear();
+---
+
+<nav class="inav" aria-label={s.nav.menu}>
+  <a href={path(lang, '/')} class="inav-home" aria-label="home">
+    <AmbMark height={22} class="inav-mark" />
+  </a>
+
+  <button class="inav-btn" type="button" aria-expanded="false" aria-controls="inav-panel" aria-label={s.nav.menu}>
+    <svg class="inav-tracks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+      {/* Two cubic segments each, so the carve can be interpolated point for
+          point in the script — straight and carved share one structure. */}
+      <path class="t1" d="M2 9 C7 9 10 9 12 9 C14 9 17 9 22 9" />
+      <path class="t2" d="M2 15 C7 15 10 15 12 15 C14 15 17 15 22 15" />
+    </svg>
+  </button>
+</nav>
+
+<div id="inav-panel" class="inav-panel inst" hidden>
+  <ul class="inav-rows">
+    {rows.map((r) => (
+      <li>
+        <a href={r.href} hreflang={r.hreflang}>
+          <span class="inst-idx">{r.n}</span>
+          <span class="inav-label inst-display" data-decode>{r.label}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+  <p class="inav-foot inst-label">ALEX MONKEY BUSINESS · {year}</p>
+</div>
+
+<style>
+  .inav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: clamp(18px, 3vw, 32px) clamp(20px, 4vw, 56px);
+    pointer-events: none;
+    color: var(--fg1, #ffffeb);
+  }
+  .inav > * { pointer-events: auto; }
+  .inav-home { color: inherit; display: inline-flex; }
+  :global(.inav-mark) { display: block; }
+
+  .inav-btn {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: inherit;
+    cursor: pointer;
+  }
+  .inav-tracks { width: 30px; height: 30px; overflow: visible; }
+  .inav-tracks path {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 420ms var(--ease-out);
+  }
+  /* Open: the two tracks cross. The carve is undone by the script first, so
+     the cross is made of straight lines. */
+  .inav-btn[aria-expanded='true'] .t1 { transform: translateY(3px) rotate(45deg); }
+  .inav-btn[aria-expanded='true'] .t2 { transform: translateY(-3px) rotate(-45deg); }
+
+  .inav-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(24px, 5vw, 64px);
+    /* Comes down from the top like a shutter, goes back up the same way. */
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 520ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .inav-panel.open { clip-path: inset(0); }
+  .inav-panel[hidden] { display: none; }
+
+  .inav-rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--border-hair);
+    max-width: 640px;
+    width: 100%;
+    margin-inline: auto;
+  }
+  .inav-rows a {
+    display: grid;
+    grid-template-columns: 2.6em 1fr;
+    align-items: baseline;
+    gap: 16px;
+    padding: clamp(18px, 3vh, 30px) 0;
+    border-bottom: 1px solid var(--border-hair);
+    color: inherit;
+    text-decoration: none;
+    position: relative;
+  }
+  .inav-label { font-size: clamp(22px, 3vw, 36px); transition: color 180ms linear; }
+  .inav-rows a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--signal);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 420ms var(--ease-out);
+  }
+  .inav-rows a:hover::after,
+  .inav-rows a:focus-visible::after { transform: scaleX(1); }
+  .inav-rows a:hover .inav-label,
+  .inav-rows a:focus-visible .inav-label { color: var(--signal); }
+
+  .inav-foot {
+    position: absolute;
+    left: clamp(24px, 5vw, 64px);
+    bottom: clamp(24px, 5vw, 64px);
+    margin: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .inav-tracks path, .inav-panel, .inav-rows a::after { transition: none; }
+  }
+</style>
+
+<script>
+  import { decode, still } from '../scripts/decode';
+
+  const btn = document.querySelector<HTMLButtonElement>('.inav-btn');
+  const panel = document.querySelector<HTMLElement>('#inav-panel');
+  const tracks = Array.from(document.querySelectorAll<SVGPathElement>('.inav-tracks path'));
+
+  /**
+   * THE CARVE. Straight and carved are the same path with different numbers,
+   * so a turn is a number between 0 and 1 and the frame is a lerp. Both
+   * tracks bend the same way, the lower one a little later and a little
+   * less — the inside ski.
+   */
+  const STRAIGHT = [
+    [2, 9, 7, 9, 10, 9, 12, 9, 14, 9, 17, 9, 22, 9],
+    [2, 15, 7, 15, 10, 15, 12, 15, 14, 15, 17, 15, 22, 15],
+  ];
+  const CARVED = [
+    [2, 6, 7, 6, 8, 12.5, 12, 12.5, 16, 12.5, 17, 7, 22, 7],
+    [2, 13, 7, 13, 9, 17.5, 12.5, 17.5, 16, 17.5, 17.5, 14, 22, 14],
+  ];
+  const d = (p: number[]) => `M${p[0]} ${p[1]} C${p[2]} ${p[3]} ${p[4]} ${p[5]} ${p[6]} ${p[7]} C${p[8]} ${p[9]} ${p[10]} ${p[11]} ${p[12]} ${p[13]}`;
+  let carve = 0, target = 0, raf = 0;
+  const ease = (x: number) => 1 - Math.pow(1 - x, 3);
+  const tick = () => {
+    carve += (target - carve) * 0.16;
+    if (Math.abs(target - carve) < 0.005) carve = target;
+    tracks.forEach((path, i) => {
+      const k = ease(Math.max(0, Math.min(1, carve)));
+      path.setAttribute('d', d(STRAIGHT[i].map((v, j) => v + (CARVED[i][j] - v) * k)));
+    });
+    if (carve !== target) raf = requestAnimationFrame(tick); else raf = 0;
+  };
+  const to = (t: number) => { target = t; if (!raf && !still()) raf = requestAnimationFrame(tick); };
+
+  if (btn && panel) {
+    let open = false;
+    const rows = Array.from(panel.querySelectorAll<HTMLElement>('[data-decode]'));
+
+    const show = () => {
+      open = true;
+      to(0);
+      btn.setAttribute('aria-expanded', 'true');
+      panel.hidden = false;
+      void panel.offsetWidth;
+      panel.classList.add('open');
+      document.documentElement.style.overflow = 'hidden';
+      /* The rows land one after the other, once the shutter is mostly down. */
+      rows.forEach((r, i) => { r.classList.remove('ready'); delete r.dataset.decoded; decode(r, { delay: 300 + i * 160, perChar: 26 }); });
+      panel.querySelector<HTMLElement>('a')?.focus({ preventScroll: true });
+    };
+    const hide = () => {
+      open = false;
+      btn.setAttribute('aria-expanded', 'false');
+      panel.classList.remove('open');
+      document.documentElement.style.overflow = '';
+      const done = () => { if (!open) panel.hidden = true; };
+      if (still()) done(); else setTimeout(done, 540);
+      btn.focus({ preventScroll: true });
+    };
+
+    btn.addEventListener('click', () => (open ? hide() : show()));
+    btn.addEventListener('pointerenter', () => { if (!open) to(1); });
+    btn.addEventListener('pointerleave', () => to(0));
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) hide(); });
+    /* A row that only changes the hash stays on this page — close over it. */
+    panel.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) hide(); });
+  }
+</script>

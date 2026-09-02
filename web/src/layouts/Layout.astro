@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import '../styles/landing.css';
 import Nav from '../components/Nav.astro';
+import InstNav from '../components/InstNav.astro';
 import Footer from '../components/Footer.astro';
 import LangHint from '../components/LangHint.astro';
 import { langFromUrl, t, path, stripLang, HTML_LANG, LANGS } from '../i18n';
@@ -11,6 +12,8 @@ interface Props {
   description?: string;
   /** Override --accent on this page only (e.g. project pages with their own hue). */
   accent?: string;
+  /** The instrument pages have their own nav — one button, black panel. */
+  nav?: 'wispr' | 'inst';
 }
 
 const lang = langFromUrl(Astro.url);
@@ -20,6 +23,7 @@ const {
   title = 'Alex Monkey Business',
   description = s.site.description,
   accent,
+  nav = 'wispr',
 } = Astro.props;
 
 const htmlStyle = accent ? `--accent: ${accent};` : undefined;
@@ -97,7 +101,7 @@ const alternates = LANGS.map((l) => ({
     </script>
   </head>
   <body>
-    <Nav lang={lang} />
+    {nav === 'inst' ? <InstNav lang={lang} /> : <Nav lang={lang} />}
     <LangHint lang={lang} />
     <main id="top">
       <div class="page"><slot /></div>

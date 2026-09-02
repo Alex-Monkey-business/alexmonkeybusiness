@@ -37,6 +37,9 @@ body:has(.inst) { background: #000; }
 /* The Layout's nav pill reads the site's lavender; retinted from the root so
    the page does not carry a second accent. */
 html:has(.inst) { --lavender: #d6a4ff; --lavender-d: #c98bff; }
+/* The language hint is a pill floating over the page; the instrument's menu
+   carries the other language as a row, so the pill is a second way to say it. */
+html:has(.inst) .lang-hint { display: none; }
 
 /* ---- Footer, in the same voice ------------------------------------------ */
 /* Wispr's footer is a rounded chamber lifted off the canvas. Here it is the

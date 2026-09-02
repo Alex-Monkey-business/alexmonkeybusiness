@@ -75,6 +75,27 @@ const readout = nb
   /* The palette, the face and the signal are `instrument.css`'s — shared with
      /about and the case pages. This file is the one-screen layout only. */
 
+  /* ---- The camera moves with the level ------------------------------------ */
+
+  /**
+   * «Ting jeg har laget» owns the Hörnligrat, and opening it pushes the camera
+   * in toward the summit and that ridge — the whole stage, photograph and
+   * drawn line together, so nothing slides off the rock. «Tilbake» pulls out.
+   * A push on the outer element, because the inner one is already carrying the
+   * 55-second drift as an animation and a second transform there would be
+   * overridden by it.
+   */
+  .always-dark :global(.sky) {
+    transform-origin: 58% 22%;
+    transition: transform 1500ms cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .always-dark :global(.sky[data-level='work']) {
+    transform: scale(1.18) translate(1%, 4%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .always-dark :global(.sky) { transition: none; }
+  }
+
   /* ---- The names as an instrument --------------------------------------- */
 
   .always-dark :global(.menu) {

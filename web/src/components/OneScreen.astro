@@ -377,6 +377,8 @@ const levels = Object.entries(LEVELS).map(([name, rows]) => ({
         }
         enter(next);
         busy = false;
+        /* The surface reads this: the camera moves with the level. */
+        if (stage) stage.dataset.level = name;
         /* One breath on the mountain, so the remap is not silent. */
         if (stage && !still) {
           stage.classList.add('shift');
