@@ -305,13 +305,18 @@ const readout = nb
       timers.add(id);
     };
 
-    /** Scramble one character span, then land it at `at` ms. */
+    /** Scramble one character span, then land it at `at` ms. A new run on the
+        same span cancels the one before it — otherwise two runs race, and the
+        loser keeps flipping after the winner has landed. */
     const decode = (el: HTMLElement, at: number, flip = 45) => {
       const real = el.dataset.t ?? '';
       if (still || real.trim() === '') { el.textContent = real; el.classList.remove('noise'); return; }
+      const run = String(Number(el.dataset.run ?? 0) + 1);
+      el.dataset.run = run;
       el.classList.add('noise');
       let t = 0;
       const tick = () => {
+        if (el.dataset.run !== run) return;
         if (t >= at) { el.textContent = real; el.classList.remove('noise'); return; }
         el.textContent = rnd();
         t += flip;
@@ -408,10 +413,15 @@ const readout = nb
     });
     for (const l of menu.querySelectorAll('.level')) mo.observe(l, { attributes: true, attributeFilter: ['class'] });
 
-    /* Pointing: flicker the name, retype the readout for its ridge. */
+    /* Pointing: flicker the name, retype the readout for its ridge. Once per
+       row — `pointerover` fires again for every letter the pointer crosses,
+       and each of those would restart the flicker. */
+    let over: HTMLElement | null = null;
     menu.addEventListener('pointerover', (e) => {
       const row = (e.target as HTMLElement).closest<HTMLElement>('.row');
       if (!row) return;
+      if (row === over) return;
+      over = row;
       flicker(row);
       const s = seg(row.dataset.seg ?? '');
       if (s) { pointing = true; window.clearTimeout(cycle); type(s, 12); }
@@ -419,6 +429,7 @@ const readout = nb
     const back = (e: Event) => {
       const to = (e as PointerEvent).relatedTarget as HTMLElement | null;
       if (to?.closest?.('.row')) return;
+      over = null;
       if (!pointing) return;
       pointing = false;
       idleAt = 0;

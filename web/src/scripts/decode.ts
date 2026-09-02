@@ -54,9 +54,14 @@ export function scramble(el: HTMLElement, at: number, flip = 45) {
     el.classList.remove('noise');
     return;
   }
+  /* A new run on the same span cancels the one before it; otherwise two runs
+     race and the loser keeps flipping after the winner has landed. */
+  const run = String(Number(el.dataset.run ?? 0) + 1);
+  el.dataset.run = run;
   el.classList.add('noise');
   let t = 0;
   const tick = () => {
+    if (el.dataset.run !== run) return;
     if (t >= at) {
       el.textContent = real;
       el.classList.remove('noise');
