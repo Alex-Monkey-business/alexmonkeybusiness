@@ -400,8 +400,12 @@ const levels = Object.entries(LEVELS).map(([name, rows]) => ({
       setTimeout(swap, EXIT);
     };
 
-    /* The first level waits for the ridges to be most of the way down. */
-    setTimeout(() => show('root', true), 1000);
+    /* The first level waits for the ridges to be most of the way down. The
+       nav's «Prosjekter» and the case's «Tilbake» point at #projects — the
+       landing's old anchor — so that hash opens the work level directly. */
+    const first = location.hash === '#projects' ? 'work' : 'root';
+    setTimeout(() => show(first, true), 1000);
+    addEventListener('hashchange', () => { if (location.hash === '#projects') show('work'); });
 
     /* Delegated, so it keeps working after a level swaps the rows out. */
     menu.addEventListener('click', (e) => {
