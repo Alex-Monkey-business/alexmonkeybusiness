@@ -8,8 +8,9 @@
  * The portrait is the event. A cut-out on a black sweater against a black
  * page, so the figure has no edge to speak of, and it RESOLVES rather than
  * fades — from eight pixels across to sharp, the way the rows decode, with a
- * scan line running down it as it does. Then it stands still and, every so
- * often, a slice of it slips for a frame.
+ * scan line running down it as it does. Then it stands still. (A periodic
+ * slip of two bands was tried and cut: the second time you see it, it is a
+ * broken image.)
  */
 import { t, type Lang } from '../../i18n';
 import { contact } from '../../data/contact';
@@ -45,8 +46,6 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
       <div class="about-frame">
         <img class="about-img" src="/assets/about/alex.png" alt="Alexander Samnøy" width="1024" height="1024" decoding="async" />
         <canvas class="about-px" width="1024" height="1024" aria-hidden="true"></canvas>
-        <img class="about-slice" src="/assets/about/alex.png" alt="" aria-hidden="true" />
-        <img class="about-slice" src="/assets/about/alex.png" alt="" aria-hidden="true" />
         {/* The shadow side. The light in the file comes from the left, so the
             right of the face and the shoulder fall off into the page's black,
             and so does the hem. Painted over the frame, under the grade. */}
@@ -151,26 +150,5 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
       busy = false;
     });
 
-    /**
-     * THE SLIP. Every six to eleven seconds, for one or two frames, two thin
-     * horizontal bands of the picture sit a few pixels to the side. It is the
-     * only motion on the page once everything has landed, and it is small
-     * enough to be doubted.
-     */
-    const slices = Array.from(root.querySelectorAll<HTMLElement>('.about-slice'));
-    const slip = () => {
-      if (still()) return;
-      for (const s of slices) {
-        const y = 15 + Math.random() * 70;
-        const h = 2 + Math.random() * 5;
-        const dx = (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 10);
-        s.style.clipPath = `inset(${y}% 0 ${100 - y - h}% 0)`;
-        s.style.transform = `translateX(${dx}px)`;
-        s.style.opacity = '1';
-      }
-      setTimeout(() => { for (const s of slices) s.style.opacity = '0'; }, 90 + Math.random() * 80);
-      setTimeout(slip, 6000 + Math.random() * 5000);
-    };
-    setTimeout(slip, 5000);
   }
 </script>

@@ -99,7 +99,7 @@ const features = s.features.map((f, i) => ({
   onEnter(document.querySelectorAll('.case-feature, .case-list li'), (el) => {
     el.classList.add('is-in');
     const h = el.querySelector<HTMLElement>('[data-decode]');
-    if (h) decode(h, { delay: 120, perChar: 20 });
+    if (h) decode(h, { delay: 80, perChar: 10, flip: 35 });
   }, 0.18);
 
   // play each real-app recording only while on screen; loop past the first paint

@@ -54,8 +54,7 @@
     linear-gradient(to left, #000 8%, rgba(0, 0, 0, 0.88) 26%, rgba(0, 0, 0, 0.35) 48%, transparent 66%);
 }
 .about-img,
-.about-px,
-.about-slice {
+.about-px {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -70,11 +69,6 @@
   transition: opacity 260ms steps(3);
 }
 .about-px.gone { opacity: 0; pointer-events: none; }
-.about-slice {
-  opacity: 0;
-  pointer-events: none;
-  will-change: transform, clip-path;
-}
 /* The scan: a one-pixel signal line down the picture, once per resolve. It
    sits over the frame, not in it — inside, the grade would take its colour. */
 .about-portrait { position: relative; }
