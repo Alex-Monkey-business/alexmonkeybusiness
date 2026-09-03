@@ -36,10 +36,10 @@
 import { still } from '../lib/skyline';
 
 /* The still's own trace — not the video's. See the note in `skyline.ts`. */
-const { viewBox, line, segs, peak, vbw, vbh } = still;
+const { viewBox, line, segs, peak, vbw, vbh, ridge } = still;
 ---
 
-<div class="sky" style={`--ar: ${vbw} / ${vbh}; --peak-x: ${(peak.x * 100).toFixed(2)}%; --peak-y: ${(peak.y * 100).toFixed(2)}%;`}>
+<div class="sky" data-ridge={JSON.stringify(ridge)} data-vb={`${vbw} ${vbh}`} style={`--ar: ${vbw} / ${vbh}; --peak-x: ${(peak.x * 100).toFixed(2)}%; --peak-y: ${(peak.y * 100).toFixed(2)}%;`}>
   <div class="sky-push">
     <img class="sky-plate" src="/hero/matterhorn-still.webp" alt="" width={2400} height={1350} decoding="async" />
 
@@ -52,6 +52,11 @@ const { viewBox, line, segs, peak, vbw, vbh } = still;
       ))}
     </svg>
   </div>
+
+  <!-- The night: stars and the odd meteor, drawn in the sky only. See the
+       script — the canvas is clipped to the traced edge, so a meteor that runs
+       low sets behind the mountain instead of crossing the rock. -->
+  <canvas class="sky-stars" aria-hidden="true"></canvas>
 </div>
 
 <style>
@@ -69,8 +74,18 @@ const { viewBox, line, segs, peak, vbw, vbh } = still;
 
   /* Frame and push are `Skyline.astro`'s — see the framing note there. The zoom
      runs further and slower than the clip's because a 2400-wide still has more
-     to give than a 1280 video frame did. */
+     to give than a 1280 video frame did.
+
+     THE CAMERA NEVER STOPS. `forwards` left the frame dead after 55 s, and a
+     still that has stopped moving is a wallpaper. Alternating at 70 s a leg is
+     0.2 % a second — below what anyone reads as motion, but the frame is never
+     the same twice, which is the whole difference between a photograph and a
+     window. `--par-x/y` is the pointer parallax, set from the script; the
+     `translate` property is separate from the animated `transform`, so the two
+     never fight. */
   .sky-push {
+    --par-x: 0px;
+    --par-y: 0px;
     --fw: max(100cqw, calc(100cqh * var(--ar)));
     --fx: 50%;
     --fy: var(--peak-y);
@@ -85,11 +100,11 @@ const { viewBox, line, segs, peak, vbw, vbh } = still;
     top: var(--ay);
     width: var(--fw);
     aspect-ratio: var(--ar);
-    translate: calc(-1 * var(--fx)) calc(-1 * var(--fy));
+    translate: calc(-1 * var(--fx) + var(--par-x)) calc(-1 * var(--fy) + var(--par-y));
     transform-origin: var(--px) var(--py);
   }
   :global(html.js) .sky.go .sky-push {
-    animation: push 55s var(--ease-out) forwards;
+    animation: push 70s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
   }
   @keyframes push {
     from { transform: scale(1); }
@@ -97,12 +112,18 @@ const { viewBox, line, segs, peak, vbw, vbh } = still;
   }
 
   .sky-plate,
-  .sky-line {
+  .sky-line,
+  .sky-stars {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
   }
+  /* Sits on the viewport, not in the pushed frame: the script maps every star
+     from the frame's coordinates each tick, so they ride the camera and still
+     land on whole device pixels. Under the drawn line, over the plate. */
+  .sky-stars { z-index: 1; }
+  .sky-line { z-index: 2; }
 
   /**
    * `fill`, not `cover`: the box already carries the viewBox's aspect, so the
@@ -271,5 +292,219 @@ const { viewBox, line, segs, peak, vbw, vbh } = still;
       }
     };
     plate.decode?.().then(reveal, reveal) ?? reveal();
+
+    night(sky, still);
+  }
+
+  /**
+   * THE NIGHT.
+   *
+   * The plate is an afternoon photograph with the sky crushed to black, and
+   * black sky reads as night whether it was or not — so the surface commits to
+   * the reading: a thin field of stars and, now and then, a meteor. Both are
+   * placed in the FRAME's coordinates (the trace's viewBox), so when the camera
+   * pushes, or the level zooms it, or the pointer leans it, the stars go with
+   * the mountain like a sky does; but they are DRAWN on a viewport canvas,
+   * remapped every tick, so each one lands on device pixels instead of being
+   * blown up with the frame.
+   *
+   * Everything is clipped to the sky above the traced ridge. That is what
+   * makes a meteor honest: one that runs low goes behind the summit and is
+   * gone, the way a real one would, and no star ever sits on the rock.
+   *
+   * Restraint is the design. ~100 stars at most on a wide screen, none brighter
+   * than the type, a meteor every ten seconds or so — one early, so a visitor
+   * who stays five seconds sees it. Reduced motion draws the field once, no
+   * twinkle, no meteors.
+   */
+  function night(sky: HTMLElement, still: boolean) {
+    const canvas = sky.querySelector<HTMLCanvasElement>('.sky-stars');
+    const svg = sky.querySelector<SVGSVGElement>('.sky-line');
+    const push = sky.querySelector<HTMLElement>('.sky-push');
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !svg || !push || !ctx) return;
+
+    const ridge = JSON.parse(sky.dataset.ridge ?? '[]') as [number, number][];
+    const [vbw, vbh] = (sky.dataset.vb ?? '2400 1350').split(' ').map(Number);
+    if (ridge.length < 2) return;
+
+    /* Height of the sky's lower edge at x, in frame units. */
+    const ridgeY = (x: number) => {
+      let lo = 0;
+      let hi = ridge.length - 1;
+      while (hi - lo > 1) {
+        const mid = (lo + hi) >> 1;
+        if (ridge[mid][0] <= x) lo = mid;
+        else hi = mid;
+      }
+      const [x0, y0] = ridge[lo];
+      const [x1, y1] = ridge[hi];
+      return x1 === x0 ? y0 : y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
+    };
+
+    const rnd = (a: number, b: number) => a + Math.random() * (b - a);
+    const coarse = matchMedia('(max-width: 820px)').matches;
+
+    /* The field. Uniform over the sky, 14 units clear of the ridge so the
+       twinkle never touches the edge. A tenth of them are a size up.
+
+       THE SKY IS BIGGER THAN THE FRAME on a phone: portrait pins the peak at
+       58 % of the height, so the top half of the screen is above the
+       photograph altogether — and it is all sky. The field is sown in frame
+       units from the frame's top down to the ridge, plus a per-screen head-room
+       read off the layout (`--room`, in frame heights) so the type has stars
+       behind it too. Density holds; the count follows the area. */
+    type Star = { x: number; y: number; r: number; a: number; ph: number; sp: number; d: number };
+    const stars: Star[] = [];
+    const sow = () => {
+      stars.length = 0;
+      const R = svg.getBoundingClientRect();
+      const room = R.height > 0 ? Math.max(0, R.top / R.height) : 0; /* frame heights above the frame */
+      const y0 = -room * vbh;
+      const want = Math.min(180, Math.round((coarse ? 44 : 110) * (1 + room)));
+      for (let guard = 0; stars.length < want && guard < want * 40; guard++) {
+        const x = rnd(0, vbw);
+        const y = rnd(y0, vbh);
+        if (y > ridgeY(x) - 14) continue;
+        const big = Math.random() < 0.1;
+        stars.push({
+          x, y,
+          r: big ? rnd(1.0, 1.35) : rnd(0.45, 0.95),
+          a: big ? rnd(0.55, 0.85) : rnd(0.2, 0.6),
+          ph: rnd(0, Math.PI * 2),
+          sp: rnd(0.35, 1.3),
+          d: Math.random(),
+        });
+      }
+    };
+    sow();
+
+    /* A meteor: born in the upper sky, runs down at 25–40°, lives under a
+       second. Position and length are in canvas pixels once spawned — it is
+       not attached to the mountain, it passes in front of the sky. */
+    type Meteor = { x: number; y: number; dx: number; dy: number; len: number; t0: number; life: number };
+    const meteors: Meteor[] = [];
+    let nextMeteor = Infinity;
+
+    let dpr = 1;
+    const size = () => {
+      dpr = Math.min(2, devicePixelRatio || 1);
+      const r = canvas.getBoundingClientRect();
+      /* The canvas itself may be CSS-scaled by the level camera; its backing
+         store follows its layout size, not its painted size. */
+      canvas.width = Math.round(canvas.offsetWidth * dpr);
+      canvas.height = Math.round(canvas.offsetHeight * dpr);
+      return r;
+    };
+    size();
+    new ResizeObserver(() => { size(); sow(); }).observe(canvas);
+
+    /* Pointer parallax, desktop only: the camera leans a few pixels against
+       the pointer, eased hard so it reads as weight rather than tracking. */
+    const fine = matchMedia('(pointer: fine)').matches && !still;
+    let tx = 0, ty = 0, px = 0, py = 0;
+    if (fine) {
+      addEventListener('pointermove', (e) => {
+        tx = (e.clientX / innerWidth - 0.5) * -22;
+        ty = (e.clientY / innerHeight - 0.5) * -14;
+      }, { passive: true });
+    }
+
+    let litAt = 0;
+    const frame = (now: number) => {
+      if (!litAt && sky.classList.contains('lit')) {
+        litAt = now;
+        nextMeteor = now + (still ? Infinity : 3800);
+      }
+
+      if (fine) {
+        px += (tx - px) * 0.035;
+        py += (ty - py) * 0.035;
+        push.style.setProperty('--par-x', px.toFixed(2) + 'px');
+        push.style.setProperty('--par-y', py.toFixed(2) + 'px');
+      }
+
+      /* Frame → canvas pixels. Both rects are on screen, so the level zoom on
+         `.sky` and the push on `.sky-push` are both already in them. */
+      const R = svg.getBoundingClientRect();
+      const C = canvas.getBoundingClientRect();
+      const kx = canvas.width / C.width;
+      const ky = canvas.height / C.height;
+      const mx = (x: number) => (R.left + (x / vbw) * R.width - C.left) * kx;
+      const my = (y: number) => (R.top + (y / vbh) * R.height - C.top) * ky;
+
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+
+      /* The sky, as a clip. */
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(mx(ridge[0][0]), my(ridge[0][1]));
+      for (let i = 1; i < ridge.length; i++) ctx.lineTo(mx(ridge[i][0]), my(ridge[i][1]));
+      ctx.lineTo(mx(vbw), -H);
+      ctx.lineTo(mx(0), -H);
+      ctx.closePath();
+      ctx.clip();
+
+      const t = now / 1000;
+      ctx.fillStyle = '#ffffeb';
+      for (const s of stars) {
+        /* Staggered in over ~3 s after the plate lights, dimmest first. */
+        const g = litAt ? Math.min(1, Math.max(0, (now - litAt - 500 - s.d * 2600) / 900)) : 0;
+        if (g <= 0) continue;
+        const tw = still ? 1 : 0.68 + 0.32 * Math.sin(t * s.sp + s.ph);
+        ctx.globalAlpha = s.a * tw * g;
+        const x = mx(s.x);
+        const y = my(s.y);
+        const r = s.r * dpr;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if (!still && now >= nextMeteor) {
+        /* Born somewhere in the visible sky: from near the top of the screen
+           down to well above the ridge, in frame units. */
+        const fx = rnd(vbw * 0.08, vbw * 0.92);
+        const top = ((C.top - R.top) / R.height) * vbh + vbh * 0.04;
+        const fy = rnd(top, Math.min(ridgeY(fx) - 40, top + (ridgeY(fx) - top) * 0.7));
+        const ang = rnd(25, 40) * (Math.PI / 180);
+        const dir = Math.random() < 0.5 ? -1 : 1;
+        meteors.push({
+          x: mx(fx), y: my(fy),
+          dx: Math.cos(ang) * dir, dy: Math.sin(ang),
+          len: rnd(150, 290) * dpr,
+          t0: now, life: rnd(650, 1000),
+        });
+        nextMeteor = now + rnd(7000, 16000);
+      }
+      for (let i = meteors.length - 1; i >= 0; i--) {
+        const m = meteors[i];
+        const p = (now - m.t0) / m.life;
+        if (p >= 1) { meteors.splice(i, 1); continue; }
+        const e = 1 - (1 - p) * (1 - p); /* ease-out: fast, then spent */
+        const hx = m.x + m.dx * m.len * e;
+        const hy = m.y + m.dy * m.len * e;
+        const tail = m.len * 0.42 * Math.sin(Math.PI * p);
+        const grad = ctx.createLinearGradient(hx, hy, hx - m.dx * tail, hy - m.dy * tail);
+        const a = Math.pow(Math.sin(Math.PI * p), 0.6);
+        grad.addColorStop(0, `rgba(255,255,235,${(0.95 * a).toFixed(3)})`);
+        grad.addColorStop(1, 'rgba(255,255,235,0)');
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.3 * dpr;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(hx, hy);
+        ctx.lineTo(hx - m.dx * tail, hy - m.dy * tail);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      if (still && litAt && now - litAt > 4000) return; /* the field is drawn; stop */
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
   }
 </script>

@@ -196,10 +196,19 @@ const silhouetteMask = (inset = 0, feather = 0) =>
 
 const silUrl = silhouetteMask(0);
 
-  return { viewBox, vbw, vbh, peak, segs, line, silhouette, traceX0, silhouetteMask, silUrl };
+/**
+ * THE LOWER EDGE OF THE SKY, as plain points, full width: the guessed lead-in
+ * on the left, every traced point, and the straight run to the bottom-right
+ * corner that closes the silhouette. For anything drawn in the sky at runtime
+ * — the stars in `Natt.astro` — so it can stay above the rock without
+ * touching the path string.
+ */
+const ridge: [number, number][] = [[0, lead], ...pts, [vbw, vbh]];
+
+  return { viewBox, vbw, vbh, peak, segs, line, silhouette, traceX0, silhouetteMask, silUrl, ridge };
 }
 
 /* The video trace keeps the bare names, so nothing that already imports them
    moves. The still is its own object. */
-export const { viewBox, vbw, vbh, peak, segs, line, silhouette, traceX0, silhouetteMask, silUrl } = fromTrace(rawVideo);
+export const { viewBox, vbw, vbh, peak, segs, line, silhouette, traceX0, silhouetteMask, silUrl, ridge } = fromTrace(rawVideo);
 export const still = fromTrace(rawStill);
