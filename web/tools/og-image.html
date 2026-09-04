@@ -4,19 +4,18 @@
     <meta charset="utf-8" />
     <title>OG card source</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=Figtree:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@200..500&display=swap"
       rel="stylesheet"
     />
     <style>
-      /* Values copied from src/styles/tokens.css. Dark is the site's default,
-         so the card wears the velvet canvas. */
+      /* Values copied from src/styles/instrument.css. The card is the front
+         page: black ground, the plate, the mark, one line of mono. */
       :root {
-        --velvet: #121211;
-        --cream: #ffffeb;
-        --fog: #93938a;
-        --lavender: #f0d7ff;
-        --serif: 'EB Garamond', Georgia, serif;
-        --sans: 'Figtree', -apple-system, system-ui, sans-serif;
+        --bg: #000;
+        --fg1: #ffffeb;
+        --fg3: #93938a;
+        --signal: #d6a4ff;
+        --mono: 'Martian Mono', ui-monospace, Menlo, monospace;
       }
 
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -24,67 +23,74 @@
       html, body { width: 1200px; height: 630px; }
 
       body {
-        background: var(--velvet);
-        color: var(--cream);
-        font-family: var(--sans);
-        padding: 72px 80px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+        position: relative;
+        background: var(--bg);
+        color: var(--fg1);
+        font-family: var(--mono);
         overflow: hidden;
       }
 
-      /* align-self is load-bearing: as a stretched column flex item the svg box
-         goes full width and preserveAspectRatio then centres the artwork in it. */
-      .mark {
-        align-self: flex-start;
-        height: 44px;
-        width: auto;
-        display: block;
-        color: var(--cream);
+      /* THE PLATE, framed as the desktop front page frames it: peak a little
+         right of centre and high, the north face filling the right half, the
+         left slope entering low. Sky in the file is #000, so no mask. The
+         numbers place the summit (57.6 %, 14.1 % of the image) at (800, 118),
+         which keeps the north face's left shoulder clear of the wordmark. */
+      .plate {
+        position: absolute;
+        width: 1320px;
+        height: auto;
+        left: 40px;
+        top: 13px;
       }
 
-      /* Display and lede read as one block; only the mark sits apart. */
-      .stack { display: flex; flex-direction: column; gap: 44px; }
+      .mark {
+        position: absolute;
+        left: 72px;
+        top: 60px;
+        height: 40px;
+        width: auto;
+        color: var(--fg1);
+      }
 
+      .stack {
+        position: absolute;
+        left: 72px;
+        top: 244px;
+      }
+
+      /* Lowercase, light, tracked — the menu's voice, one size up. */
       .display {
-        font-family: var(--serif);
-        font-weight: 400;
-        font-size: 116px;
-        line-height: 0.85;
-        letter-spacing: -0.03em;
+        font-weight: 300;
+        font-size: 60px;
+        line-height: 1.1;
+        letter-spacing: 0.01em;
       }
       .display .line { display: block; }
-      .display .dim { color: var(--fog); }
-      .display .period { color: var(--lavender); }
+      .display .em { font-style: italic; color: var(--signal); }
 
-      /* Same hand-drawn underline as the live hero */
-      .squiggle { position: relative; display: inline-block; }
-      .squiggle svg {
-        position: absolute;
-        left: 0; right: 0; bottom: -0.17em;
-        width: 100%; height: 0.18em;
-        overflow: visible;
-      }
-      .squiggle svg path {
-        fill: none;
-        stroke: var(--lavender);
-        stroke-width: 4;
-        stroke-linecap: round;
-        vector-effect: non-scaling-stroke;
-      }
-
-      .lede {
-        font-family: var(--sans);
+      .label {
+        margin-top: 30px;
         font-weight: 400;
-        font-size: 25px;
-        line-height: 1.3;
-        color: var(--fog);
-        white-space: pre-line;  /* the copy breaks itself — see LEDE below */
+        font-size: 15px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--fg3);
+      }
+      /* The blinking block from the site, held on. */
+      .label::after {
+        content: '';
+        display: inline-block;
+        width: 0.55em;
+        height: 0.95em;
+        margin-left: 0.7em;
+        vertical-align: -0.12em;
+        background: var(--signal);
       }
     </style>
   </head>
   <body>
+    <img class="plate" src="../public/hero/matterhorn-still.webp" alt="" />
+
     <!-- The real AMB monogram, inlined from src/components/brand/AmbMark.astro -->
     <svg class="mark" viewBox="0 0 360 220" fill="none" aria-label="AMB" role="img">
       <g stroke="currentColor" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
@@ -99,30 +105,10 @@
 
     <div class="stack">
       <h1 class="display">
-      <span class="line dim">Alex</span>
-      <span class="line"
-        ><span class="squiggle"
-          >Monkey business<span class="period">.</span><svg
-            viewBox="0 0 300 12"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          ><path d="M2 8C40 2 58 11 98 5.5S158 2 198 7.5S262 10.5 298 4" /></svg
-        ></span></span
-        >
+        <span class="line">alex monkey</span>
+        <span class="line">business<span class="em">.</span></span>
       </h1>
-
-      <p class="lede" id="lede">Small things. Big plans. And a couple that actually got finished.</p>
+      <p class="label" id="label">ALEXANDER SAMNØY · BUILDER</p>
     </div>
-    <script>
-    // The card is rendered twice, once per language. Only the lede differs —
-    // "Alex Monkey business." is the brand and stays put. The newline is the
-    // same break the site makes: the punchline gets its own line.
-    const LEDE = {
-      nb: 'Små ting. Store planer.\nOg et par ting som faktisk ble ferdige.',
-      en: 'Small things. Big plans.\nAnd a couple that actually got finished.',
-    };
-    const lang = new URLSearchParams(location.search).get('lang') || 'en';
-    document.getElementById('lede').textContent = LEDE[lang] || LEDE.en;
-  </script>
-</body>
+  </body>
 </html>

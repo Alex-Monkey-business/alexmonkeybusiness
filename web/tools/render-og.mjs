@@ -1,14 +1,19 @@
 /**
- * Renders tools/og-image.html into public/brand/social-card.png.
+ * Renders tools/og-image.html into public/brand/social-card-natt*.png.
  *
- * The card is built from the site's own tokens and the real AMB monogram, so
- * regenerating it after a design change keeps the share preview honest.
+ * The card is built from the site's own tokens, the real AMB monogram and the
+ * front page's plate, so regenerating it after a design change keeps the
+ * share preview honest.
  *
  *   node tools/render-og.mjs
  *
- * Needs network access on first run: the template pulls EB Garamond and
- * Figtree from Google Fonts, and the script fails loudly if they don't load
- * rather than silently shipping a card set in a fallback face.
+ * THE FILENAME IS THE CACHE-BUSTER. Slack, LinkedIn and X cache a card by URL
+ * for days; when the design changes, the file gets a new name and the layout
+ * points at it, or everyone keeps seeing the old card.
+ *
+ * Needs network access on first run: the template pulls Martian Mono from
+ * Google Fonts, and the script fails loudly if it doesn't load rather than
+ * silently shipping a card set in a fallback face.
  */
 import { chromium } from 'playwright';
 import { fileURLToPath } from 'node:url';
@@ -17,8 +22,8 @@ import { dirname, resolve } from 'node:path';
 const here = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE = resolve(here, 'og-image.html');
 const CARDS = [
-  { lang: 'nb', out: resolve(here, '../public/brand/social-card.png') },
-  { lang: 'en', out: resolve(here, '../public/brand/social-card-en.png') },
+  { lang: 'nb', out: resolve(here, '../public/brand/social-card-natt.png') },
+  { lang: 'en', out: resolve(here, '../public/brand/social-card-natt-en.png') },
 ];
 
 const browser = await chromium.launch();
@@ -32,15 +37,12 @@ await page.goto(`file://${TEMPLATE}?lang=${card.lang}`, { waitUntil: 'networkidl
 await page.evaluate(() => document.fonts.ready);
 
 const fonts = await page.evaluate(() => ({
-  serif: document.fonts.check("400 116px 'EB Garamond'"),
-  sans: document.fonts.check("400 25px 'Figtree'"),
+  mono: document.fonts.check("300 72px 'Martian Mono'"),
 }));
-if (!fonts.serif || !fonts.sans) {
-  throw new Error(
-    `Webfonts did not load (EB Garamond: ${fonts.serif}, Figtree: ${fonts.sans}). ` +
-      'Refusing to render a card in a fallback font.'
-  );
+if (!fonts.mono) {
+  throw new Error('Martian Mono did not load. Refusing to render a card in a fallback font.');
 }
+await page.evaluate(() => document.querySelector('img').decode());
 
 await page.screenshot({ path: card.out, type: 'png' });
 console.log(`wrote ${card.out}`);

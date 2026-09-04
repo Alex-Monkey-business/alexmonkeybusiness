@@ -32,9 +32,9 @@ const htmlStyle = accent ? `--accent: ${accent};` : undefined;
 // relative og:image paths, and the canonical tag keeps the netlify.app
 // hostname from competing with the real domain in search.
 // One card per language — otherwise a Norwegian sharing the Norwegian page
-// gets an English preview. Norwegian keeps the original filename since it is
-// now the default; English gets its own URL, so no platform cache to bust.
-const cardFile = lang === 'nb' ? '/brand/social-card.png' : '/brand/social-card-en.png';
+// gets an English preview. The `-natt` in the name is the cache-buster: the
+// platforms cache a card by URL, so a redesigned card needs a new one.
+const cardFile = lang === 'nb' ? '/brand/social-card-natt.png' : '/brand/social-card-natt-en.png';
 const ogImage = new URL(cardFile, Astro.site).href;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 
