@@ -302,8 +302,8 @@ const { viewBox, line, segs, peak, vbw, vbh, ridge } = still;
    * black sky reads as night whether it was or not. The first version filled
    * it with a field of stars; Alex cut it — a sky that is HELT SORT is cleaner,
    * and the plate was built to be exactly that. What stays is the one event:
-   * now and then a meteor, on an otherwise empty sky. Rarer than a wallpaper
-   * would dare, one early so a visitor who stays four seconds sees it.
+   * now and then a meteor, on an otherwise empty sky. One every four to nine
+   * seconds, the first inside three, so nobody leaves without seeing one.
    *
    * The canvas is clipped to the sky above the traced ridge, which is what
    * makes the meteor honest: one that runs low goes behind the summit and is
@@ -375,7 +375,7 @@ const { viewBox, line, segs, peak, vbw, vbh, ridge } = still;
     const frame = (now: number) => {
       if (!litAt && sky.classList.contains('lit')) {
         litAt = now;
-        nextMeteor = now + (still ? Infinity : 3800);
+        nextMeteor = now + (still ? Infinity : 2600);
       }
 
       if (fine) {
@@ -422,7 +422,7 @@ const { viewBox, line, segs, peak, vbw, vbh, ridge } = still;
           len: rnd(150, 290) * dpr,
           t0: now, life: rnd(650, 1000),
         });
-        nextMeteor = now + rnd(7000, 16000);
+        nextMeteor = now + rnd(4000, 9000);
       }
       for (let i = meteors.length - 1; i >= 0; i--) {
         const m = meteors[i];
