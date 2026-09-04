@@ -19,7 +19,6 @@ export const strings = {
   nb: {
     label: 'Norsk',
     site: {
-      description: 'Små ting. Store planer. Og et par ting som faktisk ble ferdige.',
       aboutTitle: 'Kontakt — Alex Monkey Business',
     },
     nav: { projects: 'Prosjekter', about: 'Kontakt', cta: 'Ta kontakt', menu: 'Meny', close: 'Lukk' },
@@ -89,7 +88,6 @@ export const strings = {
   en: {
     label: 'English',
     site: {
-      description: 'Small things. Big plans. And a couple that actually got finished.',
       aboutTitle: 'Contact — Alex Monkey Business',
     },
     nav: { projects: 'Projects', about: 'Contact', cta: 'Get in touch', menu: 'Menu', close: 'Close' },

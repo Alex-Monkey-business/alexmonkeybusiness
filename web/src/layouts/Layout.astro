@@ -21,7 +21,7 @@ const s = t(lang);
 
 const {
   title = 'Alex Monkey Business',
-  description = s.site.description,
+  description = '',
   accent,
   nav = 'wispr',
 } = Astro.props;
@@ -55,7 +55,11 @@ const alternates = LANGS.map((l) => ({
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
-    <meta name="description" content={description} />
+    {/* No description by default. The card is the mark, the plate and the
+        name — a tagline under it was the one line of prose left from the old
+        design, and it explained a site that no longer explains itself. A page
+        can still pass one. */}
+    {description && <meta name="description" content={description} />}
 
     <link rel="icon" type="image/svg+xml" href="/brand/icons/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/brand/icons/favicon-32.png" />
@@ -69,7 +73,7 @@ const alternates = LANGS.map((l) => ({
     <link rel="alternate" hreflang="x-default" href={new URL(path('nb', bare), Astro.site).href} />
 
     <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    {description && <meta property="og:description" content={description} />}
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content={lang === 'nb' ? 'nb_NO' : 'en_US'} />
@@ -83,7 +87,7 @@ const alternates = LANGS.map((l) => ({
     <meta property="og:site_name" content="Alex Monkey Business" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
+    {description && <meta name="twitter:description" content={description} />}
     <meta name="twitter:image" content={ogImage} />
 
     <script is:inline>
