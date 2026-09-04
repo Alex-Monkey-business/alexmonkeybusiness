@@ -14,7 +14,7 @@
   padding: 16vh var(--s-8) 10vh;
 }
 @media (max-width: 820px) {
-  .about { padding: 15vh var(--s-4) 8vh; }
+  .about { padding: 13vh var(--s-4) 8vh; }
 }
 
 .about-grid {
@@ -25,11 +25,16 @@
   width: 100%;
 }
 @media (max-width: 820px) {
-  .about-grid { grid-template-columns: 1fr; gap: 40px; }
+  .about-grid { grid-template-columns: 1fr; gap: 24px; }
 }
 
 /* ============ PORTRAIT ============ */
 .about-portrait { margin: 0; width: 100%; max-width: 440px; }
+/* Stacked, the portrait is sized to leave the four names on the first
+   screen — it is the way in, not the destination. */
+@media (max-width: 820px) {
+  .about-portrait { max-width: min(100%, 30vh); }
+}
 .about-frame {
   position: relative;
   aspect-ratio: 1;
@@ -115,7 +120,7 @@
 }
 .about-row a {
   display: grid;
-  grid-template-columns: 2.6em minmax(8ch, 11ch) 1fr;
+  grid-template-columns: 2.6em auto minmax(0, 1fr);
   gap: clamp(12px, 1.6vw, 24px);
   align-items: baseline;
   padding: clamp(16px, 2.4vh, 26px) 0;
@@ -124,13 +129,26 @@
   text-decoration: none;
   position: relative;
 }
-.about-label { font-size: clamp(15px, 1.4vw, 19px); color: var(--fg3); }
-.about-value {
-  font-size: clamp(15px, 1.35vw, 20px);
-  text-transform: none;
-  word-break: break-all;
+/* The name is the row — the front page's menu size, in the face colour. */
+.about-label {
+  font-size: clamp(22px, 2.4vw, 34px);
+  color: var(--fg1);
   transition: color 180ms linear;
 }
+/* The address: there, but not until pointed at. One step smaller than the
+   name, in the signal, and it never wraps — it is a readout, not a paragraph. */
+.about-value {
+  font-size: clamp(13px, 1.1vw, 16px);
+  text-transform: none;
+  color: var(--signal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 160ms linear;
+}
+.about-row.on .about-value { opacity: 1; }
+.about-value .chi.noise { color: var(--fg3); }
 /* The hairline under the pointed-at row draws in the signal, from the left. */
 .about-row a::after {
   content: '';
@@ -146,12 +164,18 @@
 }
 .about-row a:hover::after,
 .about-row a:focus-visible::after { transform: scaleX(1); }
-.about-row a:hover .about-value,
-.about-row a:focus-visible .about-value { color: var(--signal); }
+.about-row a:hover .about-label,
+.about-row a:focus-visible .about-label { color: var(--signal); }
 
-@media (max-width: 820px) {
+/* No hover, no readout: the tap is the action. */
+@media (hover: none) {
   .about-row a { grid-template-columns: 2.4em 1fr; }
-  .about-value { grid-column: 2; }
+  .about-value { display: none; }
+}
+@media (max-width: 820px) {
+  .about-label { font-size: clamp(20px, 5.6vw, 26px); }
+  .about-row a { padding: 12px 0; }
+  .about-copy { gap: 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

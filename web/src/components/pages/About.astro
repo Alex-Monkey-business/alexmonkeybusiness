@@ -5,6 +5,17 @@
  * the page is the portrait and four channels — each a row, each a link — in
  * the idiom `/lab/natt` set: black ground, mono, one signal.
  *
+ * FOUR WORDS AT REST (4 Sep). The addresses used to stand next to the labels,
+ * and two of them said nothing: `@AlexSamnoy` and `in/alexander-samnøy` are
+ * the label again, spelled as a URL. So the row is the channel's name, at
+ * display size, and the address is what pointing at it reads out — decoded
+ * in beside the name, in the signal, the way the front page's readout does.
+ * Email and phone are the two anyone wants to copy, and they are still one
+ * hover away; on touch there is no hover, and the tap IS the action: mailto
+ * opens mail, tel puts the number in the dialler. No brand logos: the type is
+ * the iconography here, and a white X or LinkedIn mark is what every other
+ * portfolio does.
+ *
  * The portrait is the event. A cut-out on a black sweater against a black
  * page, so the figure has no edge to speak of, and it RESOLVES rather than
  * fades — from eight pixels across to sharp, the way the rows decode, with a
@@ -58,9 +69,9 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
     <div class="about-copy">
       <p class="about-eyebrow inst-label"><span data-type>{s.eyebrow}</span></p>
 
-      {/* The channels. Index, label, address — one line each, the whole line
-          the link. The address decodes; the label is plain, so the eye has
-          something to hold while the rest lands. */}
+      {/* The channels. Index and name — one line each, the whole line the
+          link. The name decodes in on load; the address sits beside it,
+          invisible until pointed at, then decodes in. */}
       <ul class="about-rows">
         {rows.map((r) => (
           <li class="about-row" style={`--i:${r.n}`}>
@@ -70,8 +81,8 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
               rel={r.external ? 'noopener noreferrer' : undefined}
             >
               <span class="inst-idx">{r.n}</span>
-              <span class="about-label inst-display">{r.label}</span>
-              <span class="about-value inst-display" data-decode>{r.value}</span>
+              <span class="about-label inst-display" data-decode>{r.label}</span>
+              <span class="about-value inst-display">{r.value}</span>
             </a>
           </li>
         ))}
@@ -85,19 +96,31 @@ const rows = contact.map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0'), l
 
   const root = document.querySelector<HTMLElement>('.about');
   if (root) {
-    /* Text: the name types; the addresses decode, a row at a time. */
+    /* Text: the name types; the channel names decode, a row at a time. */
     const eyebrow = root.querySelector<HTMLElement>('.about-eyebrow [data-type]');
     if (eyebrow) typeSelf(eyebrow, { delay: 300, speed: 16 });
-    root.querySelectorAll<HTMLElement>('.about-value').forEach((el, i) => {
-      decode(el, { delay: 700 + i * 260, perChar: 26 });
+    root.querySelectorAll<HTMLElement>('.about-label').forEach((el, i) => {
+      decode(el, { delay: 600 + i * 200, perChar: 40 });
     });
 
-    /* Pointing at a row flickers its address once before it settles. */
-    root.querySelectorAll<HTMLElement>('.about-row a').forEach((a) => {
-      a.addEventListener('pointerenter', () => {
+    /* Pointing at a row: the name flickers once, and the address decodes in
+       beside it. Leaving hides the address again (CSS, on `.on`). Focus does
+       the same, so a keyboard reads the same page a pointer does. */
+    root.querySelectorAll<HTMLElement>('.about-row').forEach((row) => {
+      const a = row.querySelector<HTMLElement>('a');
+      const value = row.querySelector<HTMLElement>('.about-value');
+      if (!a || !value) return;
+      const on = () => {
+        row.classList.add('on');
         if (still()) return;
-        a.querySelectorAll<HTMLElement>('.about-value .chi').forEach((c, i) => scramble(c, 80 + i * 10, 30));
-      });
+        a.querySelectorAll<HTMLElement>('.about-label .chi').forEach((c, i) => scramble(c, 60 + i * 12, 30));
+        decode(value, { delay: -160, perChar: 18, flip: 35 });
+      };
+      const off = () => row.classList.remove('on');
+      a.addEventListener('pointerenter', on);
+      a.addEventListener('pointerleave', off);
+      a.addEventListener('focus', on);
+      a.addEventListener('blur', off);
     });
 
     /**
