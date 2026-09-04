@@ -34,9 +34,33 @@
 
 html:has(.inst),
 body:has(.inst) { background: #000; }
+
+/* The one-screen menu is a `.variant`, and `variant-base.css` resolves the
+   accent per THEME: lavender on dark, forest on light. The instrument is
+   always dark, so a visitor who once chose light on the old design got a
+   green name on hover here (Safari, 4 Sep). The token is re-pinned on the
+   variant itself, which is the scope the leak came from. */
+.inst .variant,
+.inst.variant {
+  --hot: var(--signal);
+  --em-color: var(--signal);
+}
 /* The Layout's nav pill reads the site's lavender; retinted from the root so
    the page does not carry a second accent. */
 html:has(.inst) { --lavender: #d6a4ff; --lavender-d: #c98bff; }
+/* THE INSTRUMENT DOES NOT HAVE A LIGHT THEME. The palette above is scoped to
+   `.inst`, but the Layout's nav and the one-screen signature sit outside it
+   and read the site tokens — which flip to ink-on-cream for a visitor who
+   chose light on the old design, leaving a near-black mark on a black page.
+   With an instrument on the page, the root wears its palette too. */
+html:has(.inst) {
+  --bg: #000;
+  --fg1: #ffffeb;
+  --fg2: #d8d8c6;
+  --fg3: #93938a;
+  --fg4: #55554e;
+  --border-hair: #2a2a28;
+}
 /* The language hint is a pill floating over the page; the instrument's menu
    carries the other language as a row, so the pill is a second way to say it. */
 html:has(.inst) .lang-hint { display: none; }

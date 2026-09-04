@@ -35,21 +35,23 @@ const SOURCE = 'https://commons.wikimedia.org/wiki/File:Alps_of_Switzerland_Matt
 const LICENCE = 'https://creativecommons.org/licenses/by/2.0/';
 
 /* The readout. Idle: nothing — the block cursor alone, a terminal waiting.
-   Pointing at a name: its ridge, its side, the year it was first climbed —
-   Whymper's party on the Hörnli in 1865, Mummery on the Zmutt in 1879. (The
-   mountain's coordinates sat here first, then a cycle through snow and sand,
-   then Costanza; Alex cut them all, and chose the empty prompt over live
-   weather from the summit. Someone else's line is someone else's voice.) */
+   Pointing at a name: a reading of the place you are about to go, in the
+   instrument's own voice. Not an explanation («see my projects») — a fact
+   about the work, and an open door with the one hint of powder the surface
+   allows itself. (The ridge names and first-ascent years sat here before,
+   and before them coordinates, a snow/sand cycle and Costanza; Alex cut them
+   all. This is the tagline's job, moved to the only place it earns its line:
+   under the pointer, for the row it belongs to.) */
 const readout = nb
   ? {
       idle: '',
-      hornligrat: 'HÖRNLIGRAT · NORDØSTRYGGEN · 1865',
-      zmuttgrat: 'ZMUTTGRAT · NORDVESTRYGGEN · 1879',
+      hornligrat: 'LAGET PÅ KVELDSTID · I BRUK PÅ DAGTID',
+      zmuttgrat: 'PROSJEKT, JOBB ELLER PUDDER · SVARER PÅ ALT',
     }
   : {
       idle: '',
-      hornligrat: 'HÖRNLIGRAT · NORTH-EAST RIDGE · 1865',
-      zmuttgrat: 'ZMUTTGRAT · NORTH-WEST RIDGE · 1879',
+      hornligrat: 'BUILT AFTER HOURS · USED DURING THEM',
+      zmuttgrat: 'WORK, IDEAS OR POWDER · I ANSWER EVERYTHING',
     };
 ---
 
