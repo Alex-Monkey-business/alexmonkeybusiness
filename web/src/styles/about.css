@@ -107,17 +107,23 @@
    still land on the first screen. The mask and the shade re-centre with it. */
 @media (max-width: 820px) {
   .about-portrait { max-width: 100%; }
+  /* The shade is the desktop's, untouched: centring the face and thinning
+     the shadow made it a passport photo (Alex: «trøkt»). The face sits a
+     little left of centre so the right cheek falls into the black the way it
+     does on the wide screen. */
   .about-frame {
     aspect-ratio: 5 / 3;
-    -webkit-mask-image: radial-gradient(ellipse 62% 92% at 50% 48%, #000 40%, transparent 100%);
-            mask-image: radial-gradient(ellipse 62% 92% at 50% 48%, #000 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 66% 94% at 44% 46%, #000 42%, transparent 100%);
+            mask-image: radial-gradient(ellipse 66% 94% at 44% 46%, #000 42%, transparent 100%);
   }
   .about-img,
-  .about-px { object-position: 50% 22%; }
+  .about-px { object-position: 42% 22%; }
+  /* In a frame this wide the face is the middle third, so the shadow has to
+     start further right than on the square or it covers the whole face. */
   .about-shade {
     background:
       linear-gradient(to bottom, transparent 62%, #000 100%),
-      linear-gradient(to left, #000 4%, rgba(0, 0, 0, 0.8) 18%, rgba(0, 0, 0, 0.3) 38%, transparent 56%);
+      linear-gradient(to left, #000 8%, rgba(0, 0, 0, 0.85) 24%, rgba(0, 0, 0, 0.35) 42%, transparent 56%);
   }
 }
 
