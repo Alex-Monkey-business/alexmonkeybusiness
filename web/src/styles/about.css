@@ -111,13 +111,16 @@
      the shadow made it a passport photo (Alex: «trøkt»). The face sits a
      little left of centre so the right cheek falls into the black the way it
      does on the wide screen. */
+  /* 4:3, cut from the TOP of the photograph: the hair has to be in the
+     frame, and the mask cannot fade it out either — so the ellipse is taller
+     than the frame and its solid core reaches the top edge. */
   .about-frame {
-    aspect-ratio: 5 / 3;
-    -webkit-mask-image: radial-gradient(ellipse 66% 94% at 44% 46%, #000 42%, transparent 100%);
-            mask-image: radial-gradient(ellipse 66% 94% at 44% 46%, #000 42%, transparent 100%);
+    aspect-ratio: 4 / 3;
+    -webkit-mask-image: radial-gradient(ellipse 66% 110% at 44% 52%, #000 44%, transparent 100%);
+            mask-image: radial-gradient(ellipse 66% 110% at 44% 52%, #000 44%, transparent 100%);
   }
   .about-img,
-  .about-px { object-position: 42% 22%; }
+  .about-px { object-position: 42% 0%; }
   /* In a frame this wide the face is the middle third, so the shadow has to
      start further right than on the square or it covers the whole face. */
   .about-shade {
