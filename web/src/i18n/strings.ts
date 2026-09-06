@@ -22,11 +22,12 @@ export const strings = {
       aboutTitle: 'Kontakt — Alex Monkey Business',
     },
     nav: { projects: 'Prosjekter', about: 'Kontakt', cta: 'Ta kontakt', menu: 'Meny', close: 'Lukk' },
-    /** Warmer than «Prosjekter», and it says what the section actually is.
-        It no longer matches the nav item — see the note in the nav strings. */
-    work: { label: 'Ting jeg har laget' },
-    /** The one card on the landing page that is not a project. */
-    aboutCard: { title: 'Kontakt', titleEm: 'meg' },
+    /** A VERB, because the row is a button. «Ting jeg har laget» was a
+        heading, and people tested on the front page read it as one — a list,
+        not a thing to press (Sep 2026). Nouns label; verbs act. */
+    work: { label: 'Se hva jeg har laget' },
+    /** The other row on the front page, and the nav's name for /about. */
+    aboutCard: { title: 'Ta', titleEm: 'kontakt' },
     card: { readCase: 'Les caset', visitSite: 'Se siden', inProgress: 'Underveis' },
     footer: { email: 'E-post', github: 'GitHub', about: 'Om' },
     /** The contact page. Four channels and nothing else — the rest of what
@@ -91,11 +92,9 @@ export const strings = {
       aboutTitle: 'Contact — Alex Monkey Business',
     },
     nav: { projects: 'Projects', about: 'Contact', cta: 'Get in touch', menu: 'Menu', close: 'Close' },
-    /** Warmer than "Projects", and it says what the section actually is.
-        It no longer matches the nav item — see the note in the nav strings. */
-    work: { label: "Things I've made" },
-    /** The one card on the landing page that is not a project. */
-    aboutCard: { title: 'Contact', titleEm: 'me' },
+    /** A verb, because the row is a button — see the Norwegian note. */
+    work: { label: "See what I've made" },
+    aboutCard: { title: 'Get in', titleEm: 'touch' },
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
     footer: { email: 'Email', github: 'GitHub', about: 'About' },
     about: {
