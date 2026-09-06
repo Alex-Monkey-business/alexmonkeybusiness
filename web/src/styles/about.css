@@ -30,11 +30,6 @@
 
 /* ============ PORTRAIT ============ */
 .about-portrait { margin: 0; width: 100%; max-width: 440px; }
-/* Stacked, the portrait is sized to leave the four names on the first
-   screen — it is the way in, not the destination. */
-@media (max-width: 820px) {
-  .about-portrait { max-width: min(100%, 30vh); }
-}
 .about-frame {
   position: relative;
   aspect-ratio: 1;
@@ -104,6 +99,27 @@
   }
 }
 
+
+/* STACKED, THE FRAME IS WIDE AND SHORT. Shrinking the square to fit the four
+   names on the first screen made the face an avatar in a corner. Instead the
+   frame keeps the full width and gives up height — 5:3, cropped at the chest,
+   the face held high in it — so the portrait is big and centred and the names
+   still land on the first screen. The mask and the shade re-centre with it. */
+@media (max-width: 820px) {
+  .about-portrait { max-width: 100%; }
+  .about-frame {
+    aspect-ratio: 5 / 3;
+    -webkit-mask-image: radial-gradient(ellipse 62% 92% at 50% 48%, #000 40%, transparent 100%);
+            mask-image: radial-gradient(ellipse 62% 92% at 50% 48%, #000 40%, transparent 100%);
+  }
+  .about-img,
+  .about-px { object-position: 50% 22%; }
+  .about-shade {
+    background:
+      linear-gradient(to bottom, transparent 62%, #000 100%),
+      linear-gradient(to left, #000 4%, rgba(0, 0, 0, 0.8) 18%, rgba(0, 0, 0, 0.3) 38%, transparent 56%);
+  }
+}
 
 /* ============ CHANNELS ============ */
 .about-copy {
