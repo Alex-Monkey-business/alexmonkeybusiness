@@ -64,29 +64,20 @@ type Row = {
   to?: string;
 };
 
-const byKey = Object.fromEntries(projects.map((p) => [p.slug, p]));
-
 const LEVELS: Record<string, Row[]> = {
   root: [
     { key: 'work', title: s.work.label, seg: 'hornligrat', to: 'work' },
     { key: 'about', ...s.aboutCard, seg: 'zmuttgrat', href: path(lang, '/about') },
   ],
   work: [
-    {
-      key: 'halsen-g15',
-      title: byKey['halsen-g15'].title,
-      titleEm: byKey['halsen-g15'].titleEm,
-      seg: 'hornligrat',
-      href: path(lang, '/projects/halsen-g15'),
-    },
-    {
-      key: 'simons-solfilm',
-      title: byKey['simons-solfilm'].title,
-      titleEm: byKey['simons-solfilm'].titleEm,
-      seg: 'zmuttgrat',
-      href: byKey['simons-solfilm'].url,
-      external: true,
-    },
+    ...projects.map((p, i): Row => ({
+      key: p.slug,
+      title: p.title,
+      titleEm: p.titleEm,
+      seg: i % 2 === 0 ? 'hornligrat' : 'zmuttgrat',
+      href: p.url ?? path(lang, `/projects/${p.slug}`),
+      external: Boolean(p.url),
+    })),
     { key: 'back', title: back, to: 'root' },
   ],
 };

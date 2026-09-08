@@ -1,21 +1,20 @@
-import pkg from 'playwright';
-const { chromium } = pkg;
+import { chromium } from 'playwright';
 import { fileURLToPath } from 'node:url';
-const HERE = fileURLToPath(new URL('./', import.meta.url));
-const DIR = HERE + 'rec';
-const AT = { hjem: 2.0, trening: 2.4, matchmode: 12.0, 'trening-end': 14.0 };
+import fs from 'node:fs';
+const DIR = fileURLToPath(new URL('./rec/', import.meta.url));
+const AT = { hjem: 2, trening: 2, ovelsesbank: 4, matchmode: 14, filter: 3, 'stats-teams': 2, cup: 2 };
 const b = await chromium.launch();
-const p = await b.newPage({ viewport:{ width: 390, height: 844 }, deviceScaleFactor: 2 });
-for (const [key, t] of Object.entries(AT)) {
-  const name = key.replace('-end','');
-  await p.goto(`file://${DIR}/frames.html`);
-  await p.evaluate(async ({ src, t }) => {
-    const v = document.getElementById('v'); v.src = src;
-    await Promise.race([new Promise(r => v.addEventListener('loadedmetadata', r, {once:true})), new Promise(r => setTimeout(r, 5000))]);
-    v.currentTime = t;
-    await Promise.race([new Promise(r => v.addEventListener('seeked', r, {once:true})), new Promise(r => setTimeout(r, 3000))]);
-  }, { src: `file://${DIR}/${name}.webm`, t });
-  await p.locator('#v').screenshot({ path: `${DIR}/${key}-poster.jpg`, type: 'jpeg', quality: 82 });
-  console.log(key, '@', t);
-}
-await b.close();
+try {
+  const p = await b.newPage({ viewport: {width:390,height:844}, deviceScaleFactor:2 });
+  fs.writeFileSync(DIR+'frames.html', '<style>body{margin:0}video{width:390px;height:844px;display:block}</style><video id="v" muted></video>');
+  for (const [name,t] of Object.entries(AT)) {
+    await p.goto('file://'+DIR+'frames.html');
+    await p.evaluate(async ({src,t}) => {
+      const v=document.querySelector('video');
+      await new Promise((resolve,reject)=>{v.onloadedmetadata=resolve;v.onerror=reject;v.src=src;});
+      await new Promise(resolve=>{v.onseeked=resolve;v.currentTime=t;});
+    },{src:`file://${DIR}${name}.webm`,t});
+    await p.locator('video').screenshot({path:DIR+name+'-poster.jpg',type:'jpeg',quality:85});
+    console.log(name,t);
+  }
+} finally {await b.close();}

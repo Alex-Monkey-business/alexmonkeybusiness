@@ -21,6 +21,12 @@ export const projects: Project[] = [
     year: '2026',
   },
   {
+    slug: 'larvik-beach',
+    title: 'Larvik',
+    titleEm: 'Beach Volley',
+    year: '2026',
+  },
+  {
     slug: 'simons-solfilm',
     title: 'Simons',
     titleEm: 'Solfilm',

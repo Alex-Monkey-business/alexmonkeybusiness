@@ -15,17 +15,18 @@ const s = t(lang).case;
    Media and pacing live here; the prose lives in src/i18n/strings.ts, paired to
    these by index. */
 const media = [
-  { src: '/assets/halsen/hjem.webm',         poster: '/assets/halsen/hjem-poster.jpg' },
+  { src: '/assets/halsen/hjem.webm',         poster: '/assets/halsen/hjem-poster.jpg', start: 2 },
   // The take opens with eight taps to build the lineup, which reads as a
   // bottom sheet flapping. Start the loop on the running clock instead.
-  { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 12 },
-  { src: '/assets/halsen/filter.webm',       poster: '/assets/halsen/filter-poster.jpg' },
-  { src: '/assets/halsen/stats-teams.webm',  poster: '/assets/halsen/stats-teams-poster.jpg' },
+  { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 14 },
+  { src: '/assets/halsen/filter.webm',       poster: '/assets/halsen/filter-poster.jpg', start: 3 },
+  { src: '/assets/halsen/stats-teams.webm',  poster: '/assets/halsen/stats-teams-poster.jpg', start: 2 },
   { src: '/assets/halsen/loan-suggest.webm', poster: '/assets/halsen/loan-suggest-poster.jpg' },
   // Håndbok og treningsplan var to seksjoner. Uka bærer begge: øvelsesbanken
   // og håndboka er inngangene nederst, og tida per øvelse er poenget.
-  { src: '/assets/halsen/trening.webm',      poster: '/assets/halsen/trening-poster.jpg' },
-  { src: '/assets/halsen/cup.webm',          poster: '/assets/halsen/cup-poster.jpg' },
+  { src: '/assets/halsen/trening.webm',      poster: '/assets/halsen/trening-poster.jpg', start: 2 },
+  { src: '/assets/halsen/ovelsesbank.webm', poster: '/assets/halsen/ovelsesbank-poster.jpg', start: 4 },
+  { src: '/assets/halsen/cup.webm',          poster: '/assets/halsen/cup-poster.jpg', start: 2 },
 ];
 
 const features = s.features.map((f, i) => ({

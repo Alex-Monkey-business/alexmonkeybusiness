@@ -1,0 +1,38 @@
+---
+import { t, path, type Lang } from '../../i18n';
+import '../../styles/instrument.css';
+import '../../styles/halsen.css';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const s = t(lang).beach;
+---
+
+<div class="case inst">
+  <a href={path(lang, '/#projects')} class="case-back">{t(lang).case.back.replace('←', '<')}</a>
+  <section class="case-hero">
+    <p class="case-eyebrow inst-label"><span class="inst-idx">00</span> {s.eyebrow}</p>
+    <h1 class="case-title inst-display" style="--vt: vt-larvik-beach">Larvik <span class="em">Beach Volley</span></h1>
+    <p class="case-lede inst-body">{s.lede}</p>
+  </section>
+  {s.features.map((f, i) => (
+    <section class={`case-feature is-in${i % 2 ? ' flipped' : ''}`}>
+      <div class="case-feature-copy">
+        <span class="ft-num inst-idx">{String(i + 1).padStart(2, '0')}</span>
+        <h2 class="ft-h inst-display">{f.h}</h2>
+        <p class="ft-p inst-body">{f.p}</p>
+      </div>
+      <div class="case-feature-stage">
+        <div class="phone beach-phone">
+          <img src={`/assets/larvik-beach/${f.image}.jpg`} alt={f.alt} width="780" height="1688" loading="lazy" />
+        </div>
+      </div>
+    </section>
+  ))}
+  <div class="case-stack inst-label">{s.stack}</div>
+</div>
+
+<style>
+  .beach-phone { aspect-ratio: auto; }
+  .beach-phone img { display: block; width: 100%; height: auto; border-radius: var(--screen-radius); }
+</style>

@@ -180,17 +180,18 @@
   --t-green-fg: #3d5c44; --t-green-bg: #e2edde;
   --t-red-fg:   #7a3a24; --t-red-bg:   #f8e8e0;
   --t-white-fg: #5c5c57; --t-white-bg: #f1f0ea;
-  --phone-bezel: #15140f;
+  --phone-bezel: #171718;
+  --phone-radius: 36px;
+  --screen-radius: 28px;
 
   position: relative;
   width: 340px;
   max-width: 86vw;
   aspect-ratio: 390 / 844;
   background: var(--phone-bezel);
-  /* 8px at this width was a hairline — the frame read as a rounded
-     screenshot outline rather than a device */
-  padding: 12px;
-  border-radius: 52px;
+  /* A slim bezel leaves more room for the real app; radii share one inset. */
+  padding: 8px;
+  border-radius: var(--phone-radius);
   /* No drop shadow — this system separates by fill and border, not depth.
      On the velvet canvas a near-black frame needs a rim to exist at all. */
   border: 1px solid rgba(26, 26, 26, 0.9);
@@ -205,7 +206,7 @@ html.dark .phone { border-color: rgba(255, 255, 235, 0.16); }
    reference is explicit that these are flat illustrations, not renders. */
 html.dark .phone {
   /* Lifted off pure black: a #000 frame vanishes into the #121211 canvas */
-  --phone-bezel: #2b2b28;
+  --phone-bezel: #171718;
   --app-bg: #0e0e0d;
   --app-surface: #19191a;
   --app-border: #2b2b28;
@@ -284,19 +285,19 @@ html.dark .phone {
    crops off the sides of every screen. Letting the video carry its own ratio
    means nothing is cropped at all. 780x1688 is the recording size — a 390x844
    viewport painted at 2x.
-   Inner radius = outer 52 - bezel 12. */
+   Inner radius = outer 36 - bezel 8. */
 .phone--video { aspect-ratio: auto; }
 .phone-video {
   width: 100%;
   height: auto;
   aspect-ratio: 780 / 1688;
   object-fit: contain;
-  border-radius: 40px;
+  border-radius: var(--screen-radius);
   display: block;
   background: #ffffff;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .case-feature, .case-list li { opacity: 1 !important; transform: none !important; }
+  .case-lede, .case-feature, .case-list li { opacity: 1 !important; transform: none !important; }
   .case-stack .live::before { animation: none; }
 }
