@@ -87,7 +87,7 @@ export const strings = {
     },
     beach: {
       eyebrow: 'BEACHVOLLEY I LARVIK',
-      lede: 'Hvem kommer, hvem vant, og hva skylder jeg? En app for beachvolley-gjengen i Larvik som samler påmelding, automatisk kampoppsett, lagtrekning og spleis på hallen. Mindre administrasjon mellom øktene, mer tid til å spille.',
+      lede: 'Hvem kommer, hvem vant, og hva skylder jeg? En app for Larvik Beach Volley klubb som samler påmelding, automatisk kampoppsett, lagtrekning og spleis på hallen. Mindre administrasjon mellom øktene, mer tid til å spille.',
       stack: 'Design + utvikling · Alex · 2026',
       features: [
         { h: 'Blir du med på neste økt?', p: 'Se når og hvor dere spiller, hvem som kommer og om det er plass. Meld deg på, eller sett deg på ventelista når økta er full.', alt: 'Neste økt med påmelding og deltakerliste', image: 'spill' },
@@ -97,7 +97,7 @@ export const strings = {
     },
     projects: {
       'halsen-g15': 'Kamper, spilletid og trening samlet i én trenerapp.',
-      'larvik-beach': 'Påmelding, kamper og spleis for beachvolley-gjengen.',
+      'larvik-beach': 'Påmelding, kamper og spleis for Larvik Beach Volley klubb.',
       'simons-solfilm': 'Nettside for et solfilmfirma i Larvik.',
     } as Record<string, string>,
   },
@@ -167,7 +167,7 @@ export const strings = {
     },
     beach: {
       eyebrow: 'BEACH VOLLEYBALL IN LARVIK',
-      lede: "Who is coming, who won, and what do I owe? An app for a beach volleyball group in Larvik, bringing sign-ups, automatic match schedules, team draws and shared hall costs together. Less admin between sessions, more time to play.",
+      lede: "Who is coming, who won, and what do I owe? An app for Larvik Beach Volley club, bringing sign-ups, automatic match schedules, team draws and shared hall costs together. Less admin between sessions, more time to play.",
       stack: 'Design + build · Alex · 2026',
       features: [
         { h: 'Joining the next session?', p: 'See when and where you play, who is coming and whether there is room. Sign up, or join the waiting list when the session is full.', alt: 'Next session with sign-up and attendance list', image: 'spill' },
@@ -177,7 +177,7 @@ export const strings = {
     },
     projects: {
       'halsen-g15': 'Fixtures, playing time and training in one coaching app.',
-      'larvik-beach': 'Sign-ups, matches and shared costs for a beach volleyball group.',
+      'larvik-beach': 'Sign-ups, matches and shared costs for Larvik Beach Volley club.',
       'simons-solfilm': 'A site for a window-tint shop in Larvik.',
     } as Record<string, string>,
   },
