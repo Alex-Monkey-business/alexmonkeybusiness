@@ -105,6 +105,13 @@ const alternates = LANGS.map((l) => ({
     </script>
   </head>
   <body>
+    <!-- Sidevisninger og klientfeil til den felles telemetri-tabellen.
+         Astro bunter denne som en modul; den kjører etter paint og kan
+         ikke stoppe siden. -->
+    <script>
+      import { startSporing } from '../lib/sporing.js';
+      startSporing({ prosjekt: 'alexmonkeybusiness', feil: true });
+    </script>
     {nav === 'inst' ? <InstNav lang={lang} /> : <Nav lang={lang} />}
     <LangHint lang={lang} />
     <main id="top">
