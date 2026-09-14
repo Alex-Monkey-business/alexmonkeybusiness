@@ -50,7 +50,7 @@ export const strings = {
         { em: 'Excel-eksport', rest: ' til sesongregnskapet.' },
       ],
       stack: ['Live med Halsen G2015', 'Tre lag, to cuplag', 'Design + utvikling · Alex'],
-      /* Seven chapters, one line each. The heading names the coach's problem,
+      /* Six chapters, one line each. The heading names the coach's problem,
          the line says what the app does about it — nothing more. The day view
          opens: it is the claim the rest of the page proves (Alex, 14 Sep). */
       features: [
@@ -77,10 +77,6 @@ export const strings = {
         {
           h: 'Over 100 øvelser. Rett på feltet.',
           p: 'Fra Tiim og NFF, med video og hva du skal si til spillerne.',
-        },
-        {
-          h: 'Tolv kamper. To dager. To lag.',
-          p: 'Bane, avspark og kampnummer, filtrert per lag.',
         },
       ],
     },
@@ -153,10 +149,6 @@ export const strings = {
         {
           h: 'Over 100 drills. Ready for the pitch.',
           p: 'From Tiim and NFF, with video and what to tell the players.',
-        },
-        {
-          h: 'Twelve matches. Two days. Two teams.',
-          p: 'Pitch, kick-off and match number, filtered per team.',
         },
       ],
     },

@@ -25,12 +25,11 @@ const media = [
   // og håndboka er inngangene nederst, og tida per øvelse er poenget.
   { src: '/assets/halsen/trening.webm',      poster: '/assets/halsen/trening-poster.jpg', start: 2 },
   { src: '/assets/halsen/ovelsesbank.webm', poster: '/assets/halsen/ovelsesbank-poster.jpg', start: 4 },
-  { src: '/assets/halsen/cup.webm',          poster: '/assets/halsen/cup-poster.jpg', start: 2 },
 ];
-// Cut 14 Sep 2026: filter.webm (one squad at a time) — real, but not a reason
-// to build the app. The day view was cut in the same pass and put back the
+// Cut 14 Sep 2026: filter.webm (one squad at a time) and cup.webm (the cup
+// schedule) — real, but not a reason to build the app. The day view was cut in the same pass and put back the
 // same morning: it is the strongest claim the app makes, that the coach does
-// not have to remember. The file stays in public/assets/halsen.
+// not have to remember. The files stay in public/assets/halsen.
 
 const features = s.features.map((f, i) => ({
   ...f,
