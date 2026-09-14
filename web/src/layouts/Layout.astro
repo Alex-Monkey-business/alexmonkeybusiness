@@ -3,6 +3,7 @@ import '../styles/global.css';
 import '../styles/landing.css';
 import Nav from '../components/Nav.astro';
 import InstNav from '../components/InstNav.astro';
+import type { PhotoCredit } from '../data/photoCredit';
 import Footer from '../components/Footer.astro';
 import LangHint from '../components/LangHint.astro';
 import { langFromUrl, t, path, stripLang, HTML_LANG, LANGS } from '../i18n';
@@ -14,6 +15,9 @@ interface Props {
   accent?: string;
   /** The instrument pages have their own nav — one button, black panel. */
   nav?: 'wispr' | 'inst';
+  /** A page that borrows a photograph owes a credit; the instrument nav
+      prints it in the menu panel, where the ground is always black. */
+  credit?: PhotoCredit;
 }
 
 const lang = langFromUrl(Astro.url);
@@ -24,6 +28,7 @@ const {
   description = '',
   accent,
   nav = 'wispr',
+  credit,
 } = Astro.props;
 
 const htmlStyle = accent ? `--accent: ${accent};` : undefined;
@@ -112,7 +117,7 @@ const alternates = LANGS.map((l) => ({
       import { startSporing } from '../lib/sporing.js';
       startSporing({ prosjekt: 'alexmonkeybusiness', feil: true });
     </script>
-    {nav === 'inst' ? <InstNav lang={lang} /> : <Nav lang={lang} />}
+    {nav === 'inst' ? <InstNav lang={lang} credit={credit} /> : <Nav lang={lang} />}
     <LangHint lang={lang} />
     <main id="top">
       <div class="page"><slot /></div>

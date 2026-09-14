@@ -16,9 +16,11 @@
  */
 import AmbMark from './brand/AmbMark.astro';
 import { t, path, otherLang, stripLang, type Lang } from '../i18n';
+import type { PhotoCredit } from '../data/photoCredit';
 
-interface Props { lang: Lang }
-const { lang } = Astro.props;
+interface Props { lang: Lang; credit?: PhotoCredit }
+const { lang, credit } = Astro.props;
+const creditWords = lang === 'nb' ? { photo: 'Foto', edited: 'bearbeidet' } : { photo: 'Photo', edited: 'edited' };
 const s = t(lang);
 const other = otherLang(lang);
 const bare = stripLang(Astro.url.pathname);
@@ -57,7 +59,16 @@ const year = new Date().getFullYear();
       </li>
     ))}
   </ul>
-  <p class="inav-foot inst-label">ALEX MONKEY BUSINESS · {year}</p>
+  <p class="inav-foot inst-label">
+    ALEX MONKEY BUSINESS · {year}
+    {credit && (
+      <span class="inav-credit">
+        {creditWords.photo}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a>
+        · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a>
+        · {creditWords.edited}
+      </span>
+    )}
+  </p>
 </div>
 
 <style>
@@ -163,9 +174,14 @@ const year = new Date().getFullYear();
   .inav-foot {
     position: absolute;
     left: clamp(24px, 5vw, 64px);
+    right: clamp(24px, 5vw, 64px);
     bottom: clamp(24px, 5vw, 64px);
     margin: 0;
   }
+  /* Owed, not said: one step quieter, its own line. */
+  .inav-credit { display: block; margin-top: 0.6em; color: var(--fg4); text-transform: uppercase; }
+  .inav-credit a { color: inherit; text-decoration: none; border-bottom: 1px solid currentColor; }
+  .inav-credit a:hover { color: var(--fg2); }
 
   @media (prefers-reduced-motion: reduce) {
     .inav-tracks path, .inav-panel, .inav-rows a::after { transition: none; }

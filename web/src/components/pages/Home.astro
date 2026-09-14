@@ -18,10 +18,12 @@
  * That is a real cost and it is stated rather than hidden: the theme toggle
  * still works everywhere else on the site, and on this page it does nothing.
  *
- * THE PHOTOGRAPH IS CREDITED ON THE PAGE. CC BY 2.0 asks for the author, the
- * licence and a note that the work was altered; all three run on from the
- * signature at the bottom, in `mix-blend-mode: difference` — white on sky,
- * black on snow, legible wherever the mountain happens to be underneath.
+ * THE PHOTOGRAPH IS CREDITED IN THE MENU PANEL, not on the picture. The line
+ * sat at the bottom of this screen first — `difference` blend came out as
+ * fragments on the snow, then a black caption plate, which Alex cut on 14 Sep
+ * 2026: it was a rectangle on the mountain. The routes pass `matterhornCredit`
+ * to Layout, and InstNav prints it under the panel's signature. Nothing but
+ * the mark, the menu and the mountain is on this screen now.
  */
 import OneScreen from '../OneScreen.astro';
 import Natt from '../Natt.astro';
@@ -30,9 +32,6 @@ import '../../styles/instrument.css';
 
 const lang = langFromUrl(Astro.url);
 const nb = lang === 'nb';
-const credit = nb ? { photo: 'Foto', edited: 'bearbeidet' } : { photo: 'Photo', edited: 'edited' };
-const SOURCE = 'https://commons.wikimedia.org/wiki/File:Alps_of_Switzerland_Matterhorn_(23979169808).jpg';
-const LICENCE = 'https://creativecommons.org/licenses/by/2.0/';
 
 /* The readout. Idle: nothing — the block cursor alone, a terminal waiting.
    Pointing at a name: a reading of the place you are about to go, in the
@@ -58,11 +57,6 @@ const readout = nb
 <div class="always-dark inst" data-readout={JSON.stringify(readout)}>
   <OneScreen>
     <Natt />
-    <span slot="credit" class="credit">
-      {credit.photo}: <a href={SOURCE} target="_blank" rel="noopener noreferrer">kuhnmi</a>
-      · <a href={LICENCE} target="_blank" rel="noopener noreferrer">CC BY 2.0</a>
-      · {credit.edited}
-    </span>
   </OneScreen>
 </div>
 
@@ -246,31 +240,13 @@ const readout = nb
   }
   @keyframes blink { 50% { opacity: 0; } }
 
-  /* ---- Signature and credit, at the bottom, on a caption plate ----------- */
+  /* ---- No signature line ------------------------------------------------- */
 
   /* The bottom of this screen is snow at desktop widths and shoulder at phone
-     widths, and small type on a high-frequency texture is not legible in any
-     colour — `difference` was tried and came out as fragments. So the line
-     gets a plate: solid black, no border, sized to the text. On sky it is
-     invisible; on the mountain it is a caption strip on a print. */
-  .always-dark :global(.sig) {
-    justify-self: start;
-    font-family: var(--font-inst);
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--fg2);
-    background: #000;
-    padding: 8px 12px;
-    margin: -8px -12px;
-  }
-  .always-dark :global(.credit) { color: var(--fg3); }
-  .credit a {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px solid currentColor;
-  }
+     widths. Small type there needed a black plate to be read, and the plate
+     was a rectangle on the mountain. The mark in the nav is the signature;
+     the photo credit is in the menu panel. */
+  .always-dark :global(.sig) { display: none; }
 
   /* Portrait: index margin is dear on a phone; keep it, shrink it. */
   @media (orientation: portrait) and (max-width: 820px) {
@@ -280,17 +256,6 @@ const readout = nb
     .always-dark :global(.row) { font-size: clamp(15px, 4.4vw, 22px); }
     .always-dark :global(.level li::before) { left: -2em; }
     .always-dark :global(.readout) { white-space: normal; letter-spacing: 0.14em; }
-    /* The plate was two lines and a quarter of the screen. On a phone the
-       name is already the mark in the nav, so only what is owed stays — the
-       credit, one line, as small as it can be read. */
-    .always-dark :global(.sig) {
-      font-size: 9px;
-      letter-spacing: 0.1em;
-      padding: 6px 8px;
-      margin: -6px -8px;
-    }
-    .always-dark :global(.sig-name) { display: none; }
-    .always-dark :global(.credit) { display: inline; margin: 0; }
   }
 
   @media (prefers-reduced-motion: reduce) {

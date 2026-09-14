@@ -1,8 +1,9 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { matterhornCredit } from '../../data/photoCredit';
 import Home from '../../components/pages/Home.astro';
 ---
 
-<Layout nav="inst">
+<Layout nav="inst" credit={matterhornCredit}>
   <Home />
 </Layout>
