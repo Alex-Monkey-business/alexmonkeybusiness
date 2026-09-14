@@ -73,7 +73,13 @@ const year = new Date().getFullYear();
     padding: clamp(18px, 3vw, 32px) clamp(20px, 4vw, 56px);
     pointer-events: none;
     color: var(--fg1, #ffffeb);
+    transition: transform 360ms var(--ease-out), opacity 360ms var(--ease-out);
   }
+  /* On a phone the content runs the full width, so a scrolled heading lands
+     under the mark. Rather than a plate over the page, the nav leaves while
+     you read downwards and comes back the moment you scroll up. Desktop keeps
+     it: the margins are wide enough that nothing ever reaches it. */
+  .inav.away { transform: translateY(-120%); opacity: 0; }
   .inav > * { pointer-events: auto; }
   .inav-home { color: inherit; display: inline-flex; }
   :global(.inav-mark) { display: block; }
@@ -201,12 +207,34 @@ const year = new Date().getFullYear();
   };
   const to = (t: number) => { target = t; if (!raf && !still()) raf = requestAnimationFrame(tick); };
 
+  const nav = document.querySelector<HTMLElement>('.inav');
+  const narrow = window.matchMedia('(max-width: 860px)');
+  if (nav) {
+    let lastY = window.scrollY, ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const y = window.scrollY;
+        const isOpen = btn?.getAttribute('aria-expanded') === 'true';
+        if (!narrow.matches || isOpen || y < 80) nav.classList.remove('away');
+        else if (y > lastY + 4) nav.classList.add('away');
+        else if (y < lastY - 4) nav.classList.remove('away');
+        lastY = y;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    narrow.addEventListener('change', () => { if (!narrow.matches) nav.classList.remove('away'); });
+  }
+
   if (btn && panel) {
     let open = false;
     const rows = Array.from(panel.querySelectorAll<HTMLElement>('[data-decode]'));
 
     const show = () => {
       open = true;
+      nav?.classList.remove('away');
       to(0);
       btn.setAttribute('aria-expanded', 'true');
       panel.hidden = false;
