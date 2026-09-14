@@ -15,11 +15,9 @@ const s = t(lang).case;
    Media and pacing live here; the prose lives in src/i18n/strings.ts, paired to
    these by index. */
 const media = [
-  { src: '/assets/halsen/hjem.webm',         poster: '/assets/halsen/hjem-poster.jpg', start: 2 },
   // The take opens with eight taps to build the lineup, which reads as a
   // bottom sheet flapping. Start the loop on the running clock instead.
   { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 14 },
-  { src: '/assets/halsen/filter.webm',       poster: '/assets/halsen/filter-poster.jpg', start: 3 },
   { src: '/assets/halsen/stats-teams.webm',  poster: '/assets/halsen/stats-teams-poster.jpg', start: 2 },
   { src: '/assets/halsen/loan-suggest.webm', poster: '/assets/halsen/loan-suggest-poster.jpg' },
   // Håndbok og treningsplan var to seksjoner. Uka bærer begge: øvelsesbanken
@@ -28,6 +26,9 @@ const media = [
   { src: '/assets/halsen/ovelsesbank.webm', poster: '/assets/halsen/ovelsesbank-poster.jpg', start: 4 },
   { src: '/assets/halsen/cup.webm',          poster: '/assets/halsen/cup-poster.jpg', start: 2 },
 ];
+// Cut 14 Sep 2026: hjem.webm (the day view) and filter.webm (one squad at a
+// time). Both real, neither a reason to build the app; six chapters read as a
+// story, eight read as a feature list. The files stay in public/assets/halsen.
 
 const features = s.features.map((f, i) => ({
   ...f,
@@ -50,7 +51,7 @@ const features = s.features.map((f, i) => ({
   </section>
 
   {features.map((f, i) => (
-    <section class={`case-feature${i % 2 === 1 ? ' flipped' : ''}`}>
+    <section class="case-feature">
       <div class="case-feature-copy">
         <span class="ft-num inst-idx">{f.n}</span>
         <h2 class="ft-h inst-display" data-decode>{f.h}</h2>

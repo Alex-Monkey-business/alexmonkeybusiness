@@ -40,7 +40,7 @@ export const strings = {
     /** Offered to visitors whose browser is not Norwegian. */
     switchHint: 'Read in English',
     case: {
-      lede: 'Ett kull, flere lag, og alt som skal klaffe hver uke. Laget av en trener, for trenere — så svaret står i appen, ikke et sted i Messenger-gruppa. Kamper og endringer synker fra FIKS/Min Fotball, og over 100 øvelser fra Tiim/NFF er klare til neste trening.',
+      lede: 'Ett kull, tre lag, og alt som skal klaffe hver uke. Laget av en trener, for trenere.',
       back: '← Tilbake',
       hood: [
         { em: 'FIKS / Min Fotball', rest: ' — alle kamper synker automatisk, også når tid, bane eller motstander endres.' },
@@ -50,38 +50,32 @@ export const strings = {
         { em: 'Excel-eksport', rest: ' til sesongregnskapet.' },
       ],
       stack: ['Live med Halsen G2015', 'Tre lag, to cuplag', 'Design + utvikling · Alex'],
+      /* Six chapters, one line each. The heading names the coach's problem,
+         the line says what the app does about it — nothing more. */
       features: [
         {
-          h: 'Åpner på dagen du er i.',
-          p: 'Neste økt, neste kamp, og det du ikke har ordnet ennå. Du slipper å holde det i hodet.',
-        },
-        {
           h: 'Neste bytte er ett trykk unna.',
-          p: 'Appen foreslår hvem som skal ut og hvem som skal inn, så du slipper å holde styr på neste bytte. Ett trykk gjennomfører forslaget. Spilletida telles automatisk, og fargene viser hvem som har stått lenge på banen.',
-        },
-        {
-          h: 'Ett lag om gangen.',
-          p: 'Trykk på en farge. Resten av kullet forsvinner, og du ser bare ditt eget lag.',
+          p: 'Appen foreslår hvem som går ut og inn, og teller spilletida.',
         },
         {
           h: 'Er lagene jevne?',
-          p: 'Spilt, vunnet og målforskjell per lag. Sammenlign lagene i kullet og følg utviklingen gjennom sesongen.',
+          p: 'Spilt, vunnet og målforskjell per lag i kullet.',
         },
         {
           h: 'Appen foreslår hvem som kan steppe inn.',
-          p: 'Ledig den dagen, ikke lånt ut den uka, færrest ekstrakamper først. Du får forslaget, ikke en liste å grave i.',
+          p: 'Ledig den dagen, ikke lånt ut den uka, færrest ekstrakamper først.',
         },
         {
           h: 'Hele treningsuka på ett sted.',
-          p: 'Planlegg uka med øvelser fra banken. Hver øvelse har sin egen veiledning, og tidsbudsjettet viser om du rekker alt før økta er over.',
+          p: 'Øvelser fra banken, og et tidsbudsjett som viser om du rekker alt.',
         },
         {
           h: 'Over 100 øvelser. Rett på feltet.',
-          p: 'Øvelser fra Tiim og NFF med video, beskrivelse og konkret veiledning. Se hvordan øvelsen gjøres, hva du skal se etter, og hva du kan si til spillerne.',
+          p: 'Fra Tiim og NFF, med video og hva du skal si til spillerne.',
         },
         {
           h: 'Tolv kamper. To dager. To lag.',
-          p: 'Bane, avspark og kampnummer, filtrert per lag. Ingen spør hvor og når, for det står der.',
+          p: 'Bane, avspark og kampnummer, filtrert per lag.',
         },
       ],
     },
@@ -120,7 +114,7 @@ export const strings = {
     detail: { back: '← Back', wip: 'in progress', comingSoon: 'Coming soon.' },
     switchHint: 'Les på norsk',
     case: {
-      lede: "One age group, several squads, and everything that has to line up every week. Built by a coach, for coaches — so the answer is in the app, not somewhere in a group chat. Fixtures and changes sync from FIKS/Min Fotball, with over 100 drills from Tiim/NFF ready for the next training session.",
+      lede: 'One age group, three squads, and everything that has to line up every week. Built by a coach, for coaches.',
       back: '← Back',
       hood: [
         { em: 'FIKS / Min Fotball', rest: ' — every match syncs automatically, including changes to times, venues and opponents.' },
@@ -132,36 +126,28 @@ export const strings = {
       stack: ['Live with Halsen G2015', 'Three squads, two cup teams', 'Design + build · Alex'],
       features: [
         {
-          h: "Opens to the day you're in.",
-          p: "The next session, the next match, and the thing you haven't sorted yet. You don't have to keep it in your head.",
-        },
-        {
           h: 'The next substitution is one tap away.',
-          p: 'The app suggests who comes off and who goes on, so you don’t have to keep track of the next substitution. One tap makes the suggested change. Playing time is tracked automatically, and colours show who has been on the pitch longest.',
-        },
-        {
-          h: 'One squad at a time.',
-          p: 'Tap a colour. The rest of the age group disappears and you see only your own team.',
+          p: 'The app suggests who comes off and who goes on, and tracks playing time.',
         },
         {
           h: 'Are the teams even?',
-          p: 'Played, won and goal difference for each squad. Compare teams within the age group and follow their progress through the season.',
+          p: 'Played, won and goal difference for each squad.',
         },
         {
           h: 'The app suggests who can step in.',
-          p: 'Free that day, not already lent out that week, fewest extra appearances first. You get the suggestion, not a list to dig through.',
+          p: 'Free that day, not lent out that week, fewest extra appearances first.',
         },
         {
           h: 'The whole training week in one place.',
-          p: 'Plan the week with drills from the library. Each drill has its own guidance, and the time budget shows whether everything fits before the session ends.',
+          p: 'Drills from the library, and a time budget that shows whether it all fits.',
         },
         {
           h: 'Over 100 drills. Ready for the pitch.',
-          p: 'Drills from Tiim and NFF with video, descriptions and practical coaching guidance. See how each drill works, what to look for and what to tell the players.',
+          p: 'From Tiim and NFF, with video and what to tell the players.',
         },
         {
           h: 'Twelve matches. Two days. Two teams.',
-          p: "Pitch, kick-off and match number, filtered per team. Nobody asks where and when, because it's there.",
+          p: 'Pitch, kick-off and match number, filtered per team.',
         },
       ],
     },
