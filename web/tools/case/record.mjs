@@ -18,12 +18,19 @@ async function record(name, path, date, run) {
   });
   await ctx.addInitScript(a => {
     localStorage.setItem('bb_auth_v1', a); localStorage.setItem('bb_active_cohort','demo-cohort');
-    const st = document.createElement('style'); st.textContent = '.demo-banner{display:none!important}';
-    (document.head || document.documentElement).appendChild(st);
+    // The init script can run before <head> exists; poll until it does so
+    // the banner is gone from the very first frame.
+    const hide = () => {
+      const root = document.head || document.documentElement;
+      if (!root) return setTimeout(hide, 5);
+      const st = document.createElement('style'); st.textContent = '.demo-banner{display:none!important}';
+      root.appendChild(st);
+    };
+    hide();
   }, AUTH);
   const p = await ctx.newPage();
   if (date) await p.clock.setFixedTime(new Date(date + 'T10:00:00'));
-  await p.goto('http://127.0.0.1:5199' + path, { waitUntil:'networkidle' });
+  await p.goto('http://localhost:5199' + path, { waitUntil:'networkidle' });
   await p.addStyleTag({ content:'.demo-banner{display:none!important}' });
   await p.waitForTimeout(1500);
   try { await run(p); } catch (e) { process.exitCode = 1; console.error(name, 'FAILED:', e.message); await p.screenshot({ path: `${OUT}/${name}-fail.png` }); }
@@ -37,12 +44,15 @@ async function record(name, path, date, run) {
 
 const ease = async (p, dy, steps=24) => { for (let i=0;i<steps;i++){ await p.mouse.wheel(0, dy/steps); await p.waitForTimeout(28);} };
 
-// 01 — Hjem: les dagen, scroll ned til Å ordne og opp igjen
-await record('hjem', '/', '2026-03-12', async p => {
-  await p.waitForTimeout(1200);
-  await ease(p, 520); await p.waitForTimeout(1600);
-  await ease(p, 380); await p.waitForTimeout(1600);
-  await ease(p, -900, 30); await p.waitForTimeout(800);
+// 01 — Hjem: trening i dag, neste kamp, treningene denne uka. Tirsdag 10. mars
+// er dagen som gir alle tre over hverandre (torsdag 12. mister neste-kamp-
+// kortet til dommervarselet). Ett rolig drag ned til uka, hold, og opp igjen —
+// Alex, 14. sep: «det holder med neste kamp, dagens trening og treninger
+// denne uka».
+await record('hjem', '/', '2026-03-10', async p => {
+  await p.waitForTimeout(2200);
+  await ease(p, 300, 30); await p.waitForTimeout(2600);
+  await ease(p, -300, 30); await p.waitForTimeout(1600);
 });
 
 // Training week and the guidance sheet for a real demo drill.
