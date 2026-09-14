@@ -50,9 +50,14 @@ export const strings = {
         { em: 'Excel-eksport', rest: ' til sesongregnskapet.' },
       ],
       stack: ['Live med Halsen G2015', 'Tre lag, to cuplag', 'Design + utvikling · Alex'],
-      /* Six chapters, one line each. The heading names the coach's problem,
-         the line says what the app does about it — nothing more. */
+      /* Seven chapters, one line each. The heading names the coach's problem,
+         the line says what the app does about it — nothing more. The day view
+         opens: it is the claim the rest of the page proves (Alex, 14 Sep). */
       features: [
+        {
+          h: 'Åpner på dagen du er i.',
+          p: 'I dag, denne uka, og det som må ordnes. Du slipper å huske det.',
+        },
         {
           h: 'Neste bytte er ett trykk unna.',
           p: 'Appen foreslår hvem som går ut og inn, og teller spilletida.',
@@ -125,6 +130,10 @@ export const strings = {
       ],
       stack: ['Live with Halsen G2015', 'Three squads, two cup teams', 'Design + build · Alex'],
       features: [
+        {
+          h: "Opens to the day you're in.",
+          p: "Today, this week, and what needs sorting. Nothing to keep in your head.",
+        },
         {
           h: 'The next substitution is one tap away.',
           p: 'The app suggests who comes off and who goes on, and tracks playing time.',

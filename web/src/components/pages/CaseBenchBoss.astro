@@ -15,6 +15,7 @@ const s = t(lang).case;
    Media and pacing live here; the prose lives in src/i18n/strings.ts, paired to
    these by index. */
 const media = [
+  { src: '/assets/halsen/hjem.webm',         poster: '/assets/halsen/hjem-poster.jpg', start: 2 },
   // The take opens with eight taps to build the lineup, which reads as a
   // bottom sheet flapping. Start the loop on the running clock instead.
   { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 14 },
@@ -26,9 +27,10 @@ const media = [
   { src: '/assets/halsen/ovelsesbank.webm', poster: '/assets/halsen/ovelsesbank-poster.jpg', start: 4 },
   { src: '/assets/halsen/cup.webm',          poster: '/assets/halsen/cup-poster.jpg', start: 2 },
 ];
-// Cut 14 Sep 2026: hjem.webm (the day view) and filter.webm (one squad at a
-// time). Both real, neither a reason to build the app; six chapters read as a
-// story, eight read as a feature list. The files stay in public/assets/halsen.
+// Cut 14 Sep 2026: filter.webm (one squad at a time) — real, but not a reason
+// to build the app. The day view was cut in the same pass and put back the
+// same morning: it is the strongest claim the app makes, that the coach does
+// not have to remember. The file stays in public/assets/halsen.
 
 const features = s.features.map((f, i) => ({
   ...f,
