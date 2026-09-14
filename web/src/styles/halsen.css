@@ -64,44 +64,45 @@
 @keyframes case-in { to { opacity: 1; transform: none; } }
 
 /* ============ FEATURE SECTIONS ============ */
+/* One chapter per screen. Copy left, the device right, both centred in a
+   viewport-tall row — so only one recording is on screen at a time and the
+   next one arrives a full screen later. No zigzag and no hairlines: the
+   space between chapters does the separating. */
 .case-feature {
   display: grid;
   grid-template-columns: 1fr minmax(0, 360px);
   gap: var(--s-20);
   align-items: center;
-  padding: 12vh 0;
-  border-bottom: 1px solid var(--border-hair);
+  min-height: 100svh;
+  padding: 6vh 0;
   opacity: 0;
   transform: translateY(18px);
   transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
 }
 .case-feature.is-in { opacity: 1; transform: none; }
-.case-feature.flipped { grid-template-columns: minmax(0, 360px) 1fr; }
-.case-feature.flipped .case-feature-copy { order: 2; }
 @media (max-width: 860px) {
-  .case-feature,
-  .case-feature.flipped {
+  .case-feature {
     grid-template-columns: 1fr;
-    gap: var(--s-12);
+    gap: var(--s-10);
+    min-height: 0;
     padding: 9vh 0;
   }
-  .case-feature.flipped .case-feature-copy { order: 0; }
 }
 
-.case-feature-copy { max-width: 44ch; }
+.case-feature-copy { max-width: 40ch; }
 .ft-num { display: block; margin-bottom: var(--s-5); }
 .ft-h {
   margin: 0;
-  font-size: clamp(22px, 2.8vw, 34px);
+  font-size: clamp(24px, 3vw, 38px);
 }
-.ft-p { margin: var(--s-5) 0 0; }
+.ft-p { margin: var(--s-5) 0 0; color: var(--fg2); }
 
 .case-feature-stage { display: flex; justify-content: center; }
 
 /* ============ UNDER THE HOOD ============ */
 /* No chamber. The list is the tail of the same count as the features, and
    it is set the same way: index, line, hairline. */
-.case-list { margin: var(--s-16) 0 0; }
+.case-list { margin: 0; }
 .case-list ul {
   list-style: none;
   margin: 0;
@@ -185,7 +186,10 @@
   --screen-radius: 28px;
 
   position: relative;
-  width: 340px;
+  /* 780/1688 is the recording's ratio. The device takes 72% of the viewport
+     height, so a viewport-tall chapter carries a clear band of black above
+     and below it and two devices are rarely on screen together. */
+  width: min(340px, calc(72svh * 0.4621));
   max-width: 86vw;
   aspect-ratio: 390 / 844;
   background: var(--phone-bezel);
@@ -201,6 +205,18 @@
   user-select: none;
 }
 html.dark .phone { border-color: rgba(255, 255, 235, 0.16); }
+/* The instrument is black in both themes, and a near-black bezel on black is
+   no edge at all. A hairline in the signal colour draws the device. */
+/* `html.dark .phone` is (0,2,1) and outranks a bare `.inst .phone` (0,2,0), so
+   the theme prefix has to be written out — the same trap as `.nav ul`. */
+.inst .phone,
+html.dark .inst .phone {
+  --phone-bezel: #0c0c0c;
+  border-color: color-mix(in srgb, var(--signal) 55%, transparent);
+}
+@media (max-width: 860px) {
+  .phone { width: 340px; }
+}
 /* No fake notch. The recordings carry no iOS status bar, so an island
    floated over the app's own first row read as pasted on — and the
    reference is explicit that these are flat illustrations, not renders. */

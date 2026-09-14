@@ -16,7 +16,7 @@ const s = t(lang).beach;
     <p class="case-lede inst-body">{s.lede}</p>
   </section>
   {s.features.map((f, i) => (
-    <section class={`case-feature is-in${i % 2 ? ' flipped' : ''}`}>
+    <section class="case-feature is-in">
       <div class="case-feature-copy">
         <span class="ft-num inst-idx">{String(i + 1).padStart(2, '0')}</span>
         <h2 class="ft-h inst-display">{f.h}</h2>
