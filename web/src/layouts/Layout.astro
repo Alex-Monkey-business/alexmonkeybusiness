@@ -18,6 +18,10 @@ interface Props {
   /** A page that borrows a photograph owes a credit; the instrument nav
       prints it in the menu panel, where the ground is always black. */
   credit?: PhotoCredit;
+  /** Keep the page out of search. Defaults to true under /lab, so a new
+      variant is hidden by the address it is born at rather than by someone
+      remembering to pass a flag. */
+  noindex?: boolean;
 }
 
 const lang = langFromUrl(Astro.url);
@@ -29,6 +33,7 @@ const {
   accent,
   nav = 'wispr',
   credit,
+  noindex = Astro.url.pathname.startsWith('/lab'),
 } = Astro.props;
 
 const htmlStyle = accent ? `--accent: ${accent};` : undefined;
@@ -46,10 +51,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 // Same page, other language. hreflang is what tells search engines these are
 // translations rather than duplicates — without it the two compete.
 const bare = stripLang(Astro.url.pathname);
-const alternates = LANGS.map((l) => ({
-  lang: HTML_LANG[l],
-  href: new URL(path(l, bare), Astro.site).href,
-}));
+// A noindexed page has no translation to point at — and the lab exists in
+// Norwegian only, so /en/lab/* would be a tag pointing at a 404.
+const alternates = noindex
+  ? []
+  : LANGS.map((l) => ({
+      lang: HTML_LANG[l],
+      href: new URL(path(l, bare), Astro.site).href,
+    }));
 ---
 
 <!doctype html>
@@ -73,9 +82,10 @@ const alternates = LANGS.map((l) => ({
     <link rel="mask-icon" href="/brand/icons/mask-icon.svg" color="#1a1a1a" />
     <meta name="theme-color" content="#121211" />
 
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="canonical" href={canonical} />
     {alternates.map((a) => <link rel="alternate" hreflang={a.lang} href={a.href} />)}
-    <link rel="alternate" hreflang="x-default" href={new URL(path('nb', bare), Astro.site).href} />
+    {!noindex && <link rel="alternate" hreflang="x-default" href={new URL(path('nb', bare), Astro.site).href} />}
 
     <meta property="og:title" content={title} />
     {description && <meta property="og:description" content={description} />}

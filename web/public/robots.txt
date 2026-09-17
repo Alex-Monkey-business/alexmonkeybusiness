@@ -1,2 +1,7 @@
 User-agent: *
 Allow: /
+
+# /lab er henlagte varianter — blant dem den forrige forsida og en nær
+# tvilling av den nåværende. Sidene sender selv «noindex»; denne linja
+# sparer crawleren turen.
+Disallow: /lab/
