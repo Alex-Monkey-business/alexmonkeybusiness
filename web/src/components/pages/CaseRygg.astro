@@ -22,6 +22,17 @@
  * Phone widths put the device in the upper half and the copy under it, pinned,
  * one chapter at a time — the same one-at-a-time as desktop, stacked instead
  * of side by side.
+ *
+ * THE THUMB RUNS THE APP. Two chapters do not loop: their recording is
+ * scrubbed by the scroll, so reading on IS pressing the buttons — the lineup
+ * fills, the clock starts, the sub happens; the squad opens and the loan list
+ * sorts itself. Stop scrolling and the app stops. Each has one moment the
+ * whole chapter is about, and there the scroll slows the film to a near stop
+ * while the camera pushes into the screen and a hairline of signal frames the
+ * thing to look at. The device frame never moves — only the picture inside it.
+ * The takes are re-encoded for this (`public/assets/halsen/scrub/`, a keyframe
+ * every fourth frame): a webm loop has seconds between keyframes, and seeking
+ * one backwards stutters in every browser.
  */
 import { t, type Lang } from '../../i18n';
 import { climb } from '../../lib/hornligrat';
@@ -32,12 +43,24 @@ interface Props { lang: Lang; back: string }
 const { lang, back } = Astro.props;
 const s = t(lang).case;
 
-/* Media and loop starts are `CaseBenchBoss`'s, paired to the prose by index. */
-const media = [
+/* Media and loop starts are `CaseBenchBoss`'s, paired to the prose by index.
+
+   `scrub` replaces the loop with the scroll. `at` is the moment in the
+   re-encoded take (seconds), and `x y w h` is the thing to frame, as fractions
+   of the 390×844 screen — both read off frames of the take, not guessed:
+     matchmode 16.4 s — «Inn for Filip» and the first chip offered, Henrik
+     loan 9.7 s       — «★ Anbefalt» and the first player under it, Mads
+   Tight on purpose: the zoom is sized to fill the screen with the frame, so a
+   frame as wide as the sheet zooms 1.2× and reads as a wobble. */
+type Scrub = { src: string; at: number; x: number; y: number; w: number; h: number };
+type Media = { src: string; poster: string; start: number; scrub?: Scrub };
+const media: Media[] = [
   { src: '/assets/halsen/hjem.webm',         poster: '/assets/halsen/hjem-poster.jpg', start: 2 },
-  { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 14 },
+  { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 14,
+    scrub: { src: '/assets/halsen/scrub/matchmode.mp4', at: 16.4, x: 0.045, y: 0.815, w: 0.36, h: 0.1 } },
   { src: '/assets/halsen/stats-teams.webm',  poster: '/assets/halsen/stats-teams-poster.jpg', start: 2 },
-  { src: '/assets/halsen/loan-suggest.webm', poster: '/assets/halsen/loan-suggest-poster.jpg', start: 0.5 },
+  { src: '/assets/halsen/loan-suggest.webm', poster: '/assets/halsen/loan-suggest-poster.jpg', start: 0.5,
+    scrub: { src: '/assets/halsen/scrub/loan-suggest.mp4', at: 9.7, x: 0.095, y: 0.405, w: 0.39, h: 0.07 } },
   { src: '/assets/halsen/trening.webm',      poster: '/assets/halsen/trening-poster.jpg', start: 2 },
   { src: '/assets/halsen/ovelsesbank.webm',  poster: '/assets/halsen/ovelsesbank-poster.jpg', start: 4 },
 ];
@@ -69,7 +92,7 @@ const features = s.features.map((f, i) => ({
   <div class="rig">
     <div class="rig-copy">
       {features.map((f, i) => (
-        <section class="rig-ch" data-i={i}>
+        <section class:list={['rig-ch', { scrub: f.scrub }]} data-i={i}>
           <div class="rig-text">
             <span class="ft-num inst-idx">{f.n}</span>
             <h2 class="ft-h inst-display" data-decode>{f.h}</h2>
@@ -83,17 +106,29 @@ const features = s.features.map((f, i) => ({
       <div class="phone phone--video rig-phone">
         <div class="rig-screen">
           {features.map((f, i) => (
-            <video
+            <div
               class:list={['rig-vid', { on: i === 0 }]}
-              src={f.src}
-              poster={f.poster}
               data-i={i}
-              data-start={f.start}
-              muted
-              playsinline
-              preload={i === 0 ? 'auto' : 'metadata'}
-              aria-hidden="true"
-            ></video>
+              data-scrub={f.scrub ? JSON.stringify(f.scrub) : undefined}
+            >
+              <div class="rig-cam">
+                <video
+                  src={f.scrub?.src ?? f.src}
+                  poster={f.poster}
+                  data-start={f.scrub ? 0 : f.start}
+                  muted
+                  playsinline
+                  preload={i === 0 || f.scrub ? 'auto' : 'metadata'}
+                  aria-hidden="true"
+                ></video>
+                {f.scrub && (
+                  <span
+                    class="rig-mark"
+                    style={`left:${f.scrub.x * 100}%;top:${f.scrub.y * 100}%;width:${f.scrub.w * 100}%;height:${f.scrub.h * 100}%;`}
+                  ></span>
+                )}
+              </div>
+            </div>
           ))}
           <span class="rig-scan" aria-hidden="true"></span>
         </div>
@@ -197,13 +232,44 @@ const features = s.features.map((f, i) => ({
   .rig-vid {
     position: absolute;
     inset: 0;
+    overflow: hidden;
+    background: #fff;
+    visibility: hidden;
+  }
+  /* The camera. Scrubbed chapters move it; the others never do. Origin top
+     left, so the script's translate is plain arithmetic in fractions. */
+  .rig-cam {
+    --z: 1;
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+    transform: translate(var(--tx, 0%), var(--ty, 0%)) scale(var(--z));
+    will-change: transform;
+  }
+  .rig-cam video {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: contain;
     display: block;
     background: #fff;
-    visibility: hidden;
   }
+  /* The frame around the moment. It lives in the camera, so it stays on the
+     thing it frames at any zoom; the width is divided by the zoom so it stays
+     a hairline. */
+  .rig-mark {
+    position: absolute;
+    border: calc(1.5px / var(--z)) solid var(--signal);
+    border-radius: calc(12px / var(--z));
+    margin: calc(-6px / var(--z));
+    padding: calc(6px / var(--z));
+    box-sizing: content-box;
+    opacity: var(--mark, 0);
+    pointer-events: none;
+  }
+  /* A scrubbed chapter is a longer read: the film needs scroll to run on. */
+  .rig-ch.scrub { min-height: 320svh; }
   .rig-vid.on,
   .rig-vid.was { visibility: visible; }
   .rig-vid.was { z-index: 1; }
@@ -388,32 +454,45 @@ const features = s.features.map((f, i) => ({
 
   /* ---- One phone ---------------------------------------------------------- */
 
+  type Scrub = { src: string; at: number; x: number; y: number; w: number; h: number };
   const chapters = Array.from(document.querySelectorAll<HTMLElement>('.rig-ch'));
-  const vids = Array.from(document.querySelectorAll<HTMLVideoElement>('.rig-vid'));
+  const layers = Array.from(document.querySelectorAll<HTMLElement>('.rig-vid'));
+  const vids = layers.map((l) => l.querySelector('video') as HTMLVideoElement);
+  const cams = layers.map((l) => l.querySelector('.rig-cam') as HTMLElement);
+  const scrubs = layers.map((l) => (l.dataset.scrub ? (JSON.parse(l.dataset.scrub) as Scrub) : null));
   const scan = document.querySelector<HTMLElement>('.rig-scan');
   const stage = document.querySelector<HTMLElement>('.rig-stage');
   let cur = -1;
   let stageVisible = false;
 
   const startOf = (v: HTMLVideoElement) => Number(v.dataset.start ?? '0');
-  vids.forEach((v) => {
+  vids.forEach((v, i) => {
+    if (scrubs[i]) {
+      /* Never plays — the scroll is the playhead. One play/pause on load is
+         what gets iOS to decode frames for a video that will only ever seek. */
+      v.addEventListener('loadeddata', () => { v.play().then(() => v.pause()).catch(() => {}); }, { once: true });
+      return;
+    }
     v.addEventListener('loadedmetadata', () => { if (v.currentTime < startOf(v)) v.currentTime = startOf(v); });
     /* Loop past the first paint, as the live case does. */
     v.addEventListener('timeupdate', () => {
       if (v.duration && v.currentTime >= v.duration - 0.25) v.currentTime = startOf(v);
     });
-    v.addEventListener('animationend', () => {
-      v.classList.remove('wipe-up', 'wipe-down');
-      vids.forEach((o) => o !== v && o.classList.remove('was'));
+  });
+  layers.forEach((l) => {
+    l.addEventListener('animationend', () => {
+      l.classList.remove('wipe-up', 'wipe-down');
+      layers.forEach((o) => o !== l && o.classList.remove('was'));
     });
   });
 
   const play = () => {
     vids.forEach((v, i) => {
+      if (scrubs[i]) return;
       if (i === cur && stageVisible && !reduce) {
         if (v.currentTime < startOf(v)) v.currentTime = startOf(v);
         v.play().catch(() => {});
-      } else if (!v.classList.contains('was')) {
+      } else if (!layers[i].classList.contains('was')) {
         v.pause();
       }
     });
@@ -433,7 +512,7 @@ const features = s.features.map((f, i) => ({
 
     /* The first chapter is already on screen when the page opens; no wipe. */
     if (prev === -1) {
-      vids.forEach((v, n) => v.classList.toggle('on', n === i));
+      layers.forEach((l, n) => l.classList.toggle('on', n === i));
       play();
       return;
     }
@@ -442,15 +521,15 @@ const features = s.features.map((f, i) => ({
     [i - 1, i + 1].forEach((n) => { if (vids[n] && vids[n].preload !== 'auto') vids[n].preload = 'auto'; });
 
     const dir = i > prev ? 'up' : 'down';
-    vids.forEach((v, n) => {
-      v.classList.remove('on', 'was', 'wipe-up', 'wipe-down');
-      if (n === prev) v.classList.add('was');
+    layers.forEach((l, n) => {
+      l.classList.remove('on', 'was', 'wipe-up', 'wipe-down');
+      if (n === prev) l.classList.add('was');
     });
-    const next = vids[i];
+    const next = layers[i];
     void next.offsetWidth;
     next.classList.add('on');
     if (!reduce) next.classList.add(`wipe-${dir}`);
-    else vids[prev].classList.remove('was');
+    else layers[prev].classList.remove('was');
     if (scan && !reduce) {
       scan.classList.remove('up', 'down');
       void scan.offsetWidth;
@@ -464,6 +543,7 @@ const features = s.features.map((f, i) => ({
      device, so the line is low too — a chapter takes over as its copy comes
      up into place, not after it has already slid over the screen. */
   const narrow = matchMedia('(max-width: 860px)');
+  const lineAt = () => innerHeight * (narrow.matches ? 0.82 : 0.5);
   let io: IntersectionObserver | null = null;
   const watch = () => {
     io?.disconnect();
@@ -483,6 +563,76 @@ const features = s.features.map((f, i) => ({
       play();
     }, { threshold: 0.2 }).observe(stage);
   }
+
+  /* ---- The thumb runs the app ---------------------------------------------- */
+
+  /**
+   * Where the chapter is, 0 → 1, is where the film is — with one bend in it.
+   * A DWELL share of the scroll is spent on a HALF-second either side of the
+   * moment, so the film nearly stops there while the camera pushes in. The
+   * last few percent hold the final frame, so the wipe to the next chapter
+   * never cuts a movement off halfway.
+   */
+  const DWELL = 0.3;
+  const HALF = 0.35;
+  const TAIL = 0.92;
+  const smooth01 = (t: number) => t * t * (3 - 2 * t);
+  const clamp = (v: number, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
+  const qs = scrubs.map(() => 0);
+
+  const film = (i: number, q: number) => {
+    const v = vids[i];
+    const sc = scrubs[i]!;
+    const dur = v.duration;
+    if (!dur || !isFinite(dur)) return;
+    const a = Math.max(0, sc.at - HALF);
+    const b = Math.min(dur, sc.at + HALF);
+    const q1 = (a / dur) * (1 - DWELL);
+    const q2 = q1 + DWELL;
+    const u = Math.min(1, q / TAIL);
+    let t: number;
+    if (u <= q1) t = (u / q1) * a;
+    else if (u <= q2) t = a + ((u - q1) / DWELL) * (b - a);
+    else t = b + ((u - q2) / (1 - q2)) * (dur - b);
+    t = clamp(t, 0, dur - 0.05);
+    if (!v.seeking && Math.abs(v.currentTime - t) > 0.025) v.currentTime = t;
+
+    /* The camera: a bump centred on the dwell, flat-topped so it holds. */
+    const mid = (q1 + q2) / 2;
+    const half = DWELL / 2 + 0.08;
+    const k = clamp(1 - Math.abs(u - mid) / half);
+    const e = reduce ? 0 : smooth01(clamp(k * 1.7));
+    const mark = smooth01(clamp(k * 2.4));
+    const Z = Math.min(0.86 / sc.w, 2.6);
+    const z = 1 + (Z - 1) * e;
+    const cx = sc.x + sc.w / 2;
+    const cy = sc.y + sc.h / 2;
+    /* Pull the target toward the middle of the screen as it grows, and never
+       so far that the edge of the recording shows. */
+    const tx = clamp(cx + (0.5 - cx) * e - cx * z, 1 - z, 0);
+    const ty = clamp(cy + (0.5 - cy) * e - cy * z, 1 - z, 0);
+    const cam = cams[i];
+    cam.style.setProperty('--z', z.toFixed(4));
+    cam.style.setProperty('--tx', `${(tx * 100).toFixed(3)}%`);
+    cam.style.setProperty('--ty', `${(ty * 100).toFixed(3)}%`);
+    cam.style.setProperty('--mark', mark.toFixed(3));
+  };
+
+  const run = () => {
+    const line = lineAt();
+    scrubs.forEach((sc, i) => {
+      if (!sc) return;
+      const r = chapters[i].getBoundingClientRect();
+      const q = clamp((line - r.top) / r.height);
+      /* Eased toward the scroll, like the climb: a wheel notch is a push of
+         the thumb, not a jump cut. */
+      qs[i] += (q - qs[i]) * 0.22;
+      if (Math.abs(q - qs[i]) < 0.0004) qs[i] = q;
+      if (i === cur || layers[i].classList.contains('was')) film(i, qs[i]);
+    });
+    requestAnimationFrame(run);
+  };
+  requestAnimationFrame(run);
 
   /* ---- The climb ---------------------------------------------------------- */
 
