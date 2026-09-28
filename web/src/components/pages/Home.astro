@@ -31,6 +31,11 @@ import { langFromUrl } from '../../i18n';
 import '../../styles/instrument.css';
 
 const lang = langFromUrl(Astro.url);
+
+/* Both only for the lab: where the project rows point, and anything that
+   rides the camera with the mountain (see `Natt.astro`'s slot). */
+interface Props { hrefs?: Record<string, string> }
+const { hrefs } = Astro.props;
 const nb = lang === 'nb';
 
 /* The readout. Idle: nothing — the block cursor alone, a terminal waiting.
@@ -55,8 +60,8 @@ const readout = nb
 ---
 
 <div class="always-dark inst" data-readout={JSON.stringify(readout)}>
-  <OneScreen>
-    <Natt />
+  <OneScreen hrefs={hrefs}>
+    <Natt><slot name="ridge" /></Natt>
   </OneScreen>
 </div>
 

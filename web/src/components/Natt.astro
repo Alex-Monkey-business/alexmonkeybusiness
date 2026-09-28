@@ -51,6 +51,10 @@ const { viewBox, line, segs, peak, vbw, vbh, ridge } = still;
         </Fragment>
       ))}
     </svg>
+
+    <!-- Anything that has to ride the camera with the rock: the push, the
+         level zoom and the pointer lean are all on this element. -->
+    <slot />
   </div>
 
   <!-- The night: the odd meteor, drawn in the sky only. See the script — the

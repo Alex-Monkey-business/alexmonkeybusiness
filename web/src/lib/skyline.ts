@@ -23,6 +23,33 @@ import rawStill from '../assets/terrain/matterhorn-still.svg?raw';
  */
 export type Skyline = ReturnType<typeof fromTrace>;
 
+/**
+ * THE TRACE IS A STAIRCASE — it was measured column by column, so every point
+ * sits on a whole pixel and the line climbs in visible one-pixel steps. At the
+ * scales this thing is blown up to that reads as aliasing on a drawing that is
+ * supposed to look drawn.
+ *
+ * Centripetal Catmull-Rom (alpha = 0.5) fixes it for free: the curve passes
+ * through EVERY traced point exactly, so the line is no less accurate than the
+ * measurement, and it cannot overshoot at a sharp corner the way the uniform
+ * variant does — which matters here, because the sharpest corner in the data
+ * is the summit.
+ */
+export const smooth = (q: [number, number][]) => {
+  const out = [`M${q[0][0]} ${q[0][1]}`];
+  const at = (i: number) => q[Math.max(0, Math.min(q.length - 1, i))];
+  for (let i = 0; i < q.length - 1; i++) {
+    const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
+    const t = (a: number[], b: number[]) => Math.hypot(b[0] - a[0], b[1] - a[1]) ** 0.5 || 1e-6;
+    const [t0, t1, t2] = [t(p0, p1), t(p1, p2), t(p2, p3)];
+    const c1 = [0, 1].map((k) => p1[k] + ((p2[k] - p0[k]) * t1) / (3 * (t0 + t1)));
+    const c2 = [0, 1].map((k) => p2[k] - ((p3[k] - p1[k]) * t1) / (3 * (t1 + t2)));
+    out.push(`C${c1[0].toFixed(2)} ${c1[1].toFixed(2)} ${c2[0].toFixed(2)} ${c2[1].toFixed(2)} ${p2[0]} ${p2[1]}`);
+  }
+  return out.join('');
+};
+
+
 export function fromTrace(raw: string) {
 const d = raw.match(/class="skyline" d="([^"]+)"/)?.[1] ?? '';
 /* Read from the file, never typed here: the tracer's `--width` decides it, and
@@ -88,31 +115,6 @@ const segs = [
   { key: 'hornligrat', len: 1 - summit, o0: -summit, o1: -summit },
 ];
 
-/**
- * THE TRACE IS A STAIRCASE — it was measured column by column, so every point
- * sits on a whole pixel and the line climbs in visible one-pixel steps. At the
- * scales this thing is blown up to that reads as aliasing on a drawing that is
- * supposed to look drawn.
- *
- * Centripetal Catmull-Rom (alpha = 0.5) fixes it for free: the curve passes
- * through EVERY traced point exactly, so the line is no less accurate than the
- * measurement, and it cannot overshoot at a sharp corner the way the uniform
- * variant does — which matters here, because the sharpest corner in the data
- * is the summit.
- */
-const smooth = (q: [number, number][]) => {
-  const out = [`M${q[0][0]} ${q[0][1]}`];
-  const at = (i: number) => q[Math.max(0, Math.min(q.length - 1, i))];
-  for (let i = 0; i < q.length - 1; i++) {
-    const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
-    const t = (a: number[], b: number[]) => Math.hypot(b[0] - a[0], b[1] - a[1]) ** 0.5 || 1e-6;
-    const [t0, t1, t2] = [t(p0, p1), t(p1, p2), t(p2, p3)];
-    const c1 = [0, 1].map((k) => p1[k] + ((p2[k] - p0[k]) * t1) / (3 * (t0 + t1)));
-    const c2 = [0, 1].map((k) => p2[k] - ((p3[k] - p1[k]) * t1) / (3 * (t1 + t2)));
-    out.push(`C${c1[0].toFixed(2)} ${c1[1].toFixed(2)} ${c2[0].toFixed(2)} ${c2[1].toFixed(2)} ${p2[0]} ${p2[1]}`);
-  }
-  return out.join('');
-};
 
 /** The ridge itself: one open curve from the left edge of the trace to the right. */
 const line = smooth(pts);
@@ -205,7 +207,7 @@ const silUrl = silhouetteMask(0);
  */
 const ridge: [number, number][] = [[0, lead], ...pts, [vbw, vbh]];
 
-  return { viewBox, vbw, vbh, peak, segs, line, silhouette, traceX0, silhouetteMask, silUrl, ridge };
+  return { viewBox, vbw, vbh, peak, segs, line, silhouette, traceX0, silhouetteMask, silUrl, ridge, pts, top };
 }
 
 /* The video trace keeps the bare names, so nothing that already imports them

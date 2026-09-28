@@ -48,6 +48,12 @@ import { projects } from '../data/projects';
 const lang = langFromUrl(Astro.url);
 const s = t(lang);
 
+/* A variant can send a project somewhere else — the lab points BenchBoss at
+   its own copy of the case. Keyed by slug; anything not named goes where it
+   always has. */
+interface Props { hrefs?: Record<string, string> }
+const { hrefs = {} } = Astro.props;
+
 /* The only string on this page that is not already in `strings.ts`. It stays
    here while this is a prototype rather than earning a place in the file. */
 const back = lang === 'nb' ? 'Tilbake' : 'Back';
@@ -75,7 +81,7 @@ const LEVELS: Record<string, Row[]> = {
       title: p.title,
       titleEm: p.titleEm,
       seg: i % 2 === 0 ? 'hornligrat' : 'zmuttgrat',
-      href: p.url ?? path(lang, `/projects/${p.slug}`),
+      href: hrefs[p.slug] ?? p.url ?? path(lang, `/projects/${p.slug}`),
       external: Boolean(p.url),
     })),
     { key: 'back', title: back, to: 'root' },

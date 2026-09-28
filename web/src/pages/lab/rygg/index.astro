@@ -1,0 +1,14 @@
+---
+/* The front page with one change: BenchBoss goes to the climb, and its ridge
+   travels with it. See `RidgeHome.astro` and `CaseRygg.astro`. */
+import Layout from '../../../layouts/Layout.astro';
+import Home from '../../../components/pages/Home.astro';
+import RidgeHome from '../../../components/RidgeHome.astro';
+import { matterhornCredit } from '../../../data/photoCredit';
+---
+
+<Layout title="Variant — Rygg" nav="inst" credit={matterhornCredit}>
+  <Home hrefs={{ 'halsen-g15': '/lab/rygg/benchboss/' }}>
+    <RidgeHome slot="ridge" />
+  </Home>
+</Layout>

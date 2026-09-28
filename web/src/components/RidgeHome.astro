@@ -1,0 +1,96 @@
+---
+/**
+ * THE FRONT PAGE END OF THE THREAD — `/lab/rygg` only.
+ *
+ * A copy of the lit Hörnligrat, pinned over the real one inside the pushed
+ * frame (it is slotted into `Natt`'s `.sky-push`), same viewBox mapping and
+ * same stroke, so switching it on changes no pixel. It is invisible at rest.
+ *
+ * It exists for the view transition. The ridge inside `.sky-line` is one path
+ * among four in an SVG the size of the frame, and a transition can only lift
+ * a whole box — so this box is exactly the ridge's, and it is the one thing
+ * named `rygg` on the page. It gets the name only while it is showing, or the
+ * browser would fly an invisible line on every navigation.
+ *
+ * Going: the click switches it on, so the snapshot the browser takes on the
+ * way out is the lit ridge. Coming back: `pagereveal` switches it on for the
+ * arrival, and it hands back to the real ridge once the flight has landed.
+ */
+import { climb } from '../lib/hornligrat';
+
+const f = climb.frame;
+---
+
+<svg
+  class="rygg-home"
+  viewBox={climb.viewBox}
+  preserveAspectRatio="none"
+  fill="none"
+  aria-hidden="true"
+  style={`left:${f.left}%;top:${f.top}%;width:${f.width}%;height:${f.height}%;`}
+>
+  <path d={climb.d} />
+</svg>
+
+<style>
+  .rygg-home {
+    position: absolute;
+    z-index: 3;
+    overflow: visible;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .rygg-home path {
+    stroke: var(--signal);
+    stroke-width: 2.6;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  :global(.rygg-home.on) {
+    opacity: 1;
+    view-transition-name: rygg;
+  }
+  /* After the landing: hand back to the ridge underneath, which is lit only
+     if the pointer is on the row. */
+  :global(.rygg-home.off) {
+    transition: opacity 900ms var(--ease-out);
+  }
+  /* The flight between the two pages. Longer than the page cross-fade, so
+     the photograph is gone before the line lands. */
+  :global(::view-transition-group(rygg)) {
+    animation-duration: 950ms;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.rygg-home.on) { view-transition-name: none; }
+  }
+</style>
+
+<script is:inline>
+  (() => {
+    const el = document.querySelector('.rygg-home');
+    if (!el) return;
+    /* Coming back from the case: on before the first frame, off once landed. */
+    addEventListener('pagereveal', (e) => {
+      if (!e.viewTransition) return;
+      el.classList.remove('off');
+      el.classList.add('on');
+      e.viewTransition.finished.finally(() => {
+        el.classList.add('off');
+        el.classList.remove('on');
+      });
+    });
+    /* Going: the row is already lit by the pointer (or the touch pass), so
+       the copy lands on top of it and the browser photographs the lit line. */
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest && e.target.closest('a[href*="/lab/rygg/benchboss"]');
+      if (!a) return;
+      el.classList.remove('off');
+      el.classList.add('on');
+    }, true);
+    /* bfcache: the page comes back exactly as it left, lit copy and all. */
+    addEventListener('pageshow', (e) => {
+      if (e.persisted) { el.classList.add('off'); el.classList.remove('on'); }
+    });
+  })();
+</script>

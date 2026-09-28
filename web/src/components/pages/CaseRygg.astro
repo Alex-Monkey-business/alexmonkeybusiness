@@ -1,0 +1,555 @@
+---
+/**
+ * THE BENCHBOSS CASE AS A CLIMB — `/lab/rygg/benchboss`.
+ *
+ * Same words, same recordings and same instrument as `CaseBenchBoss`. Two
+ * things are different, and they are the whole experiment:
+ *
+ * ONE PHONE. The live case prints six devices, one per chapter, with a column
+ * of black between each and its copy. Here there is one device and it stays:
+ * it sticks in the right-hand column while the chapters scroll past on the
+ * left, and the screen changes under it. A change is a wipe with a hairline
+ * of signal on its edge — up when you read on, down when you go back. The
+ * scan line is the instrument's; the front page sweeps one across the names.
+ *
+ * THE RIDGE IS THE THREAD. The Hörnligrat that lit on the front page lands
+ * here (see `RidgeHome.astro` for the other end) and becomes the progress of
+ * the read: a hairline of the ridge in the corner, with the signal climbing it
+ * from the base as you go and a block cursor at the head. The six chapters
+ * take you to the summit; the list under them is what is under the rock, so
+ * the climb has already topped out and steps aside for it.
+ *
+ * Phone widths put the device in the upper half and the copy under it, pinned,
+ * one chapter at a time — the same one-at-a-time as desktop, stacked instead
+ * of side by side.
+ */
+import { t, type Lang } from '../../i18n';
+import { climb } from '../../lib/hornligrat';
+import '../../styles/instrument.css';
+import '../../styles/halsen.css';
+
+interface Props { lang: Lang; back: string }
+const { lang, back } = Astro.props;
+const s = t(lang).case;
+
+/* Media and loop starts are `CaseBenchBoss`'s, paired to the prose by index. */
+const media = [
+  { src: '/assets/halsen/hjem.webm',         poster: '/assets/halsen/hjem-poster.jpg', start: 2 },
+  { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 14 },
+  { src: '/assets/halsen/stats-teams.webm',  poster: '/assets/halsen/stats-teams-poster.jpg', start: 2 },
+  { src: '/assets/halsen/loan-suggest.webm', poster: '/assets/halsen/loan-suggest-poster.jpg', start: 0.5 },
+  { src: '/assets/halsen/trening.webm',      poster: '/assets/halsen/trening-poster.jpg', start: 2 },
+  { src: '/assets/halsen/ovelsesbank.webm',  poster: '/assets/halsen/ovelsesbank-poster.jpg', start: 4 },
+];
+
+const features = s.features.map((f, i) => ({
+  ...f,
+  ...media[i],
+  n: String(i + 1).padStart(2, '0'),
+}));
+---
+
+<!-- Classic and inline, so it is listening before the first frame — a module
+     script can run too late to see `pagereveal`. -->
+<script is:inline>
+  addEventListener('pagereveal', (e) => {
+    if (e.viewTransition) window.__ryggArrival = e.viewTransition.finished;
+  });
+</script>
+
+<div class="case inst rygg">
+  <a href={back} class="case-back">{s.back.replace('←', '<')}</a>
+
+  <section class="case-hero">
+    <p class="case-eyebrow inst-label"><span class="inst-idx">00</span> <span data-type>{s.stack[0].toUpperCase()}</span></p>
+    <h1 class="case-title inst-display"><span data-decode>Bench</span><span class="em" data-decode>Boss</span></h1>
+    <p class="case-lede inst-body">{s.lede}</p>
+  </section>
+
+  <div class="rig">
+    <div class="rig-copy">
+      {features.map((f, i) => (
+        <section class="rig-ch" data-i={i}>
+          <div class="rig-text">
+            <span class="ft-num inst-idx">{f.n}</span>
+            <h2 class="ft-h inst-display" data-decode>{f.h}</h2>
+            <p class="ft-p inst-body">{f.p}</p>
+          </div>
+        </section>
+      ))}
+    </div>
+
+    <div class="rig-stage">
+      <div class="phone phone--video rig-phone">
+        <div class="rig-screen">
+          {features.map((f, i) => (
+            <video
+              class:list={['rig-vid', { on: i === 0 }]}
+              src={f.src}
+              poster={f.poster}
+              data-i={i}
+              data-start={f.start}
+              muted
+              playsinline
+              preload={i === 0 ? 'auto' : 'metadata'}
+              aria-hidden="true"
+            ></video>
+          ))}
+          <span class="rig-scan" aria-hidden="true"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="case-list">
+    <ul>
+      {s.hood.map((h, i) => (
+        <li style={`--i:${i}`}>
+          <span class="n inst-idx">{String(features.length + i + 1).padStart(2, '0')}</span>
+          <span class="text">{h.pre}<em>{h.em}</em>{h.rest}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <div class="case-stack inst-label">
+    <span class="live">{s.stack[0]}</span>
+    <span class="sep">·</span>
+    <span>{s.stack[1]}</span>
+    <span class="sep">·</span>
+    <span>{s.stack[2]}</span>
+  </div>
+
+  <!-- The climb. Fixed in the corner; `--p` is the read, 0 → 1. -->
+  <div class="climb" aria-hidden="true" style={`--ar: ${climb.ar.toFixed(4)};`}>
+    <svg viewBox={climb.viewBox} preserveAspectRatio="none" fill="none">
+      <path class="climb-rest" d={climb.d} pathLength="1" />
+      <path class="climb-lit" d={climb.d} pathLength="1" />
+    </svg>
+    <span class="climb-head"></span>
+  </div>
+</div>
+
+<style>
+  /* The flight between the two pages. Longer than the page cross-fade, so
+     the photograph is gone before the line lands. */
+  :global(::view-transition-group(rygg)) {
+    animation-duration: 950ms;
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  /* ---- The rig: copy left, one device right ------------------------------ */
+
+  /* `overflow-x: hidden` on both html and body (global.css) turns the BODY
+     into a scroll container that never scrolls, and `position: sticky` then
+     sticks to it — i.e. never. `clip` cuts the same overflow without being a
+     scroll container. Scoped here so the live pages are untouched. */
+  :global(body:has(.rygg)) { overflow-x: clip; }
+
+  .rig {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 360px);
+    gap: var(--s-20);
+  }
+  /* Each chapter is a screen of scroll, and its copy is pinned to the middle
+     of the viewport for as long as the chapter lasts — level with the phone.
+     The box sticks at 50svh and is lifted by half its own height, so one
+     chapter's copy leaves upward just as the next arrives from below: they
+     meet at an edge, never on top of each other. */
+  .rig-ch { min-height: 100svh; }
+  .rig-text {
+    max-width: 40ch;
+    position: sticky;
+    top: 50svh;
+    translate: 0 -50%;
+  }
+  .rig-ch:first-child { padding-top: 50svh; min-height: 50svh; }
+
+  /* Only the chapter the phone is showing is at full strength. The others are
+     there, legible if you look, but the eye goes to the pair that agree. */
+  .rig-text {
+    opacity: 0.14;
+    transition: opacity 600ms var(--ease-out);
+  }
+  .rig-ch.is-on .rig-text { opacity: 1; }
+  :global(html:not(.js)) .rig-text { opacity: 1; }
+
+  .rig-stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* The screen is a stack. The recording sets the box; every take is laid
+     over it and only the current one (and, mid-wipe, the one it is replacing)
+     is painted at all. */
+  .rig-screen {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 780 / 1688;
+    border-radius: var(--screen-radius);
+    overflow: hidden;
+    background: #fff;
+  }
+  .rig-vid {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    background: #fff;
+    visibility: hidden;
+  }
+  .rig-vid.on,
+  .rig-vid.was { visibility: visible; }
+  .rig-vid.was { z-index: 1; }
+  .rig-vid.on  { z-index: 2; }
+
+  /* The wipe: the new take is uncovered from the bottom (reading on) or the
+     top (going back), and the scan line rides the edge. Same curve, same
+     length, so the line is always exactly on the seam. */
+  .rig-vid.on.wipe-up   { animation: wipe-up 720ms var(--ease-wipe) both; }
+  .rig-vid.on.wipe-down { animation: wipe-down 720ms var(--ease-wipe) both; }
+  .rig { --ease-wipe: cubic-bezier(0.65, 0, 0.35, 1); }
+  @keyframes wipe-up   { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
+  @keyframes wipe-down { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+
+  .rig-scan {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    z-index: 3;
+    background: var(--signal);
+    box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--signal) 40%, transparent);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rig-scan.up   { animation: scan-up 720ms var(--ease-wipe) both; }
+  .rig-scan.down { animation: scan-down 720ms var(--ease-wipe) both; }
+  @keyframes scan-up {
+    0%   { top: 100%; opacity: 0; }
+    10%  { opacity: 1; }
+    88%  { opacity: 1; }
+    100% { top: 0%; opacity: 0; }
+  }
+  @keyframes scan-down {
+    0%   { top: 0%; opacity: 0; }
+    10%  { opacity: 1; }
+    88%  { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* ---- The climb ---------------------------------------------------------- */
+
+  /* Bottom left, under the mark in the nav — the corner the page never puts
+     anything in. Sized by height; the width follows the ridge's own shape so
+     the flight from the front page never changes aspect. */
+  .climb {
+    --p: 0;
+    --h: clamp(84px, 13svh, 128px);
+    position: fixed;
+    left: clamp(24px, 4.2vw, 60px);
+    bottom: clamp(20px, 5svh, 48px);
+    height: var(--h);
+    aspect-ratio: var(--ar);
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 500ms var(--ease-out);
+  }
+  .climb.done { opacity: 0; }
+  .climb svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    view-transition-name: rygg;
+  }
+  /* Stroke widths are in the ridge's own units, converted from px by `--u`
+     (units per px, set from the script). NOT `vector-effect:
+     non-scaling-stroke`: with it, Chrome measures the dash in screen space and
+     `pathLength="1"` stops meaning anything — the whole line lit at once. */
+  .climb {
+    --u: 5;
+  }
+  .climb path {
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .climb-rest {
+    stroke: var(--fg1);
+    stroke-width: calc(1px * var(--u));
+    opacity: 0.22;
+  }
+  .climb-lit {
+    stroke: var(--signal);
+    stroke-width: calc(1.6px * var(--u));
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: calc(1 - var(--p));
+  }
+  /* The climber: the instrument's block cursor, at the head of the line. It
+     blinks only when it has stopped — at rest, and on top. */
+  .climb-head {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 5px;
+    height: 8px;
+    margin: -8px 0 0 -2.5px;
+    background: var(--signal);
+    translate: var(--hx, 0px) var(--hy, 0px);
+    opacity: 0;
+    transition: opacity 300ms linear;
+  }
+  .climb.ready .climb-head { opacity: 1; }
+  .climb.ready.idle .climb-head { animation: inst-blink 1.1s steps(1) infinite; }
+
+  /* ---- Phones -------------------------------------------------------------- */
+
+  /* The device in the upper half, pinned; the copy under it, one chapter at a
+     time. Both occupy the same grid cell, so the chapters scroll past a phone
+     that does not move. The copy is pinned just below the device and only the
+     current chapter is shown — the rest would slide up over the screen. */
+  @media (max-width: 860px) {
+    /* On the root, not the rig: the climb sits outside it and hangs off the
+       same two numbers. */
+    .rygg {
+      --phone-h: min(52svh, 480px);
+      --phone-top: 11svh;
+    }
+    .rig {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .rig-copy,
+    .rig-stage { grid-area: 1 / 1; }
+    .rig-copy { position: relative; z-index: 2; }
+    .rig-stage {
+      align-items: flex-start;
+      padding-top: var(--phone-top);
+    }
+    .rig-phone {
+      width: calc(var(--phone-h) * 0.4621);
+      max-width: 70vw;
+    }
+    .rig-ch { min-height: 100svh; }
+    .rig-ch:first-child { padding-top: 0; }
+    .rig-text {
+      position: sticky;
+      translate: none;
+      top: calc(var(--phone-top) + var(--phone-h) + 5svh);
+      opacity: 0;
+      transition: opacity 260ms linear;
+    }
+    .rig-ch.is-on .rig-text { opacity: 1; }
+    /* The first chapter must not sit on the phone before it has been reached. */
+    .rig-copy { padding-top: calc(var(--phone-top) + var(--phone-h) + 5svh); }
+    .rig-ch:first-child { min-height: calc(100svh - var(--phone-top) - var(--phone-h) - 5svh); }
+    .ft-num { margin-bottom: var(--s-3); }
+    .ft-h { font-size: clamp(20px, 5.6vw, 26px); }
+    .ft-p { margin-top: var(--s-3); font-size: 14px; }
+
+    /* The climb goes beside the device, level with its foot. */
+    .climb {
+      --h: clamp(56px, 9svh, 88px);
+      left: auto;
+      right: 14px;
+      bottom: auto;
+      top: calc(var(--phone-top) + var(--phone-h) - var(--h));
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rig-vid.on.wipe-up,
+    .rig-vid.on.wipe-down,
+    .rig-scan.up,
+    .rig-scan.down { animation: none; }
+    .climb svg { view-transition-name: none; }
+    .climb.ready.idle .climb-head { animation: none; }
+  }
+</style>
+
+<script>
+  import { decode, typeSelf, onEnter } from '../../scripts/decode';
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const eyebrow = document.querySelector<HTMLElement>('.case-eyebrow [data-type]');
+  if (eyebrow) typeSelf(eyebrow, { delay: 200, speed: 16 });
+  document.querySelectorAll<HTMLElement>('.case-title [data-decode]').forEach((el) => decode(el, { delay: 500, perChar: 70 }));
+
+  onEnter(document.querySelectorAll('.case-list li'), (el) => el.classList.add('is-in'), 0.18);
+
+  /* ---- One phone ---------------------------------------------------------- */
+
+  const chapters = Array.from(document.querySelectorAll<HTMLElement>('.rig-ch'));
+  const vids = Array.from(document.querySelectorAll<HTMLVideoElement>('.rig-vid'));
+  const scan = document.querySelector<HTMLElement>('.rig-scan');
+  const stage = document.querySelector<HTMLElement>('.rig-stage');
+  let cur = -1;
+  let stageVisible = false;
+
+  const startOf = (v: HTMLVideoElement) => Number(v.dataset.start ?? '0');
+  vids.forEach((v) => {
+    v.addEventListener('loadedmetadata', () => { if (v.currentTime < startOf(v)) v.currentTime = startOf(v); });
+    /* Loop past the first paint, as the live case does. */
+    v.addEventListener('timeupdate', () => {
+      if (v.duration && v.currentTime >= v.duration - 0.25) v.currentTime = startOf(v);
+    });
+    v.addEventListener('animationend', () => {
+      v.classList.remove('wipe-up', 'wipe-down');
+      vids.forEach((o) => o !== v && o.classList.remove('was'));
+    });
+  });
+
+  const play = () => {
+    vids.forEach((v, i) => {
+      if (i === cur && stageVisible && !reduce) {
+        if (v.currentTime < startOf(v)) v.currentTime = startOf(v);
+        v.play().catch(() => {});
+      } else if (!v.classList.contains('was')) {
+        v.pause();
+      }
+    });
+  };
+
+  const decoded = new Set<number>();
+  const show = (i: number) => {
+    if (i === cur) return;
+    const prev = cur;
+    cur = i;
+    chapters.forEach((c, n) => c.classList.toggle('is-on', n === i));
+    if (!decoded.has(i)) {
+      decoded.add(i);
+      const h = chapters[i].querySelector<HTMLElement>('[data-decode]');
+      if (h) decode(h, { delay: 60, perChar: 10, flip: 35 });
+    }
+
+    /* The first chapter is already on screen when the page opens; no wipe. */
+    if (prev === -1) {
+      vids.forEach((v, n) => v.classList.toggle('on', n === i));
+      play();
+      return;
+    }
+    /* Preload the neighbours so the next wipe uncovers a moving picture, not
+       a poster. */
+    [i - 1, i + 1].forEach((n) => { if (vids[n] && vids[n].preload !== 'auto') vids[n].preload = 'auto'; });
+
+    const dir = i > prev ? 'up' : 'down';
+    vids.forEach((v, n) => {
+      v.classList.remove('on', 'was', 'wipe-up', 'wipe-down');
+      if (n === prev) v.classList.add('was');
+    });
+    const next = vids[i];
+    void next.offsetWidth;
+    next.classList.add('on');
+    if (!reduce) next.classList.add(`wipe-${dir}`);
+    else vids[prev].classList.remove('was');
+    if (scan && !reduce) {
+      scan.classList.remove('up', 'down');
+      void scan.offsetWidth;
+      scan.classList.add(dir);
+    }
+    play();
+  };
+
+  /* The chapter under the reading line is the one on the phone. Desktop reads
+     at the middle of the screen; on a phone the copy sits low, under the
+     device, so the line is low too — a chapter takes over as its copy comes
+     up into place, not after it has already slid over the screen. */
+  const narrow = matchMedia('(max-width: 860px)');
+  let io: IntersectionObserver | null = null;
+  const watch = () => {
+    io?.disconnect();
+    const m = narrow.matches ? '-82% 0px -18% 0px' : '-50% 0px -50% 0px';
+    io = new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) show(Number((e.target as HTMLElement).dataset.i)); });
+    }, { rootMargin: m });
+    chapters.forEach((c) => io!.observe(c));
+  };
+  watch();
+  narrow.addEventListener('change', watch);
+  show(0);
+
+  if (stage) {
+    new IntersectionObserver((es) => {
+      stageVisible = es.some((e) => e.isIntersecting);
+      play();
+    }, { threshold: 0.2 }).observe(stage);
+  }
+
+  /* ---- The climb ---------------------------------------------------------- */
+
+  const climbEl = document.querySelector<HTMLElement>('.climb');
+  const lit = climbEl?.querySelector<SVGPathElement>('.climb-lit');
+  const rig = document.querySelector<HTMLElement>('.rig');
+  if (climbEl && lit && rig) {
+    const svg = lit.ownerSVGElement!;
+    const total = lit.getTotalLength();
+    let target = 0;
+    let p = 0;
+    let idleSince = 0;
+
+    /* The read, 0 → 1: from the top of the page to the last chapter leaving
+       the reading line. The list under it is past the summit. */
+    const measure = () => {
+      const r = rig.getBoundingClientRect();
+      /* Summit when the rig's foot reaches the bottom of the screen — the last
+         chapter is still up. Then it holds for a fifth of a screen and steps
+         aside before the list comes up into its corner. */
+      const end = r.bottom + scrollY - innerHeight;
+      target = Math.max(0, Math.min(1, scrollY / Math.max(1, end)));
+      climbEl.classList.toggle('done', r.bottom < innerHeight * 0.8);
+    };
+
+    const place = () => {
+      const pt = lit.getPointAtLength(total * p);
+      const ctm = svg.getScreenCTM();
+      const box = climbEl.getBoundingClientRect();
+      if (!ctm) return;
+      const x = ctm.a * pt.x + ctm.c * pt.y + ctm.e - box.left;
+      const y = ctm.b * pt.x + ctm.d * pt.y + ctm.f - box.top;
+      climbEl.style.setProperty('--hx', `${x.toFixed(1)}px`);
+      climbEl.style.setProperty('--hy', `${y.toFixed(1)}px`);
+    };
+
+    /* Eased toward the scroll, not glued to it: the line has weight, and a
+       flick of the wheel reads as a climb rather than a jump. */
+    const tick = (now: number) => {
+      const d = target - p;
+      p = Math.abs(d) < 0.0005 || reduce ? target : p + d * 0.09;
+      climbEl.style.setProperty('--p', p.toFixed(4));
+      place();
+      if (Math.abs(d) > 0.001) idleSince = now;
+      climbEl.classList.toggle('idle', now - idleSince > 500);
+      requestAnimationFrame(tick);
+    };
+
+    const units = () => {
+      const vbh = svg.viewBox.baseVal.height;
+      const h = svg.getBoundingClientRect().height || 1;
+      climbEl.style.setProperty('--u', (vbh / h).toFixed(3));
+    };
+    addEventListener('scroll', measure, { passive: true });
+    addEventListener('resize', () => { measure(); units(); });
+    measure();
+    units();
+    p = target;
+
+    /* The head appears once the line has landed from the front page. The
+       promise is caught by the inline script if it ran in time; the timeout
+       is the flight's own length, for when it did not. */
+    const ready = () => climbEl.classList.add('ready');
+    const vt = (window as any).__ryggArrival as Promise<void> | undefined;
+    if (vt) vt.finally(ready);
+    else setTimeout(ready, reduce ? 0 : 1000);
+
+    requestAnimationFrame(tick);
+  }
+</script>
