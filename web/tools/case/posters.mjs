@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 const DIR = fileURLToPath(new URL('./rec/', import.meta.url));
-const AT = { hjem: 2, trening: 2, ovelsesbank: 4, matchmode: 14, filter: 3, 'stats-teams': 2, cup: 2 };
+const AT = { hjem: 2, trening: 1, ovelsesbank: 3.4, matchmode: 0.9, 'stats-teams': 1, 'loan-suggest': 1.2 };
 const b = await chromium.launch();
 try {
   const p = await b.newPage({ viewport: {width:390,height:844}, deviceScaleFactor:2 });

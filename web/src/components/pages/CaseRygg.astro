@@ -23,7 +23,11 @@
  * one chapter at a time — the same one-at-a-time as desktop, stacked instead
  * of side by side.
  *
- * THE THUMB RUNS THE APP. Two chapters do not loop: their recording is
+ * THE THUMB RUNS THE APP — on a phone. (Desktop tried it on 28 Sep and Alex
+ * turned it down: a mouse wheel moves in notches, so a scrubbed film judders
+ * however it is eased. There the two takes loop like the rest, and the moment
+ * is slow motion: the film eases to a quarter speed while the camera pushes
+ * in, and back.) On a phone two chapters do not loop: their recording is
  * scrubbed by the scroll, so reading on IS pressing the buttons — the lineup
  * fills, the clock starts, the sub happens; the squad opens and the loan list
  * sorts itself. Stop scrolling and the app stops. Each has one moment the
@@ -48,21 +52,22 @@ const s = t(lang).case;
    `scrub` replaces the loop with the scroll. `at` is the moment in the
    re-encoded take (seconds), and `x y w h` is the thing to frame, as fractions
    of the 390×844 screen — both read off frames of the take, not guessed:
-     matchmode 16.4 s — «Inn for Filip» and the first chip offered, Henrik
-     loan 9.7 s       — «★ Anbefalt» and the first player under it, Mads
+     matchmode 9.8 s — «Hvem går inn for Filip?» and the chip it offers, Henrik
+     loan 7.2 s      — «★ Anbefalt» and the first player under it, Mads
+   (28 Sep 2026 takes; the scrub encodes start 0.6 s into the webm.)
    Tight on purpose: the zoom is sized to fill the screen with the frame, so a
    frame as wide as the sheet zooms 1.2× and reads as a wobble. */
 type Scrub = { src: string; at: number; x: number; y: number; w: number; h: number };
 type Media = { src: string; poster: string; start: number; scrub?: Scrub };
 const media: Media[] = [
   { src: '/assets/halsen/hjem.webm',         poster: '/assets/halsen/hjem-poster.jpg', start: 2 },
-  { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 14,
-    scrub: { src: '/assets/halsen/scrub/matchmode.mp4', at: 16.4, x: 0.045, y: 0.815, w: 0.36, h: 0.1 } },
-  { src: '/assets/halsen/stats-teams.webm',  poster: '/assets/halsen/stats-teams-poster.jpg', start: 2 },
-  { src: '/assets/halsen/loan-suggest.webm', poster: '/assets/halsen/loan-suggest-poster.jpg', start: 0.5,
-    scrub: { src: '/assets/halsen/scrub/loan-suggest.mp4', at: 9.7, x: 0.095, y: 0.405, w: 0.39, h: 0.07 } },
-  { src: '/assets/halsen/trening.webm',      poster: '/assets/halsen/trening-poster.jpg', start: 2 },
-  { src: '/assets/halsen/ovelsesbank.webm',  poster: '/assets/halsen/ovelsesbank-poster.jpg', start: 4 },
+  { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 0.9,
+    scrub: { src: '/assets/halsen/scrub/matchmode.mp4', at: 9.8, x: 0.03, y: 0.875, w: 0.42, h: 0.12 } },
+  { src: '/assets/halsen/stats-teams.webm',  poster: '/assets/halsen/stats-teams-poster.jpg', start: 1 },
+  { src: '/assets/halsen/loan-suggest.webm', poster: '/assets/halsen/loan-suggest-poster.jpg', start: 1.2,
+    scrub: { src: '/assets/halsen/scrub/loan-suggest.mp4', at: 7.2, x: 0.1, y: 0.47, w: 0.38, h: 0.08 } },
+  { src: '/assets/halsen/trening.webm',      poster: '/assets/halsen/trening-poster.jpg', start: 1 },
+  { src: '/assets/halsen/ovelsesbank.webm',  poster: '/assets/halsen/ovelsesbank-poster.jpg', start: 3.4 },
 ];
 
 const features = s.features.map((f, i) => ({
@@ -268,8 +273,12 @@ const features = s.features.map((f, i) => ({
     opacity: var(--mark, 0);
     pointer-events: none;
   }
-  /* A scrubbed chapter is a longer read: the film needs scroll to run on. */
-  .rig-ch.scrub { min-height: 320svh; }
+  /* On a phone a scrubbed chapter is a longer read: the film needs scroll to
+     run on. On desktop it plays like the others (see the script), so it is
+     one screen like the others. */
+  @media (max-width: 860px) {
+    .rig-ch.scrub { min-height: 220svh; }
+  }
   .rig-vid.on,
   .rig-vid.was { visibility: visible; }
   .rig-vid.was { z-index: 1; }
@@ -455,6 +464,8 @@ const features = s.features.map((f, i) => ({
   /* ---- One phone ---------------------------------------------------------- */
 
   type Scrub = { src: string; at: number; x: number; y: number; w: number; h: number };
+  /* Phones scrub, desktops play. Read everywhere below. */
+  const narrow = matchMedia('(max-width: 860px)');
   const chapters = Array.from(document.querySelectorAll<HTMLElement>('.rig-ch'));
   const layers = Array.from(document.querySelectorAll<HTMLElement>('.rig-vid'));
   const vids = layers.map((l) => l.querySelector('video') as HTMLVideoElement);
@@ -470,8 +481,9 @@ const features = s.features.map((f, i) => ({
     if (scrubs[i]) {
       /* Never plays — the scroll is the playhead. One play/pause on load is
          what gets iOS to decode frames for a video that will only ever seek. */
-      v.addEventListener('loadeddata', () => { v.play().then(() => v.pause()).catch(() => {}); }, { once: true });
-      return;
+      v.addEventListener('loadeddata', () => {
+        if (narrow.matches) v.play().then(() => { if (narrow.matches) v.pause(); }).catch(() => {});
+      }, { once: true });
     }
     v.addEventListener('loadedmetadata', () => { if (v.currentTime < startOf(v)) v.currentTime = startOf(v); });
     /* Loop past the first paint, as the live case does. */
@@ -488,7 +500,7 @@ const features = s.features.map((f, i) => ({
 
   const play = () => {
     vids.forEach((v, i) => {
-      if (scrubs[i]) return;
+      if (scrubs[i] && narrow.matches) { v.pause(); return; }
       if (i === cur && stageVisible && !reduce) {
         if (v.currentTime < startOf(v)) v.currentTime = startOf(v);
         v.play().catch(() => {});
@@ -542,7 +554,6 @@ const features = s.features.map((f, i) => ({
      at the middle of the screen; on a phone the copy sits low, under the
      device, so the line is low too — a chapter takes over as its copy comes
      up into place, not after it has already slid over the screen. */
-  const narrow = matchMedia('(max-width: 860px)');
   const lineAt = () => innerHeight * (narrow.matches ? 0.82 : 0.5);
   let io: IntersectionObserver | null = null;
   const watch = () => {
@@ -554,7 +565,7 @@ const features = s.features.map((f, i) => ({
     chapters.forEach((c) => io!.observe(c));
   };
   watch();
-  narrow.addEventListener('change', watch);
+  narrow.addEventListener('change', () => { watch(); play(); });
   show(0);
 
   if (stage) {
@@ -601,8 +612,27 @@ const features = s.features.map((f, i) => ({
     const mid = (q1 + q2) / 2;
     const half = DWELL / 2 + 0.08;
     const k = clamp(1 - Math.abs(u - mid) / half);
-    const e = reduce ? 0 : smooth01(clamp(k * 1.7));
-    const mark = smooth01(clamp(k * 2.4));
+    camera(i, reduce ? 0 : smooth01(clamp(k * 1.7)), smooth01(clamp(k * 2.4)));
+  };
+
+  /* Desktop: the take plays, and the moment is read off its own clock. The
+     film slows to a quarter speed through it, so the push-in has time to land
+     without anything being paused. */
+  const RAMP = 0.7;
+  const HOLD = 0.35;
+  const slowmo = (i: number) => {
+    const v = vids[i];
+    const sc = scrubs[i]!;
+    const k = clamp(1 - (Math.abs(v.currentTime - sc.at) - HOLD) / RAMP);
+    const e = reduce ? 0 : smooth01(k);
+    camera(i, e, smooth01(clamp(k * 1.4)));
+    const rate = reduce ? 1 : 1 - 0.75 * e;
+    /* Snap home at the end, or the last step leaves it at 0.98 for good. */
+    if (v.playbackRate !== rate && (Math.abs(v.playbackRate - rate) > 0.02 || rate === 1)) v.playbackRate = rate;
+  };
+
+  const camera = (i: number, e: number, mark: number) => {
+    const sc = scrubs[i]!;
     const Z = Math.min(0.86 / sc.w, 2.6);
     const z = 1 + (Z - 1) * e;
     const cx = sc.x + sc.w / 2;
@@ -628,7 +658,9 @@ const features = s.features.map((f, i) => ({
          the thumb, not a jump cut. */
       qs[i] += (q - qs[i]) * 0.22;
       if (Math.abs(q - qs[i]) < 0.0004) qs[i] = q;
-      if (i === cur || layers[i].classList.contains('was')) film(i, qs[i]);
+      if (i !== cur && !layers[i].classList.contains('was')) return;
+      if (narrow.matches) film(i, qs[i]);
+      else slowmo(i);
     });
     requestAnimationFrame(run);
   };

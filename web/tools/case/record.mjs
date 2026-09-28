@@ -55,12 +55,23 @@ await record('hjem', '/', '2026-03-10', async p => {
   await ease(p, -300, 30); await p.waitForTimeout(1600);
 });
 
-// Training week and the guidance sheet for a real demo drill.
+// 05 — Treningsuka (28. sep-flyten): «Planlegg treninga» gjør dagen til rader;
+// trykk en rad → arket med «Tid i dag», trykk + noen ganger, lukk. Tre
+// øvelser får tid, og dagens budsjett fylles opp mot 1 t 30 min.
 await record('trening', '/trening', '2026-09-08', async p => {
-  await p.waitForTimeout(1800);
+  await p.waitForTimeout(1500);
   await p.getByRole('button', {name:'Planlegg treninga', exact:true}).first().click();
-  await p.waitForTimeout(1800);
-  await ease(p, 320); await p.waitForTimeout(1800);
+  await p.waitForTimeout(1300);
+  for (const [name, taps] of [['Medtak, dribling, vending og pasning', 3], ['3v3 med press i ryggen', 3], ['Vinneren står', 2]]) {
+    await p.getByRole('button', { name: `Endre ${name}` }).click();
+    await p.waitForSelector('.stepper__btn', { timeout: 4000 });
+    await p.waitForTimeout(500);
+    for (let i = 0; i < taps; i++) { await p.locator('.stepper__btn[aria-label="Lengre"]').click(); await p.waitForTimeout(260); }
+    await p.waitForTimeout(450);
+    await p.locator('.ds-sheet__close').click();
+    await p.waitForTimeout(700);
+  }
+  await p.waitForTimeout(2000);
 });
 await record('ovelsesbank', '/trening/ovelser', '2026-09-08', async p => {
   await p.getByText('Medtak, dribling, vending og pasning', {exact:true}).click();
@@ -77,28 +88,32 @@ await record('stats-teams', '/statistikk', '2026-03-12', async p => {
 await record('cup', '/cup', '2026-08-07', async p => {
   await ease(p, 380); await p.waitForTimeout(1800);
 });
-// 02 — Kampmodus: sett opp laget, start, bytt én — forslaget sorteres på posisjon
+// 02 — Kampmodus (28. sep-flyten): «Fyll resten» fyller laget, «Start kamp»,
+// trykk Filip → «Hvem går inn for Filip?» med forslaget uthevet → trykk det →
+// «Filip ut, Henrik inn · Angre». To trykk per bytte, ingen velgerark.
 await record('matchmode', '/kamp/dm-4/live', null, async p => {
-  const sheetOpen = () => p.locator('.ds-sheet__close').count();
-  let guard = 0;
-  while (await p.locator('.marker--empty').count() > 0 && guard++ < 12) {
-    await p.locator('.marker--empty').first().click();
-    await p.waitForSelector('.ds-sheet__close', { timeout: 4000 });
-    await p.waitForTimeout(350);
-    await p.locator('.ds-overlay .mm__bchip').first().click();
-    await p.waitForFunction(() => !document.querySelector('.ds-sheet__close'), null, { timeout: 4000 }).catch(()=>{});
-    await p.waitForTimeout(220);
-  }
-  await p.waitForTimeout(600);
-  await p.locator('.mm__start').click();
-  await p.waitForTimeout(5500);
-  // en utespiller ut — sheetet viser hvem som passer i posisjonen først
-  const field = p.locator('.marker:not(.marker--empty):not(.marker--gk):not(.marker--ghost)');
-  await field.nth(2).click();
-  await p.waitForSelector('.ds-sheet__close', { timeout: 4000 });
-  await p.waitForTimeout(2200);
-  await p.locator('.ds-overlay .mm__bchip').first().click();
-  await p.waitForTimeout(3000);
+  await p.waitForTimeout(900);
+  await p.getByRole('button', { name: 'Fyll resten' }).click();
+  await p.waitForTimeout(1500);
+  await p.getByRole('button', { name: 'Start kamp' }).click();
+  await p.waitForTimeout(4200);
+  await p.locator('.marker', { hasText: 'Filip' }).click();
+  await p.waitForSelector('.mm__bchip--forslag', { timeout: 4000 });
+  await p.waitForTimeout(2400);
+  await p.locator('.mm__bchip--forslag').click();
+  await p.waitForTimeout(3200);
+});
+
+// 04 — Lånespilleren: kampsida, åpne Tropp, rull ned til lånespillerne og
+// trykk den første anbefalte — den flytter opp til Valgt. Appen foreslår,
+// treneren bekrefter.
+await record('loan-suggest', '/kamp/dm-4', '2026-03-12', async p => {
+  await p.waitForTimeout(1200);
+  await p.getByText('Tropp', { exact: true }).click();
+  await p.waitForTimeout(900);
+  await ease(p, 560, 36); await p.waitForTimeout(2200);
+  await p.locator('.loan-pill', { hasText: 'Mads' }).click();
+  await p.waitForTimeout(2600);
 });
 
 await b.close();
