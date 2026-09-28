@@ -45,17 +45,22 @@ const nb = lang === 'nb';
    allows itself. (The ridge names and first-ascent years sat here before,
    and before them coordinates, a snow/sand cycle and Costanza; Alex cut them
    all. This is the tagline's job, moved to the only place it earns its line:
-   under the pointer, for the row it belongs to.) */
+   under the pointer, for the row it belongs to.)
+
+   28 Sep 2026: the pointed-at lines are gone too — Alex, «litt småkleine».
+   «Pudder» and «svarer på alt» were the last clever copy on a wordless page.
+   The readout is the cursor alone, pointing or not. Kept as empty keys so the
+   script's lookup still has somewhere to land. */
 const readout = nb
   ? {
       idle: '',
-      hornligrat: 'LAGET PÅ KVELDSTID · I BRUK PÅ DAGTID',
-      zmuttgrat: 'PROSJEKT, JOBB ELLER PUDDER · SVARER PÅ ALT',
+      hornligrat: '',
+      zmuttgrat: '',
     }
   : {
       idle: '',
-      hornligrat: 'BUILT AFTER HOURS · USED DURING THEM',
-      zmuttgrat: 'WORK, IDEAS OR POWDER · I ANSWER EVERYTHING',
+      hornligrat: '',
+      zmuttgrat: '',
     };
 ---
 
