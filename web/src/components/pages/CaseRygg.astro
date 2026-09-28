@@ -22,20 +22,11 @@
  * one chapter at a time — the same one-at-a-time as desktop, stacked instead
  * of side by side.
  *
- * THE THUMB RUNS THE APP — on a phone. (Desktop tried it on 28 Sep and Alex
- * turned it down: a mouse wheel moves in notches, so a scrubbed film judders
- * however it is eased. There the two takes loop like the rest, and the moment
- * is slow motion: the film eases to a quarter speed while the camera pushes
- * in, and back.) On a phone two chapters do not loop: their recording is
- * scrubbed by the scroll, so reading on IS pressing the buttons — the lineup
- * fills, the clock starts, the sub happens; the squad opens and the loan list
- * sorts itself. Stop scrolling and the app stops. Each has one moment the
- * whole chapter is about, and there the scroll slows the film to a near stop
- * while the camera pushes into the screen and a hairline of signal frames the
- * thing to look at. The device frame never moves — only the picture inside it.
- * The takes are re-encoded for this (`public/assets/halsen/scrub/`, a keyframe
- * every fourth frame): a webm loop has seconds between keyframes, and seeking
- * one backwards stutters in every browser.
+ * THE SCREENS PLAY THEMSELVES. Tried and cut on 28 Sep 2026: a scroll-driven
+ * scrub, a slow-motion push-in on each chapter's moment, and a lilac frame
+ * around it. Alex: the frame «ser ikke bra ut», and a zoom that follows the
+ * scroll is the page taking the wheel from the app. The takes are quiet now
+ * (see below) and they loop; nothing on the page moves the picture.
  */
 import { t, type Lang } from '../../i18n';
 import { climb } from '../../lib/hornligrat';
@@ -50,39 +41,29 @@ const s = t(lang).case;
    «for mye som skjer på skjermene» — Alex. These are the quiet takes from
    `tools/case/record-rolig.mjs`: recorded with everything outside the story
    hidden, trimmed to the action, and the moment each is about measured from
-   the DOM into `src/data/rolig.json` — so the frame is never typed by hand.
+   the DOM into `src/data/rolig.json` (unused since the frame went).
 
    Two of the six live chapters are not here. Team balance is a table, which is
    exactly the kind of screen that reads as noise, and the drill bank is a
-   sheet of text; both are true and both go to the list, in one line each.
-
-   `zoom` pushes the camera in on the moment (desktop: in slow motion; phone:
-   the scroll dwells on it). The other two only frame it. `thumb` is the
-   phone's scroll-scrub, and needs the H.264 copy. */
-import rolig from '../../data/rolig.json';
+   sheet of text; both are true and both go to the list, in one line each. */
 
 const R = '/assets/halsen/rolig/';
 const plan = [
   /* `start`: the dagen take opens on the page loading, blank then fading
      up; the loop comes back to the cards, not to white. */
-  { key: 'dagen',  f: s.features[0], zoom: false, thumb: false, start: 1.2 },
-  { key: 'byttet', f: s.features[1], zoom: true,  thumb: true,  start: 0 },
-  { key: 'lanet',  f: s.features[3], zoom: true,  thumb: true,  start: 0 },
-  { key: 'uka',    f: s.features[4], zoom: false, thumb: false, start: 0 },
+  { key: 'dagen',  f: s.features[0], start: 1.2 },
+  { key: 'byttet', f: s.features[1], start: 0 },
+  { key: 'lanet',  f: s.features[3], start: 0 },
+  { key: 'uka',    f: s.features[4], start: 0 },
 ] as const;
 
-const features = plan.map((c, i) => {
-  const m = (rolig as Record<string, { at: number; rect: { x: number; y: number; w: number; h: number } }>)[c.key];
-  return {
-    ...c.f,
-    n: String(i + 1).padStart(2, '0'),
-    src: R + c.key + (c.thumb ? '.mp4' : '.webm'),
-    poster: R + c.key + '-poster.jpg',
-    thumb: c.thumb,
-    start: c.start,
-    moment: { at: m.at, ...m.rect, zoom: c.zoom },
-  };
-});
+const features = plan.map((c, i) => ({
+  ...c.f,
+  n: String(i + 1).padStart(2, '0'),
+  src: R + c.key + '.webm',
+  poster: R + c.key + '-poster.jpg',
+  start: c.start,
+}));
 
 /* The two that left the chapters, as the head of the list. */
 const extra = lang === 'nb'
@@ -117,7 +98,7 @@ const hood = [...extra, ...s.hood];
   <div class="rig">
     <div class="rig-copy">
       {features.map((f, i) => (
-        <section class:list={['rig-ch', { scrub: f.thumb }]} data-i={i}>
+        <section class="rig-ch" data-i={i}>
           <div class="rig-text">
             <span class="ft-num inst-idx">{f.n}</span>
             <h2 class="ft-h inst-display" data-decode>{f.h}</h2>
@@ -134,8 +115,6 @@ const hood = [...extra, ...s.hood];
             <div
               class:list={['rig-vid', { on: i === 0 }]}
               data-i={i}
-              data-moment={JSON.stringify(f.moment)}
-              data-thumb={f.thumb ? '' : undefined}
             >
               <div class="rig-cam">
                 <video
@@ -144,13 +123,9 @@ const hood = [...extra, ...s.hood];
                   data-start={f.start}
                   muted
                   playsinline
-                  preload={i === 0 || f.thumb ? 'auto' : 'metadata'}
+                  preload={i === 0 ? 'auto' : 'metadata'}
                   aria-hidden="true"
                 ></video>
-                <span
-                  class="rig-mark"
-                  style={`left:${f.moment.x * 100}%;top:${f.moment.y * 100}%;width:${f.moment.w * 100}%;height:${f.moment.h * 100}%;`}
-                ></span>
               </div>
             </div>
           ))}
@@ -259,15 +234,9 @@ const hood = [...extra, ...s.hood];
     background: #fff;
     visibility: hidden;
   }
-  /* The camera. Scrubbed chapters move it; the others never do. Origin top
-     left, so the script's translate is plain arithmetic in fractions. */
   .rig-cam {
-    --z: 1;
     position: absolute;
     inset: 0;
-    transform-origin: 0 0;
-    transform: translate(var(--tx, 0%), var(--ty, 0%)) scale(var(--z));
-    will-change: transform;
   }
   .rig-cam video {
     position: absolute;
@@ -277,25 +246,6 @@ const hood = [...extra, ...s.hood];
     object-fit: contain;
     display: block;
     background: #fff;
-  }
-  /* The frame around the moment. It lives in the camera, so it stays on the
-     thing it frames at any zoom; the width is divided by the zoom so it stays
-     a hairline. */
-  .rig-mark {
-    position: absolute;
-    border: calc(2px / var(--z)) solid var(--signal);
-    border-radius: calc(12px / var(--z));
-    margin: calc(-6px / var(--z));
-    padding: calc(6px / var(--z));
-    box-sizing: content-box;
-    opacity: var(--mark, 0);
-    pointer-events: none;
-  }
-  /* On a phone a scrubbed chapter is a longer read: the film needs scroll to
-     run on. On desktop it plays like the others (see the script), so it is
-     one screen like the others. */
-  @media (max-width: 860px) {
-    .rig-ch.scrub { min-height: 220svh; }
   }
   .rig-vid.on,
   .rig-vid.was { visibility: visible; }
@@ -452,28 +402,17 @@ const hood = [...extra, ...s.hood];
 
   /* ---- One phone ---------------------------------------------------------- */
 
-  type Moment = { at: number; x: number; y: number; w: number; h: number; zoom: boolean };
-  /* Phones scrub, desktops play. Read everywhere below. */
+  /* Phones read at a lower line than desktops (see `watch`). */
   const narrow = matchMedia('(max-width: 860px)');
   const chapters = Array.from(document.querySelectorAll<HTMLElement>('.rig-ch'));
   const layers = Array.from(document.querySelectorAll<HTMLElement>('.rig-vid'));
   const vids = layers.map((l) => l.querySelector('video') as HTMLVideoElement);
-  const cams = layers.map((l) => l.querySelector('.rig-cam') as HTMLElement);
-  const moments = layers.map((l) => JSON.parse(l.dataset.moment ?? 'null') as Moment | null);
-  const thumbs = layers.map((l) => l.dataset.thumb !== undefined);
   const stage = document.querySelector<HTMLElement>('.rig-stage');
   let cur = -1;
   let stageVisible = false;
 
   const startOf = (v: HTMLVideoElement) => Number(v.dataset.start ?? '0');
   vids.forEach((v, i) => {
-    if (thumbs[i]) {
-      /* Never plays — the scroll is the playhead. One play/pause on load is
-         what gets iOS to decode frames for a video that will only ever seek. */
-      v.addEventListener('loadeddata', () => {
-        if (narrow.matches) v.play().then(() => { if (narrow.matches) v.pause(); }).catch(() => {});
-      }, { once: true });
-    }
     v.addEventListener('loadedmetadata', () => { if (v.currentTime < startOf(v)) v.currentTime = startOf(v); });
     /* Loop past the first paint, as the live case does. */
     v.addEventListener('timeupdate', () => {
@@ -489,7 +428,6 @@ const hood = [...extra, ...s.hood];
 
   const play = () => {
     vids.forEach((v, i) => {
-      if (thumbs[i] && narrow.matches) { v.pause(); return; }
       if (i === cur && stageVisible && !reduce) {
         if (v.currentTime < startOf(v)) v.currentTime = startOf(v);
         v.play().catch(() => {});
@@ -538,7 +476,6 @@ const hood = [...extra, ...s.hood];
      at the middle of the screen; on a phone the copy sits low, under the
      device, so the line is low too — a chapter takes over as its copy comes
      up into place, not after it has already slid over the screen. */
-  const lineAt = () => innerHeight * (narrow.matches ? 0.82 : 0.5);
   let io: IntersectionObserver | null = null;
   const watch = () => {
     io?.disconnect();
@@ -558,107 +495,6 @@ const hood = [...extra, ...s.hood];
       play();
     }, { threshold: 0.2 }).observe(stage);
   }
-
-  /* ---- The thumb runs the app ---------------------------------------------- */
-
-  /**
-   * Where the chapter is, 0 → 1, is where the film is — with one bend in it.
-   * A DWELL share of the scroll is spent on a HALF-second either side of the
-   * moment, so the film nearly stops there while the camera pushes in. The
-   * last few percent hold the final frame, so the wipe to the next chapter
-   * never cuts a movement off halfway.
-   */
-  const DWELL = 0.3;
-  const HALF = 0.35;
-  const TAIL = 0.92;
-  const smooth01 = (t: number) => t * t * (3 - 2 * t);
-  const clamp = (v: number, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
-  const qs = moments.map(() => 0);
-
-  const film = (i: number, q: number) => {
-    const v = vids[i];
-    const sc = moments[i]!;
-    const dur = v.duration;
-    if (!dur || !isFinite(dur)) return;
-    const a = Math.max(0, sc.at - HALF);
-    const b = Math.min(dur, sc.at + HALF);
-    const q1 = (a / dur) * (1 - DWELL);
-    const q2 = q1 + DWELL;
-    const u = Math.min(1, q / TAIL);
-    let t: number;
-    if (u <= q1) t = (u / q1) * a;
-    else if (u <= q2) t = a + ((u - q1) / DWELL) * (b - a);
-    else t = b + ((u - q2) / (1 - q2)) * (dur - b);
-    t = clamp(t, 0, dur - 0.05);
-    if (!v.seeking && Math.abs(v.currentTime - t) > 0.025) v.currentTime = t;
-
-    /* The camera: a bump centred on the dwell, flat-topped so it holds. */
-    const mid = (q1 + q2) / 2;
-    const half = DWELL / 2 + 0.08;
-    const k = clamp(1 - Math.abs(u - mid) / half);
-    camera(i, reduce ? 0 : smooth01(clamp(k * 1.7)), smooth01(clamp(k * 2.4)));
-  };
-
-  /* Desktop: the take plays, and the moment is read off its own clock. The
-     film slows to a quarter speed through it, so the push-in has time to land
-     without anything being paused. */
-  const RAMP = 0.7;
-  const HOLD = 0.35;
-  const slowmo = (i: number) => {
-    const v = vids[i];
-    const sc = moments[i]!;
-    const k = clamp(1 - (Math.abs(v.currentTime - sc.at) - HOLD) / RAMP);
-    const e = reduce ? 0 : smooth01(k);
-    /* A frame without a push-in lands ON the moment and stays a beat after,
-       instead of arriving early: the moment is measured when the thing has
-       happened (the sheet has closed, the cards are up), and a frame drawn
-       before it would sit on the wrong screen. */
-    const d = v.currentTime - sc.at;
-    const mark = sc.zoom
-      ? smooth01(clamp(k * 1.4))
-      : smooth01(clamp((d + 0.15) / 0.45)) * smooth01(clamp((2.4 - d) / 0.5));
-    camera(i, e, mark);
-    /* Only a chapter with a push-in slows down; a frame alone does not need
-       the time. */
-    const rate = reduce || !sc.zoom ? 1 : 1 - 0.75 * e;
-    /* Snap home at the end, or the last step leaves it at 0.98 for good. */
-    if (v.playbackRate !== rate && (Math.abs(v.playbackRate - rate) > 0.02 || rate === 1)) v.playbackRate = rate;
-  };
-
-  const camera = (i: number, e: number, mark: number) => {
-    const sc = moments[i]!;
-    const Z = sc.zoom ? Math.min(0.86 / sc.w, 2.6) : 1;
-    const z = 1 + (Z - 1) * e;
-    const cx = sc.x + sc.w / 2;
-    const cy = sc.y + sc.h / 2;
-    /* Pull the target toward the middle of the screen as it grows, and never
-       so far that the edge of the recording shows. */
-    const tx = clamp(cx + (0.5 - cx) * e - cx * z, 1 - z, 0);
-    const ty = clamp(cy + (0.5 - cy) * e - cy * z, 1 - z, 0);
-    const cam = cams[i];
-    cam.style.setProperty('--z', z.toFixed(4));
-    cam.style.setProperty('--tx', `${(tx * 100).toFixed(3)}%`);
-    cam.style.setProperty('--ty', `${(ty * 100).toFixed(3)}%`);
-    cam.style.setProperty('--mark', mark.toFixed(3));
-  };
-
-  const run = () => {
-    const line = lineAt();
-    moments.forEach((sc, i) => {
-      if (!sc) return;
-      const r = chapters[i].getBoundingClientRect();
-      const q = clamp((line - r.top) / r.height);
-      /* Eased toward the scroll, like the climb: a wheel notch is a push of
-         the thumb, not a jump cut. */
-      qs[i] += (q - qs[i]) * 0.22;
-      if (Math.abs(q - qs[i]) < 0.0004) qs[i] = q;
-      if (i !== cur && !layers[i].classList.contains('was')) return;
-      if (narrow.matches && thumbs[i]) film(i, qs[i]);
-      else slowmo(i);
-    });
-    requestAnimationFrame(run);
-  };
-  requestAnimationFrame(run);
 
   /* ---- The climb ---------------------------------------------------------- */
 
