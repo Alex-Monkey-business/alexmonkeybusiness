@@ -76,13 +76,18 @@ const markers = [
       <section class="sheet" id={`sheet-${x.id}`} role="dialog" aria-modal="true" aria-labelledby={`h-${x.id}`} hidden>
         <button class="sheet-x" type="button" aria-label="Lukk"><span></span></button>
         <p class="sheet-n">{x.n}<span>{p[x.slug]?.year}</span></p>
-        <h2 class="sheet-name" id={`h-${x.id}`}>{x.name}</h2>
-        <p class="sheet-line">{line(x.slug)}</p>
-        {x.media?.kind === 'video' && (
-          <video class="sheet-media" src={x.media.src} poster={x.media.poster} width={x.media.w} height={x.media.h} muted loop playsinline preload="none" aria-hidden="true"></video>
-        )}
-        {x.media?.kind === 'image' && (
-          <img class="sheet-media" src={x.media.src} width={x.media.w} height={x.media.h} alt="" loading="lazy" decoding="async" />
+        <h2 class="sheet-name" id={`h-${x.id}`} data-decode>{x.name}</h2>
+        <p class="sheet-line" data-type>{line(x.slug)}</p>
+        {x.media && (
+          <div class="sheet-media rz" data-still={x.media.kind === 'video' ? x.media.poster : x.media.src}>
+            {x.media.kind === 'video' ? (
+              <video src={x.media.src} poster={x.media.poster} width={x.media.w} height={x.media.h} muted loop playsinline preload="none" aria-hidden="true"></video>
+            ) : (
+              <img src={x.media.src} width={x.media.w} height={x.media.h} alt="" loading="lazy" decoding="async" />
+            )}
+            <canvas class="rz-px" width={x.media.w} height={x.media.h} aria-hidden="true"></canvas>
+            <span class="rz-scan" aria-hidden="true"></span>
+          </div>
         )}
         <a class="sheet-go" href={x.href}>{x.cta}<span aria-hidden="true">→</span></a>
       </section>
@@ -91,11 +96,15 @@ const markers = [
       <button class="sheet-x" type="button" aria-label="Lukk"><span></span></button>
       <!-- The portrait keeps its shadow side and has no frame: the grade is
            baked in with its edges dissolving. See tools/make-portrait-top.py. -->
-      <img class="who-img" src="/assets/about/alex-topp.webp" width="640" height="640" alt="" loading="lazy" decoding="async" />
-      <h2 class="sheet-name" id="h-alex">alexander samnøy</h2>
+      <div class="who-img rz" data-still="/assets/about/alex-topp.webp">
+        <img src="/assets/about/alex-topp.webp" width="640" height="640" alt="" loading="lazy" decoding="async" />
+        <canvas class="rz-px" width="640" height="640" aria-hidden="true"></canvas>
+        <span class="rz-scan" aria-hidden="true"></span>
+      </div>
+      <h2 class="sheet-name" id="h-alex" data-decode>alexander samnøy</h2>
       <ul class="channels">
         {contact.map((c) => (
-          <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined}>{c.value}</a></li>
+          <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined} data-decode>{c.value}</a></li>
         ))}
       </ul>
     </section>
@@ -218,14 +227,51 @@ const markers = [
     color: var(--fg2);
   }
   .sheet-media {
-    display: block;
     width: min(220px, 60%);
-    height: auto;
     margin-top: 22px;
     border-radius: 18px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: #0b0b0b;
+    overflow: hidden;
   }
+
+  /* THE RESOLVE, from /about: a picture arrives as information — eight
+     squares across, then finer, nearest-neighbour, with one signal line
+     scanning down it — and then stands still. Every time a sheet opens. */
+  .rz { position: relative; display: block; }
+  .rz > img,
+  .rz > video { display: block; width: 100%; height: auto; }
+  .rz-px {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rz.go .rz-px { opacity: 1; }
+  .rz.wait > img,
+  .rz.wait > video { opacity: 0; }
+  .rz-scan {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: var(--signal);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rz.go .rz-scan { animation: rz-scan 1050ms cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+  @keyframes rz-scan {
+    0% { top: 0; opacity: 0; }
+    6% { opacity: 1; }
+    92% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+  /* Typing and decoding text: the sheet's own fade stays, the words arrive. */
+  .sheet-line[data-type] { min-height: 1.6em; }
   .sheet-go {
     display: inline-flex;
     gap: 0.8em;
@@ -240,11 +286,11 @@ const markers = [
 
   .sheet-who { padding-top: 12px; }
   .who-img {
-    display: block;
     width: clamp(150px, 15vw, 210px);
-    height: auto;
     margin: 0 0 -14px -18px;
   }
+  /* The portrait's squares take the sky's colour the way the picture does. */
+  .who-img .rz-px { mix-blend-mode: luminosity; }
   .channels { list-style: none; margin: 18px 0 0; padding: 0; }
   .channels li + li { margin-top: 10px; }
   .channels a {
@@ -259,6 +305,7 @@ const markers = [
   @media (prefers-reduced-motion: reduce) {
     .cue { animation: none; transform: none; }
     .sheet, .veil { transition: none; }
+    .rz-px, .rz-scan { display: none; }
   }
 </style>
 
@@ -266,7 +313,64 @@ const markers = [
   /* One sheet at a time. Opened by a point on the mountain (`lys:open`),
      closed by its cross, the dim, Escape or the browser's back. Focus goes
      into the sheet and back to the point it came from. */
+  import { decode, typer, still } from '../../scripts/decode';
+
   const veil = document.querySelector<HTMLElement>('.veil')!;
+
+  /* The sheet's words arrive the way /about's do: names decode, the line
+     types itself. */
+  const words = (s: HTMLElement) => {
+    s.querySelectorAll<HTMLElement>('[data-decode]').forEach((el, i) => decode(el, { delay: 120 + i * 160, perChar: 30 }));
+    s.querySelectorAll<HTMLElement>('[data-type]').forEach((el) => {
+      const text = (el.dataset.text ??= el.textContent ?? '');
+      el.textContent = '';
+      const t = typer(el);
+      setTimeout(() => t(text, 12), 420);
+    });
+  };
+
+  /* The pictures resolve: a canvas over each draws it at 8 squares across,
+     then 12, 18 … 200, then gets out of the way. */
+  const STEPS = [8, 12, 18, 28, 44, 72, 120, 200];
+  const stills = new Map<string, Promise<HTMLImageElement>>();
+  const load = (src: string) => {
+    if (!stills.has(src)) stills.set(src, new Promise((ok, no) => {
+      const im = new Image();
+      im.onload = () => ok(im);
+      im.onerror = no;
+      im.src = src;
+    }));
+    return stills.get(src)!;
+  };
+  const resolve = async (box: HTMLElement) => {
+    const px = box.querySelector<HTMLCanvasElement>('.rz-px');
+    const g = px?.getContext('2d');
+    if (!px || !g || still()) return;
+    const run = String(Number(box.dataset.run ?? 0) + 1);
+    box.dataset.run = run;
+    box.classList.add('wait');
+    const im = await load(box.dataset.still!).catch(() => null);
+    if (box.dataset.run !== run) return;
+    if (!im) { box.classList.remove('wait'); return; }
+    box.classList.remove('go');
+    void box.offsetWidth;
+    box.classList.add('go');
+    const off = document.createElement('canvas');
+    const og = off.getContext('2d')!;
+    for (const n of STEPS) {
+      if (box.dataset.run !== run) return;
+      const m = Math.max(1, Math.round((n * px.height) / px.width));
+      off.width = n; off.height = m;
+      og.clearRect(0, 0, n, m);
+      og.drawImage(im, 0, 0, n, m);
+      g.imageSmoothingEnabled = false;
+      g.clearRect(0, 0, px.width, px.height);
+      g.drawImage(off, 0, 0, n, m, 0, 0, px.width, px.height);
+      box.classList.remove('wait');
+      await new Promise((ok) => setTimeout(ok, 115));
+    }
+    if (box.dataset.run === run) box.classList.remove('go');
+  };
   let current: HTMLElement | null = null;
   let from: HTMLElement | null = null;
 
@@ -291,6 +395,8 @@ const markers = [
     veil.hidden = false;
     s.hidden = false;
     requestAnimationFrame(() => { s.classList.add('open'); veil.classList.add('open'); });
+    words(s);
+    s.querySelectorAll<HTMLElement>('.rz').forEach((b) => resolve(b));
     s.querySelector<HTMLVideoElement>('video')?.play().catch(() => {});
     s.querySelector<HTMLElement>('.sheet-x')?.focus({ preventScroll: true });
     history.pushState({ ...(history.state ?? {}), sheet: id }, '');
