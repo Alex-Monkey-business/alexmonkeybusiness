@@ -63,7 +63,7 @@ const year = new Date().getFullYear();
     ALEX MONKEY BUSINESS · {year}
     {credit && (
       <span class="inav-credit">
-        {creditWords.photo}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a>
+        {credit.kind?.[lang] ?? creditWords.photo}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a>
         · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a>
         · {creditWords.edited}
       </span>

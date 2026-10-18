@@ -1,0 +1,414 @@
+---
+/**
+ * THE CLIMB — the whole site as one scroll up the mountain. The front page
+ * since 18 Oct 2026 (the one before is kept at /lab/forside-natt).
+ *
+ * Not a portfolio, and no cards: the mountain carries the page. As you scroll
+ * the camera flies the Hörnligrat and the route draws itself up the rock;
+ * where it passes a piece of work a point lights on the ridge — a dot, a
+ * hairline, a name. The other side, the Zmuttgrat, is drawn on the last
+ * stretch and carries the second piece. The name sits on the summit from the
+ * first frame and opens the person. Pressing a point opens a sheet over the
+ * mountain; the climb never leaves the screen. The only running voice is an altimeter.
+ * See `Lys.astro` for the points and the routes.
+ *
+ * Every section carries `data-wp`: it is a keyframe of the flight, reached
+ * when it is centred on screen. The sections hold nothing; they are length.
+ */
+import Lys from '../Lys.astro';
+import { projects } from '../../data/projects';
+import { contact } from '../../data/contact';
+import { t, path, type Lang } from '../../i18n';
+import '../../styles/instrument.css';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const nb = lang === 'nb';
+const s = t(lang);
+const line = (slug: string) => (s.projects as Record<string, string>)[slug] ?? '';
+const p = Object.fromEntries(projects.map((x) => [x.slug, x]));
+
+const log = [
+  {
+    id: 'benchboss',
+    n: '001',
+    slug: 'halsen-g15',
+    name: 'benchboss',
+    route: 'hornligrat' as const,
+    f: 0.72,
+    href: path(lang, '/projects/halsen-g15/'),
+    cta: nb ? 'Les caset' : 'Read the case',
+    media: { kind: 'video' as const, src: '/assets/halsen/rolig/byttet.webm', poster: '/assets/halsen/rolig/byttet-poster.jpg', w: 390, h: 844 },
+  },
+  {
+    id: 'larvik',
+    n: '002',
+    slug: 'larvik-beach',
+    name: 'larvik beach volley',
+    route: 'zmuttgrat' as const,
+    f: 0.64,
+    href: path(lang, '/projects/larvik-beach/'),
+    cta: nb ? 'Les caset' : 'Read the case',
+    media: { kind: 'image' as const, src: '/assets/larvik-beach/spill.jpg', w: 390, h: 844 },
+  },
+];
+
+const markers = [
+  { id: 'alex', route: 'top' as const, f: 1, label: 'alex monkey business' },
+  ...log.map((x) => ({ id: x.id, route: x.route, f: x.f, n: x.n, label: x.name })),
+];
+---
+
+  <div class="always-dark inst climb">
+    <Lys mode="climb" markers={markers} />
+
+    <h1 class="sr-only">Alex Monkey Business</h1>
+
+    <section class="wp wp-start" data-wp>
+      <span class="cue" aria-hidden="true"></span>
+    </section>
+    <section class="wp" data-wp></section>
+    <section class="wp" data-wp></section>
+    <section class="wp" data-wp></section>
+    <section class="wp wp-top" data-wp></section>
+
+    <!-- The sheets the points open. The mountain stays behind them. -->
+    <div class="veil" hidden></div>
+    {log.map((x) => (
+      <section class="sheet" id={`sheet-${x.id}`} role="dialog" aria-modal="true" aria-labelledby={`h-${x.id}`} hidden>
+        <button class="sheet-x" type="button" aria-label={nb ? 'Lukk' : 'Close'}><span></span></button>
+        <p class="sheet-n">{x.n}<span>{p[x.slug]?.year}</span></p>
+        <h2 class="sheet-name" id={`h-${x.id}`} data-decode>{x.name}</h2>
+        <p class="sheet-line" data-type>{line(x.slug)}</p>
+        {x.media && (
+          <div class="sheet-media rz" data-still={x.media.kind === 'video' ? x.media.poster : x.media.src}>
+            {x.media.kind === 'video' ? (
+              <video src={x.media.src} poster={x.media.poster} width={x.media.w} height={x.media.h} muted loop playsinline preload="none" aria-hidden="true"></video>
+            ) : (
+              <img src={x.media.src} width={x.media.w} height={x.media.h} alt="" loading="lazy" decoding="async" />
+            )}
+            <canvas class="rz-px" width={x.media.w} height={x.media.h} aria-hidden="true"></canvas>
+            <span class="rz-scan" aria-hidden="true"></span>
+          </div>
+        )}
+        <a class="sheet-go" href={x.href}>{x.cta}<span aria-hidden="true">→</span></a>
+      </section>
+    ))}
+    <section class="sheet sheet-who" id="sheet-alex" role="dialog" aria-modal="true" aria-labelledby="h-alex" hidden>
+      <button class="sheet-x" type="button" aria-label={nb ? 'Lukk' : 'Close'}><span></span></button>
+      <!-- The portrait keeps its shadow side and has no frame: the grade is
+           baked in with its edges dissolving. See tools/make-portrait-top.py. -->
+      <div class="who-img rz" data-still="/assets/about/alex-topp.webp">
+        <img src="/assets/about/alex-topp.webp" width="640" height="640" alt="" loading="lazy" decoding="async" />
+        <canvas class="rz-px" width="640" height="640" aria-hidden="true"></canvas>
+        <span class="rz-scan" aria-hidden="true"></span>
+      </div>
+      <h2 class="sheet-name" id="h-alex" data-decode>alexander samnøy</h2>
+      <ul class="channels">
+        {contact.map((c) => (
+          <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined} data-decode>{c.value}</a></li>
+        ))}
+      </ul>
+    </section>
+  </div>
+
+<style>
+  .climb {
+    position: relative;
+    background: #000;
+    font-family: var(--font-inst);
+    color: var(--fg1);
+  }
+  .climb :global(.footer), :global(body:has(.climb) footer) { display: none; }
+
+  /* Length only, and see-through to the pointer: the points underneath are
+     the buttons. */
+  .wp { position: relative; min-height: 130svh; pointer-events: none; }
+  .wp-start { min-height: 100svh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 72px; }
+  .wp-top { min-height: 100svh; }
+
+  /* One hairline that keeps drawing downward: the only instruction. */
+  .cue {
+    width: 1px;
+    height: 56px;
+    background: var(--fg3);
+    transform-origin: top;
+    animation: cue 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+  @keyframes cue {
+    0% { transform: scaleY(0); opacity: 1; }
+    60% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(1); opacity: 0; }
+  }
+
+  /* ---- The sheet ------------------------------------------------------- */
+
+  /* A dim over the mountain, not a curtain: the climb is still there. */
+  .veil {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: opacity 400ms linear;
+  }
+  .veil.open { opacity: 1; }
+
+  /* Up from the bottom, solid, one radius. On a wide screen it is a column
+     at the left, where the points are not. */
+  .sheet {
+    position: fixed;
+    z-index: 41;
+    left: clamp(12px, 4vw, 56px);
+    bottom: clamp(12px, 4vh, 40px);
+    width: min(440px, calc(100vw - 24px));
+    max-height: calc(100svh - 120px);
+    overflow: auto;
+    box-sizing: border-box;
+    padding: 28px 28px 24px;
+    border-radius: 28px;
+    background: #0b0b0d;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    translate: 0 40px;
+    opacity: 0;
+    transition: translate 520ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms linear;
+  }
+  .sheet.open { translate: 0 0; opacity: 1; }
+  .sheet-x {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+  }
+  .sheet-x span,
+  .sheet-x span::after {
+    position: absolute;
+    left: 13px;
+    top: 21px;
+    width: 18px;
+    height: 1px;
+    background: var(--fg2);
+    rotate: 45deg;
+  }
+  .sheet-x span::after { content: ''; left: 0; top: 0; rotate: 90deg; }
+  .sheet-x:hover span,
+  .sheet-x:hover span::after,
+  .sheet-x:focus-visible span,
+  .sheet-x:focus-visible span::after { background: var(--signal); }
+  .sheet-x:focus-visible { outline: none; }
+  .sheet-n {
+    display: flex;
+    gap: 1.4em;
+    margin: 0 0 16px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--signal);
+  }
+  .sheet-n span { color: var(--fg3); }
+  .sheet-name {
+    margin: 0;
+    font-family: var(--font-inst);
+    font-weight: 300;
+    font-size: clamp(24px, 3vw, 32px);
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+  }
+  .sheet-line {
+    margin: 12px 0 0;
+    font-size: 13px;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    color: var(--fg2);
+  }
+  .sheet-media {
+    width: min(220px, 60%);
+    margin-top: 22px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0b0b0b;
+    overflow: hidden;
+  }
+
+  /* THE RESOLVE, from /about: a picture arrives as information — eight
+     squares across, then finer, nearest-neighbour, with one signal line
+     scanning down it — and then stands still. Every time a sheet opens. */
+  .rz { position: relative; display: block; }
+  .rz > img,
+  .rz > video { display: block; width: 100%; height: auto; }
+  .rz-px {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rz.go .rz-px { opacity: 1; }
+  .rz.wait > img,
+  .rz.wait > video { opacity: 0; }
+  .rz-scan {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: var(--signal);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rz.go .rz-scan { animation: rz-scan 1050ms cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+  @keyframes rz-scan {
+    0% { top: 0; opacity: 0; }
+    6% { opacity: 1; }
+    92% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+  /* Typing and decoding text: the sheet's own fade stays, the words arrive. */
+  .sheet-line[data-type] { min-height: 1.6em; }
+  .sheet-go {
+    display: inline-flex;
+    gap: 0.8em;
+    margin-top: 22px;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--fg1);
+    text-decoration: none;
+  }
+  .sheet-go:hover,
+  .sheet-go:focus-visible { color: var(--signal); outline: none; }
+
+  .sheet-who { padding-top: 12px; }
+  .who-img {
+    width: clamp(150px, 15vw, 210px);
+    margin: 0 0 -14px -18px;
+  }
+  /* The portrait's squares take the sky's colour the way the picture does. */
+  .who-img .rz-px { mix-blend-mode: luminosity; }
+  .channels { list-style: none; margin: 18px 0 0; padding: 0; }
+  .channels li + li { margin-top: 10px; }
+  .channels a {
+    font-size: 15px;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    color: var(--fg1);
+    text-decoration: none;
+  }
+  .channels a:hover, .channels a:focus-visible { color: var(--signal); outline: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cue { animation: none; transform: none; }
+    .sheet, .veil { transition: none; }
+    .rz-px, .rz-scan { display: none; }
+  }
+</style>
+
+<script>
+  /* One sheet at a time. Opened by a point on the mountain (`lys:open`),
+     closed by its cross, the dim, Escape or the browser's back. Focus goes
+     into the sheet and back to the point it came from. */
+  import { decode, typer, still } from '../../scripts/decode';
+
+  const veil = document.querySelector<HTMLElement>('.veil')!;
+
+  /* The sheet's words arrive the way /about's do: names decode, the line
+     types itself. */
+  const words = (s: HTMLElement) => {
+    s.querySelectorAll<HTMLElement>('[data-decode]').forEach((el, i) => decode(el, { delay: 120 + i * 160, perChar: 30 }));
+    s.querySelectorAll<HTMLElement>('[data-type]').forEach((el) => {
+      const text = (el.dataset.text ??= el.textContent ?? '');
+      el.textContent = '';
+      const t = typer(el);
+      setTimeout(() => t(text, 12), 420);
+    });
+  };
+
+  /* The pictures resolve: a canvas over each draws it at 8 squares across,
+     then 12, 18 … 200, then gets out of the way. */
+  const STEPS = [8, 12, 18, 28, 44, 72, 120, 200];
+  const stills = new Map<string, Promise<HTMLImageElement>>();
+  const load = (src: string) => {
+    if (!stills.has(src)) stills.set(src, new Promise((ok, no) => {
+      const im = new Image();
+      im.onload = () => ok(im);
+      im.onerror = no;
+      im.src = src;
+    }));
+    return stills.get(src)!;
+  };
+  const resolve = async (box: HTMLElement) => {
+    const px = box.querySelector<HTMLCanvasElement>('.rz-px');
+    const g = px?.getContext('2d');
+    if (!px || !g || still()) return;
+    const run = String(Number(box.dataset.run ?? 0) + 1);
+    box.dataset.run = run;
+    box.classList.add('wait');
+    const im = await load(box.dataset.still!).catch(() => null);
+    if (box.dataset.run !== run) return;
+    if (!im) { box.classList.remove('wait'); return; }
+    box.classList.remove('go');
+    void box.offsetWidth;
+    box.classList.add('go');
+    const off = document.createElement('canvas');
+    const og = off.getContext('2d')!;
+    for (const n of STEPS) {
+      if (box.dataset.run !== run) return;
+      const m = Math.max(1, Math.round((n * px.height) / px.width));
+      off.width = n; off.height = m;
+      og.clearRect(0, 0, n, m);
+      og.drawImage(im, 0, 0, n, m);
+      g.imageSmoothingEnabled = false;
+      g.clearRect(0, 0, px.width, px.height);
+      g.drawImage(off, 0, 0, n, m, 0, 0, px.width, px.height);
+      box.classList.remove('wait');
+      await new Promise((ok) => setTimeout(ok, 115));
+    }
+    if (box.dataset.run === run) box.classList.remove('go');
+  };
+  let current: HTMLElement | null = null;
+  let from: HTMLElement | null = null;
+
+  const close = (viaHistory = false) => {
+    if (!current) return;
+    const s = current;
+    current = null;
+    s.classList.remove('open');
+    veil.classList.remove('open');
+    s.querySelector('video')?.pause();
+    window.setTimeout(() => { s.hidden = true; veil.hidden = true; }, 420);
+    from?.focus({ preventScroll: true });
+    if (!viaHistory && history.state?.sheet) history.back();
+  };
+
+  const open = (id: string, el: HTMLElement | null) => {
+    const s = document.getElementById('sheet-' + id);
+    if (!s) return;
+    if (current && current !== s) close();
+    current = s;
+    from = el;
+    veil.hidden = false;
+    s.hidden = false;
+    requestAnimationFrame(() => { s.classList.add('open'); veil.classList.add('open'); });
+    words(s);
+    s.querySelectorAll<HTMLElement>('.rz').forEach((b) => resolve(b));
+    s.querySelector<HTMLVideoElement>('video')?.play().catch(() => {});
+    s.querySelector<HTMLElement>('.sheet-x')?.focus({ preventScroll: true });
+    history.pushState({ ...(history.state ?? {}), sheet: id }, '');
+  };
+
+  document.addEventListener('lys:open', (e) => {
+    const d = (e as CustomEvent<{ id: string; from: HTMLElement }>).detail;
+    open(d.id, d.from);
+  });
+  document.querySelectorAll('.sheet-x').forEach((b) => b.addEventListener('click', () => close()));
+  veil.addEventListener('click', () => close());
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  addEventListener('popstate', () => close(true));
+</script>

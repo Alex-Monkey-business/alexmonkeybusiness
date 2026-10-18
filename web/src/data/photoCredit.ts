@@ -9,6 +9,8 @@
  * every width — and the routes that show the photograph pass it to Layout.
  */
 export interface PhotoCredit {
+  /** What is credited, when it is not a photograph — e.g. height data. */
+  kind?: { nb: string; en: string };
   author: string;
   source: string;
   licence: string;
@@ -20,4 +22,14 @@ export const matterhornCredit: PhotoCredit = {
   source: 'https://commons.wikimedia.org/wiki/File:Alps_of_Switzerland_Matterhorn_(23979169808).jpg',
   licence: 'CC BY 2.0',
   licenceUrl: 'https://creativecommons.org/licenses/by/2.0/',
+};
+
+/** The climb's mountain: swissALTI3D heights and the SWISSIMAGE orthophoto,
+ *  open government data that asks for the source to be named. */
+export const swisstopoCredit: PhotoCredit = {
+  kind: { nb: 'Høydedata og ortofoto', en: 'Height data and orthophoto' },
+  author: 'swisstopo',
+  source: 'https://www.swisstopo.admin.ch/',
+  licence: 'OGD',
+  licenceUrl: 'https://www.geo.admin.ch/en/general-terms-of-use-fsdi',
 };
