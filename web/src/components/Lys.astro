@@ -77,14 +77,13 @@ const { mode = 'view', markers = [] } = Astro.props;
     <span class="lys-time">--:--</span>
     {mode === 'climb' && <span class="lys-alt">1608 m</span>}
   </button>
-  {mode === 'view' && (
-    <div class="lys-dial" aria-hidden="true">
-      <span class="lys-rise"></span>
-      <span class="lys-set"></span>
-      <span class="lys-now"></span>
-      <span class="lys-mark"></span>
-    </div>
-  )}
+  <div class="lys-dial">
+    <span class="lys-rise" aria-hidden="true"></span>
+    <span class="lys-set" aria-hidden="true"></span>
+    <span class="lys-now" aria-hidden="true"></span>
+    <span class="lys-mark" aria-hidden="true"></span>
+    <input class="lys-slide" type="range" min="0" max="1439" step="1" aria-label="Klokka i Zermatt" />
+  </div>
 </div>
 
 <style>
@@ -257,6 +256,33 @@ const { mode = 'view', markers = [] } = Astro.props;
     transition: opacity 900ms linear 1600ms;
   }
   .lys.ready .lys-dial { opacity: 1; }
+  /* Climbing, the day is a short hairline over the altimeter. */
+  .lys[data-mode='climb'] .lys-dial {
+    left: auto;
+    width: clamp(160px, 20vw, 260px);
+    bottom: calc(clamp(24px, 4vh, 40px) + 30px);
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .lys[data-mode='climb'].away .lys-read { pointer-events: auto; }
+  /* The slider is the hairline itself: invisible, with a wide grip, so the
+     signal tick is the only thumb you see. */
+  .lys-slide {
+    position: absolute;
+    left: -12px;
+    right: -12px;
+    top: -16px;
+    width: calc(100% + 24px);
+    height: 33px;
+    margin: 0;
+    background: none;
+    opacity: 0;
+    cursor: ew-resize;
+    pointer-events: auto;
+    touch-action: none;
+  }
+  .lys-slide::-webkit-slider-thumb { width: 24px; height: 33px; }
+  .lys-slide::-moz-range-thumb { width: 24px; height: 33px; }
+  .lys-dial:has(.lys-slide:focus-visible) .lys-mark { outline: 1px solid var(--signal); outline-offset: 4px; }
   .lys-dial > span {
     position: absolute;
     top: 0;
@@ -822,7 +848,15 @@ const { mode = 'view', markers = [] } = Astro.props;
     const end = () => { dragX = null; document.documentElement.classList.remove('lys-drag'); };
     document.addEventListener('pointerup', end);
     document.addEventListener('pointercancel', end);
-    root.querySelector('.lys-read')!.addEventListener('click', () => { if (!climb) { target = 0; kick(); } });
+    root.querySelector('.lys-read')!.addEventListener('click', () => { target = 0; kick(); });
+    /* The slider sets the minute of today; the light follows it faster than
+       it follows a click, so it feels held. */
+    const slide = root.querySelector<HTMLInputElement>('.lys-slide');
+    let sliding = false;
+    const minOf = (m: number) => Math.round((((m % 1440) + 1440) % 1440));
+    slide?.addEventListener('input', () => { sliding = true; target = Number(slide.value) - nowMin; kick(); });
+    slide?.addEventListener('change', () => { sliding = false; });
+    slide?.addEventListener('pointerup', () => { sliding = false; });
 
     /* ---- The climb ------------------------------------------------------- */
     /*
@@ -952,7 +986,7 @@ const { mode = 'view', markers = [] } = Astro.props;
       const dt = Math.min(0.1, (now - (lastFrame || now)) / 1000);
       lastFrame = now;
 
-      const k = 1 - Math.exp(-dt * (dragX === null ? 2.4 : 10));
+      const k = 1 - Math.exp(-dt * (dragX === null && !sliding ? 2.4 : 10));
       offset += (target - offset) * (still ? 1 : k);
       if (Math.abs(target - offset) < 0.5) offset = target;
       px += (pxT - px) * (1 - Math.exp(-dt * 2));
@@ -1062,6 +1096,7 @@ const { mode = 'view', markers = [] } = Astro.props;
       if (mark) mark.style.setProperty('--x', (((zermattMinutes(date) % 1440) + 1440) % 1440 / 1440).toFixed(4));
       if (nowDot) nowDot.style.setProperty('--x', (zermattMinutes(new Date()) / 1440).toFixed(4));
       root.classList.toggle('away', Math.abs(target) > 1);
+      if (slide && document.activeElement !== slide) slide.value = String(minOf(target + nowMin));
 
       if (!firstDrawn) {
         firstDrawn = true;
