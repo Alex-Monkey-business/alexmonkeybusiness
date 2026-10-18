@@ -52,10 +52,24 @@ for k,foot in FEET.items():
     rc=path((0,0),foot)
     pts=[(*xy(r,c),) for r,c in rc]
     # smooth xy a little (3-node mean) so the 4 m grid does not stair-step
-    P=np.array(pts,float);P[1:-1]=(P[:-2]+P[1:-1]+P[2:])/3
+    P=np.array(pts,float)
+    # The 4 m grid stair-steps; smooth it out over ~36 m, then snap each point
+    # sideways onto the true crest in the 2 m data, then smooth once lightly.
+    def smooth(A,k):
+        out=A.copy()
+        for i in range(len(A)):
+            lo,hi=max(0,i-k),min(len(A),i+k+1); out[i]=A[lo:hi].mean(0)
+        out[0],out[-1]=A[0],A[-1]; return out
+    P=smooth(P,4)
+    S2=P.copy()
+    for i in range(1,len(P)-1):
+        d=P[min(len(P)-1,i+2)]-P[max(0,i-2)]; d/=np.hypot(*d) or 1; n=np.array([-d[1],d[0]])
+        offs=np.arange(-8,8.01,0.5); zs=[zat(*(P[i]+n*o)) for o in offs]
+        S2[i]=P[i]+n*offs[int(np.argmax(zs))]
+    P=smooth(S2,1)
     P=np.array([(x,y,zat(x,y)) for x,y in P])
     P[-1]=(0,0,zat(0,0))
-    Q=rdp(P,2.5)
+    Q=rdp(P,1.0)
     L=np.concatenate([[0],np.cumsum(np.linalg.norm(np.diff(Q,axis=0),axis=1))]);L/=L[-1]
     res[k]=[[round(x,1),round(y,1),round(z,1),round(f,4)] for (x,y,z),f in zip(Q,L)]
     print(k,len(P),'->',len(Q),'foot z',round(Q[0][2]),'top z',round(Q[-1][2]))
