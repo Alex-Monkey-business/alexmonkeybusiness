@@ -6,8 +6,8 @@
  * the camera flies the Hörnligrat and the route draws itself up the rock;
  * where it passes a piece of work a point lights on the ridge — a dot, a
  * hairline, a name. The other side, the Zmuttgrat, is drawn on the last
- * stretch and carries the person. The name of the place sits on the summit
- * from the first frame. Pressing a point opens a sheet over the mountain;
+ * stretch. The name sits on the summit from the first frame and opens the
+ * person. Pressing a point opens a sheet over the mountain;
  * the climb never leaves the screen. The only running voice is an altimeter.
  * See `Lys.astro` for the points and the routes.
  *
@@ -59,9 +59,8 @@ const log = [
 ];
 
 const markers = [
-  { id: 'top', route: 'top' as const, f: 1, label: 'alex monkey business', open: false },
+  { id: 'alex', route: 'top' as const, f: 1, label: 'alex monkey business' },
   ...log.map((x) => ({ id: x.id, route: 'hornligrat' as const, f: x.f, n: x.n, label: x.name })),
-  { id: 'alex', route: 'zmuttgrat' as const, f: 0.55, label: 'alexander samnøy' },
 ];
 ---
 

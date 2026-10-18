@@ -65,6 +65,7 @@ const { mode = 'view', markers = [] } = Astro.props;
         data-route={m.route}
         data-f={m.f}
         data-side={m.route === 'top' ? 'up' : m.route === 'hornligrat' ? 'left' : 'right'}
+        data-open={m.open === false ? 'false' : undefined}
         tabindex={m.open === false ? -1 : undefined}
         aria-hidden={m.open === false ? 'true' : undefined}
       >
@@ -156,9 +157,8 @@ const { mode = 'view', markers = [] } = Astro.props;
     translate: -3.5px -50%;
   }
   .mk[data-side='left'] { flex-direction: row-reverse; translate: calc(-100% + 3.5px) -50%; }
-  .mk[data-side='up'] { flex-direction: column-reverse; translate: -50% calc(-100% + 3.5px); cursor: default; }
+  .mk[data-side='up'] { flex-direction: column-reverse; translate: -50% calc(-100% + 3.5px); }
   .mk.on { opacity: 0.62; pointer-events: auto; }
-  .mk[data-side='up'].on { pointer-events: none; }
   .mk.on.now,
   .mk.on:hover,
   .mk.on:focus-visible { opacity: 1; }
@@ -282,7 +282,7 @@ const { mode = 'view', markers = [] } = Astro.props;
   }
   .lys-slide::-webkit-slider-thumb { width: 24px; height: 33px; }
   .lys-slide::-moz-range-thumb { width: 24px; height: 33px; }
-  .lys-dial:has(.lys-slide:focus-visible) .lys-mark { outline: 1px solid var(--signal); outline-offset: 4px; }
+  .lys-dial:has(.lys-slide:focus-visible) .lys-mark { outline: 1px solid var(--signal); outline-offset: 3px; }
   .lys-dial > span {
     position: absolute;
     top: 0;
@@ -304,8 +304,19 @@ const { mode = 'view', markers = [] } = Astro.props;
   .lys-mark {
     width: 1px;
     height: 13px;
-    margin-top: -6px;
+    margin: -6px 0 0 0;
+    border-radius: 1px;
     background: var(--signal);
+    transition: width 180ms cubic-bezier(0.16, 1, 0.3, 1), height 180ms cubic-bezier(0.16, 1, 0.3, 1), margin 180ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 180ms linear;
+  }
+  /* Pointed at, held or focused, the tick becomes a knob to grab. */
+  .lys-dial:hover .lys-mark,
+  .lys-dial:active .lys-mark,
+  .lys-dial:has(.lys-slide:focus-visible) .lys-mark {
+    width: 11px;
+    height: 11px;
+    margin: -5px 0 0 -5px;
+    border-radius: 50%;
   }
   :global(html.lys-drag),
   :global(html.lys-drag *) { cursor: ew-resize !important; }
@@ -1154,7 +1165,7 @@ const { mode = 'view', markers = [] } = Astro.props;
     }));
     for (const m of marks) {
       m.el.addEventListener('click', () => {
-        if (m.route === 'top') return;
+        if (m.el.dataset.open === 'false') return;
         document.dispatchEvent(new CustomEvent('lys:open', { detail: { id: m.id, from: m.el } }));
       });
     }
