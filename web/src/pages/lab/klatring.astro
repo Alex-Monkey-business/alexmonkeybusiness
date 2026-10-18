@@ -77,11 +77,19 @@ const log = [
     ))}
 
     <section class="wp wp-top" data-wp>
+      <div class="top">
+      <!-- Who made it, at the top and not before: the person is what you
+           reach after the climb, not the first thing you are told. -->
+      <div class="who exp">
+        <img class="who-img" src="/assets/about/alex-topp.webp" width="320" height="320" alt="Alexander Samnøy" loading="lazy" decoding="async" />
+        <p class="who-name">alexander samnøy</p>
+      </div>
       <ul class="channels">
         {contact.map((c) => (
           <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined}>{c.value}</a></li>
         ))}
       </ul>
+      </div>
     </section>
   </div>
 </Layout>
@@ -181,6 +189,31 @@ const log = [
     background: #0b0b0b;
   }
 
+  .top { display: flex; flex-direction: column; gap: clamp(28px, 5vh, 48px); }
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .who-img {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  }
+  .who-name {
+    margin: 0;
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+  }
   .channels { list-style: none; margin: 0; padding: 0; }
   .channels li + li { margin-top: clamp(10px, 1.8vh, 18px); }
   .channels a {

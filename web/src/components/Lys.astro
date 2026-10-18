@@ -528,7 +528,7 @@ const { mode = 'view' } = Astro.props;
 
       /* The data ends; let it end in the dark. */
       vec2 w = abs((p.xy + vec2(ORIGIN.x, -ORIGIN.y)) - vec2(4000.0, -4000.0)) / 4000.0;
-      col = mix(air, col, 1.0 - smoothstep(0.7, 0.98, max(w.x, w.y)));
+      col = mix(air, col, 1.0 - smoothstep(0.55, 0.95, max(w.x, w.y)));
 
     }
 
