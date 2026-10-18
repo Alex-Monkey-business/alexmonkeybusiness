@@ -6,7 +6,7 @@
  * the camera flies the Hörnligrat and the route draws itself up the rock;
  * where it passes a piece of work a point lights on the ridge — a dot, a
  * hairline, a name. The other side, the Zmuttgrat, is drawn on the last
- * stretch. The name sits on the summit from the first frame and opens the
+ * stretch and carries the second piece. The name sits on the summit from the first frame and opens the
  * person. Pressing a point opens a sheet over the mountain;
  * the climb never leaves the screen. The only running voice is an altimeter.
  * See `Lys.astro` for the points and the routes.
@@ -31,7 +31,8 @@ const log = [
     n: '001',
     slug: 'halsen-g15',
     name: 'benchboss',
-    f: 0.22,
+    route: 'hornligrat' as const,
+    f: 0.72,
     href: '/projects/halsen-g15/',
     cta: 'Les caset',
     media: { kind: 'video' as const, src: '/assets/halsen/rolig/byttet.webm', poster: '/assets/halsen/rolig/byttet-poster.jpg', w: 390, h: 844 },
@@ -41,26 +42,17 @@ const log = [
     n: '002',
     slug: 'larvik-beach',
     name: 'larvik beach volley',
-    f: 0.55,
+    route: 'zmuttgrat' as const,
+    f: 0.5,
     href: '/projects/larvik-beach/',
     cta: 'Les caset',
     media: { kind: 'image' as const, src: '/assets/larvik-beach/spill.jpg', w: 390, h: 844 },
-  },
-  {
-    id: 'solfilm',
-    n: '003',
-    slug: 'simons-solfilm',
-    name: 'simons solfilm',
-    f: 0.86,
-    href: p['simons-solfilm']?.url ?? 'https://simonssolfilm.no',
-    cta: 'Se siden',
-    external: true,
   },
 ];
 
 const markers = [
   { id: 'alex', route: 'top' as const, f: 1, label: 'alex monkey business' },
-  ...log.map((x) => ({ id: x.id, route: 'hornligrat' as const, f: x.f, n: x.n, label: x.name })),
+  ...log.map((x) => ({ id: x.id, route: x.route, f: x.f, n: x.n, label: x.name })),
 ];
 ---
 
@@ -92,7 +84,7 @@ const markers = [
         {x.media?.kind === 'image' && (
           <img class="sheet-media" src={x.media.src} width={x.media.w} height={x.media.h} alt="" loading="lazy" decoding="async" />
         )}
-        <a class="sheet-go" href={x.href} target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>{x.cta}<span aria-hidden="true">→</span></a>
+        <a class="sheet-go" href={x.href}>{x.cta}<span aria-hidden="true">→</span></a>
       </section>
     ))}
     <section class="sheet sheet-who" id="sheet-alex" role="dialog" aria-modal="true" aria-labelledby="h-alex" hidden>
