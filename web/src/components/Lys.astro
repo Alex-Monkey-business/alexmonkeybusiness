@@ -201,6 +201,16 @@ const { mode = 'view', markers = [] } = Astro.props;
   }
   .mk:hover .mk-label { color: var(--signal); }
   .mk-n { color: var(--signal); margin-right: 0.9em; }
+  .mk.quiet .mk-label,
+  .mk.quiet .mk-lead { opacity: 0; }
+  .mk-label, .mk-lead { transition: opacity 240ms linear; }
+  /* A phone: the same names, tighter, so they fit beside their points. */
+  @media (max-width: 600px) {
+    .mk { font-size: 11px; letter-spacing: 0.1em; }
+    .mk-label { padding: 6px 10px; }
+    .mk-lead { width: 14px; }
+    .mk-n { margin-right: 0.7em; }
+  }
   @media (prefers-reduced-motion: reduce) {
     .mk { transition: none; }
     .mk.pulse .mk-dot::after { animation: none; }
@@ -1179,6 +1189,10 @@ const { mode = 'view', markers = [] } = Astro.props;
       id: el.dataset.id!,
       route: el.dataset.route!,
       f: Number(el.dataset.f),
+      side: el.dataset.side!,
+      w: 0,
+      lw: 0,
+      label: el.querySelector<HTMLElement>('.mk-label')!,
     }));
     for (const m of marks) {
       m.el.addEventListener('click', () => {
@@ -1246,8 +1260,28 @@ const { mode = 'view', markers = [] } = Astro.props;
         const st = m.route === 'top' ? null : rState[keys.indexOf(m.route)];
         const lit = climb && (m.route === 'top' || (!!st && st.k > 0.01 && st.prog >= m.f));
         const s2 = lit && seen(P, cam) ? proj(P) : null;
-        const on = !!s2 && s2[0] > -40 && s2[0] < W + 40 && s2[1] > -40 && s2[1] < Hh + 40;
-        if (s2) m.el.style.transform = `translate(${s2[0].toFixed(1)}px, ${s2[1].toFixed(1)}px)`;
+        const on = !!s2 && s2[0] > 6 && s2[0] < W - 6 && s2[1] > 6 && s2[1] < Hh - 6;
+        if (s2) {
+          m.el.style.transform = `translate(${s2[0].toFixed(1)}px, ${s2[1].toFixed(1)}px)`;
+          /* A name that would run off the screen — a phone, a ridge near the
+             edge — hangs on the other side of its point instead. */
+          /* Too narrow for either side: it stands over its point, like the
+             summit's, held inside the screen. */
+          let side = m.side;
+          if (side !== 'up') {
+            m.w ||= m.el.offsetWidth;
+            const room = side === 'left' ? s2[0] - 12 : W - 12 - s2[0];
+            const other = side === 'left' ? W - 12 - s2[0] : s2[0] - 12;
+            if (m.w > room) side = m.w <= other ? (side === 'left' ? 'right' : 'left') : 'up';
+          }
+          m.el.dataset.side = side;
+          if (side === 'up') {
+            m.lw ||= m.label.offsetWidth;
+            const half = m.lw / 2;
+            const nx = Math.max(0, 12 - (s2[0] - half)) - Math.max(0, s2[0] + half - (W - 12));
+            m.label.style.translate = nx ? `${nx.toFixed(1)}px 0` : '';
+          } else m.label.style.translate = '';
+        }
         if (on && !m.el.classList.contains('on')) {
           m.el.classList.add('pulse');
           window.setTimeout(() => m.el.classList.remove('pulse'), 3000);
@@ -1256,6 +1290,18 @@ const { mode = 'view', markers = [] } = Astro.props;
         if (on && m.route !== 'top') newest = m.el;
       }
       for (const m of marks) m.el.classList.toggle('now', m.el === newest || (m.route === 'top' && m.el.classList.contains('on')));
+      /* Two names on top of each other read as neither. The summit wins, then
+         the newest point; the other keeps its dot and drops its name. */
+      const rank = (m: (typeof marks)[number]) => (m.route === 'top' ? 2 : m.el === newest ? 1 : 0);
+      const shown = marks.filter((m) => m.el.classList.contains('on')).sort((a, b) => rank(b) - rank(a));
+      const kept: DOMRect[] = [];
+      for (const m of shown) {
+        const b = m.label.getBoundingClientRect();
+        const hit = kept.some((k) => b.left < k.right + 6 && b.right > k.left - 6 && b.top < k.bottom + 4 && b.bottom > k.top - 4);
+        m.el.classList.toggle('quiet', hit);
+        if (!hit) kept.push(b);
+      }
+      for (const m of marks) if (!m.el.classList.contains('on')) m.el.classList.remove('quiet');
     }
 
     const kick = () => { if (!raf && !document.hidden) raf = requestAnimationFrame(frame); };
