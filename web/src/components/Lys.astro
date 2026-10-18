@@ -1,32 +1,42 @@
 ---
 /**
- * LYS — the mountain as it is lit right now.
+ * LYS — the mountain as it is lit right now, and the two ridges as the menu.
  *
  * Not a photograph and not a drawing: swisstopo's swissALTI3D (2 m, open data)
- * around the summit, packed into one 1024² lossless WebP (8 × 8 km, 7.8 m a
- * texel, a quarter metre of height) and ray-marched in a fragment shader. The
- * sun is where it is over Zermatt at this minute, so the page is never the
- * same twice: alpenglow on the east face at dawn, flat light at noon, the
- * north face in its own shadow in the afternoon, a dark shape under stars at
- * night. Drag sideways to move the day; the readout takes you back to now.
+ * ray-marched in a fragment shader, with the sun where it is over Zermatt at
+ * this minute. Alpenglow on the east face at dawn, hard light at noon, the
+ * north face in its own shadow by evening, a pale shape under stars at night.
+ * Drag sideways to move the day; the clock takes you back to now.
  *
- * WHY A HEIGHTFIELD AND NOT A BAKED IMAGE: the light is the content. A baked
- * frame can be regraded but not relit — the shadows a low sun throws across
- * the Hörnligrat only exist if the terrain is there to throw them.
+ * TWO HEIGHT FILES, because the summit is the picture:
+ *   matterhorn-dem.webp     8 × 8 km at 7.8 m, lossless, R/G = high/low byte
+ *                           of (h − 1500) × 4. 477 kB.
+ *   matterhorn-detail.webp  3.1 × 3.1 km around the pyramid at 2 m, lossy,
+ *                           the residual against the coarse file as
+ *                           (r × 2) + 128. 111 kB, mean error 0.4 m.
+ * See `tools/pack-dem.py` and `tools/pack-dem-detail.py`.
  *
- * THE FILE IS TERRARIUM-STYLE: R = high byte, G = low byte of
- * (h − 1500 m) × 4. It is decoded on the CPU to float and sampled with
- * texelFetch + hand bilinear, because a linear filter on two separate bytes
- * interpolates the bytes, not the height. See `tools/pack-dem.py`.
- *
- * WEIGHT: 477 kB for the data, a few kB of code — about the plate it would
- * replace. Rendered at a fraction of the screen and scaled up; the resolution
- * drops further if frames run slow.
+ * THE RIDGES ARE THE MENU, as on the front page, and the interface is the same
+ * one `OneScreen` already speaks: it toggles `.hot` on `.seg[data-seg]` and
+ * sets `data-level` on `.sky`. This component carries hidden markers with
+ * those names and watches them, so the menu does not know which mountain it
+ * is talking to. The routes themselves are crest paths traced in the 2 m data
+ * (`tools/trace-ridges-dem.py`, least-cost along height-above-local-mean), from
+ * the Hörnli hut and the foot of the Zmutt ridge to the top — the way they are
+ * climbed — and painted on the terrain in the shader, so the rock in front
+ * hides them.
  */
+import routes from '../data/routes.json';
 ---
 
-<div class="lys" data-src="/hero/matterhorn-dem.webp">
+<div class="sky lys" data-src="/hero/matterhorn-dem.webp" data-detail="/hero/matterhorn-detail.webp" data-routes={JSON.stringify(routes)}>
   <canvas class="lys-gl" aria-hidden="true"></canvas>
+  <img class="lys-fallback" src="/hero/matterhorn-still.webp" alt="" width="2400" height="1350" decoding="async" loading="lazy" />
+  <!-- What `OneScreen` toggles. Never drawn; read by the script below. -->
+  <i class="seg" data-seg="hornligrat" hidden></i>
+  <i class="seg" data-seg="zmuttgrat" hidden></i>
+  <i class="draw" data-seg="hornligrat" hidden></i>
+  <i class="draw" data-seg="zmuttgrat" hidden></i>
   <button class="lys-read" type="button" aria-label="Tilbake til nå">
     <span class="lys-place">zermatt</span>
     <span class="lys-time">--:--</span>
@@ -43,10 +53,17 @@
   .lys {
     position: fixed;
     inset: 0;
+    z-index: 0;
     background: #000;
-    touch-action: pan-y;
-    cursor: ew-resize;
-    user-select: none;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  /* `Home` pushes `.sky` in with a CSS scale for the photograph. Here the
+     camera does it, in 3D — a scaled canvas would only be a blurrier one. */
+  :global(.always-dark) .lys.sky,
+  :global(.always-dark) .lys.sky[data-level] {
+    transform: none !important;
+    transition: none !important;
   }
   .lys-gl {
     position: absolute;
@@ -57,13 +74,23 @@
     transition: opacity 1800ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   .lys.ready .lys-gl { opacity: 1; }
+  .lys-fallback {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .lys.failed .lys-fallback { display: block; }
+  .lys.failed .lys-read,
+  .lys.failed .lys-dial { display: none; }
 
-  /* The readout. Mono, lowercase, the instrument's own voice — a place and a
-     time, nothing else. Signal-coloured when the shown time is not now, which
-     is also the only moment it is worth clicking. */
+  /* The readout. Mono, lowercase, a place and a time. Signal-coloured when
+     the shown time is not now — the only moment it is worth clicking. */
   .lys-read {
     position: absolute;
-    left: clamp(20px, 4vw, 56px);
+    right: clamp(20px, 4vw, 56px);
     bottom: clamp(44px, 7vh, 72px);
     display: flex;
     gap: 1.2em;
@@ -75,6 +102,7 @@
     letter-spacing: 0.18em;
     color: var(--fg3);
     cursor: default;
+    pointer-events: auto;
     opacity: 0;
     transition: opacity 900ms linear 1400ms, color 200ms linear;
   }
@@ -82,8 +110,8 @@
   .lys.away .lys-read { color: var(--signal); cursor: pointer; }
   .lys-read:focus-visible { outline: 1px solid var(--signal); outline-offset: 6px; }
 
-  /* The day as one hairline: sunrise and sunset as two ticks, now as a dot,
-     the shown minute as the signal. */
+  /* The day as one hairline: sunrise and sunset as ticks, now as a dot, the
+     shown minute as the signal. */
   .lys-dial {
     position: absolute;
     left: clamp(20px, 4vw, 56px);
@@ -119,6 +147,8 @@
     margin-top: -6px;
     background: var(--signal);
   }
+  :global(html.lys-drag),
+  :global(html.lys-drag *) { cursor: ew-resize !important; }
 
   @media (prefers-reduced-motion: reduce) {
     .lys-gl, .lys-read, .lys-dial { transition: none; }
@@ -128,11 +158,11 @@
 <script>
   const LAT = 45.9763;
   const LNG = 7.6586;
-  /* Domain of the height file, in metres from the summit (LV95 2617048 /
-     1091674): x east, y north. The file's top-left texel is 4048 m west and
-     4326 m north of the top. */
-  const SPAN = 8000;
+  /* Coarse file: 8000 m square; its top-left texel is 4048 m west and 4326 m
+     north of the summit (LV95 2617048 / 1091674). x east, y north. */
   const N = 1024;
+  /* Detail file: x −1400…1700, y −1300…1800. */
+  const ND = 1536;
 
   const root = document.querySelector<HTMLElement>('.lys');
   const canvas = root?.querySelector<HTMLCanvasElement>('.lys-gl');
@@ -150,31 +180,26 @@
     const e = rad * 23.4397;
     const dec = Math.asin(Math.sin(L) * Math.sin(e));
     const ra = Math.atan2(Math.sin(L) * Math.cos(e), Math.cos(L));
-    const th = rad * (280.16 + 360.9856235 * d) + rad * LNG;
-    const H = th - ra;
+    const H = rad * (280.16 + 360.9856235 * d) + rad * LNG - ra;
     const phi = rad * LAT;
     const alt = Math.asin(Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H));
     const az = Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(phi) - Math.tan(dec) * Math.cos(phi));
-    const bearing = az + Math.PI; // from north, clockwise
+    const bearing = az + Math.PI;
     return {
       alt,
       dir: [Math.sin(bearing) * Math.cos(alt), Math.cos(bearing) * Math.cos(alt), Math.sin(alt)] as [number, number, number],
     };
   }
 
-  /** Minutes after local midnight in Zermatt, whatever zone the viewer is in. */
-  const zermattClock = (date: Date) =>
-    new Intl.DateTimeFormat('nb-NO', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
+  const fmt = new Intl.DateTimeFormat('nb-NO', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit', hour12: false });
+  const zermattClock = (date: Date) => fmt.format(date);
   const zermattMinutes = (date: Date) => {
     const [h, m] = zermattClock(date).split(/\D/).map(Number);
     return h * 60 + m;
   };
 
-  /** Sunrise and sunset as fractions of the Zermatt day, by scanning. Good to
-      a couple of minutes, which is a pixel on the dial. */
   function riseSet(date: Date) {
-    const m0 = zermattMinutes(date);
-    const midnight = date.valueOf() - m0 * 60000;
+    const midnight = date.valueOf() - zermattMinutes(date) * 60000;
     let rise = -1, set = -1, prev = sunAt(new Date(midnight)).alt;
     for (let m = 4; m <= 1440; m += 4) {
       const a = sunAt(new Date(midnight + m * 60000)).alt;
@@ -187,34 +212,60 @@
 
   /* ---- Light from the sun's height --------------------------------------- */
 
-  const mix = (a: number[], b: number[], t: number) => a.map((v, i) => v + (b[i] - v) * Math.min(1, Math.max(0, t)));
+  type V3 = [number, number, number];
+  const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+  const mix = (a: V3, b: V3, t: number) => a.map((v, i) => v + (b[i] - v) * clamp01(t)) as V3;
   const ss = (a: number, b: number, x: number) => {
-    const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+    const t = clamp01((x - a) / (b - a));
     return t * t * (3 - 2 * t);
   };
+  /** Piecewise through (elevation, colour) stops. */
+  const ramp = (stops: [number, V3][], x: number): V3 => {
+    if (x <= stops[0][0]) return stops[0][1];
+    for (let i = 1; i < stops.length; i++) {
+      if (x <= stops[i][0]) return mix(stops[i - 1][1], stops[i][1], (x - stops[i - 1][0]) / (stops[i][0] - stops[i - 1][0]));
+    }
+    return stops[stops.length - 1][1];
+  };
+  /*
+   * Exposure is a photographer's, not a webpage's: the sky is kept low, the
+   * way a camera metered for sunlit snow renders it, so the type always has a
+   * dark ground. Colours are linear.
+   */
   function lightFor(altDeg: number) {
-    /* Sun colour: red at the horizon, gold low, near white high. It keeps a
-       little strength just below the horizon on purpose — the summit is lit
-       there while the valley is not, which is what alpenglow is. */
-    const red = [1.0, 0.32, 0.12];
-    const gold = [1.0, 0.68, 0.38];
-    const day = [1.0, 0.95, 0.88];
-    let sun = altDeg < 6 ? mix(red, gold, (altDeg + 1) / 7) : mix(gold, day, (altDeg - 6) / 20);
-    const k = ss(-3.5, 1.5, altDeg) * (2.6 + 0.8 * ss(0, 30, altDeg));
-    sun = sun.map((v) => v * k);
-    /* Sky: velvet at night, a deep blue hour, a dark slate by day. Never
-       bright — the type sits on it. */
-    const night = [0.0004, 0.0004, 0.0009];
-    const blue = [0.003, 0.0035, 0.009];
-    const dusk = [0.009, 0.0055, 0.008];
-    const noon = [0.010, 0.014, 0.024];
-    let sky = altDeg < -6 ? mix(night, blue, (altDeg + 14) / 8)
-      : altDeg < 2 ? mix(blue, dusk, (altDeg + 6) / 8)
-      : mix(dusk, noon, (altDeg - 2) / 18);
-    const stars = 1 - ss(-12, -4, altDeg);
-    /* Starlight and snow: at night the mountain is a pale shape, not a hole. */
-    const amb = sky.map((v, i) => v * 7 + 0.0025 + stars * [0.005, 0.0055, 0.011][i]);
-    return { sun, sky, amb, stars };
+    /* Sun: strong red at the horizon (through the most air), gold low, near
+       white high. It keeps a little strength just below the horizon on purpose:
+       the summit is still lit there while the valley is not. */
+    const sunC = ramp([
+      [-4, [0.9, 0.18, 0.06]],
+      [0, [1.0, 0.3, 0.1]],
+      [3, [1.0, 0.5, 0.22]],
+      [8, [1.0, 0.72, 0.45]],
+      [20, [1.0, 0.9, 0.78]],
+      [45, [1.0, 0.96, 0.9]],
+    ], altDeg);
+    const k = ss(-3.5, 1.0, altDeg) * (3.2 + 1.4 * ss(0, 30, altDeg));
+    const sun = sunC.map((v) => v * k) as V3;
+    const zen = ramp([
+      [-18, [0.0002, 0.0002, 0.0005]],
+      [-8, [0.001, 0.0013, 0.004]],
+      [-2, [0.003, 0.0045, 0.012]],
+      [6, [0.005, 0.011, 0.03]],
+      [30, [0.006, 0.015, 0.045]],
+    ], altDeg);
+    const hor = ramp([
+      [-18, [0.0004, 0.0004, 0.0008]],
+      [-8, [0.0025, 0.0025, 0.006]],
+      [-2, [0.012, 0.009, 0.016]],
+      [2, [0.026, 0.02, 0.024]],
+      [8, [0.022, 0.03, 0.045]],
+      [30, [0.03, 0.045, 0.07]],
+    ], altDeg);
+    const stars = 1 - ss(-12, -5, altDeg);
+    /* The hemisphere the snow sees: the sky, plus starlight at night so the
+       mountain is a pale shape rather than a hole. */
+    const amb = zen.map((v, i) => v * 3.2 + hor[i] * 1.2 + 0.0012 + stars * [0.004, 0.0045, 0.009][i]) as V3;
+    return { sun, zen, hor, amb, stars };
   }
 
   /* ---- GL ---------------------------------------------------------------- */
@@ -223,93 +274,150 @@
   in vec2 p; out vec2 uv;
   void main() { uv = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }`;
 
-  const FS = `#version 300 es
+  const fs = (floatLinear: boolean) => `#version 300 es
   precision highp float;
   precision highp sampler2D;
   in vec2 uv; out vec4 o;
-  uniform sampler2D H;
+  uniform sampler2D H, D, RT;
   uniform vec2 res;
   uniform vec3 cam, fwd, rgt, up;
   uniform float fov;
-  uniform vec3 sunDir, sunCol, skyCol, ambCol;
+  uniform vec3 sunDir, sunCol, zenCol, horCol, ambCol;
   uniform float stars;
+  uniform ivec2 rn;          /* points per route */
+  uniform vec4 rs;           /* prog0, strength0, prog1, strength1 */
+  uniform float seed;
 
-  const float SPAN = ${SPAN.toFixed(1)};
-  const float NN = ${N.toFixed(1)};
-  const float PX = SPAN / NN;
+  const float PX = ${(8000 / N).toFixed(6)};
   const vec2 ORIGIN = vec2(4048.0, 4326.0);
+  const float DP = ${(3100 / ND).toFixed(6)};
+  const vec2 DORG = vec2(1400.0, 1800.0);
+  const vec3 SIGNAL = vec3(0.839, 0.643, 1.0);
 
-  float texel(ivec2 i) { return texelFetch(H, clamp(i, ivec2(0), ivec2(${N - 1})), 0).r; }
-
-  /* Height in metres at a world point (x east, y north, from the summit).
-     Outside the file the ground falls away, so the edge of the data is a slope
-     into the dark rather than a wall. */
-  float hgt(vec2 w) {
-    vec2 t = vec2((w.x + ORIGIN.x) / PX - 0.5, (ORIGIN.y - w.y) / PX - 0.5);
-    vec2 c = clamp(t, vec2(0.0), vec2(NN - 1.0));
-    ivec2 i = ivec2(floor(c));
-    vec2 f = c - vec2(i);
-    float a = texel(i), b = texel(i + ivec2(1, 0)), d = texel(i + ivec2(0, 1)), e = texel(i + ivec2(1, 1));
-    float h = mix(mix(a, b, f.x), mix(d, e, f.x), f.y);
-    return h - length(t - c) * PX * 0.6;
+  float base(vec2 w) {
+    vec2 t = vec2((w.x + ORIGIN.x) / PX, (ORIGIN.y - w.y) / PX);
+    vec2 c = clamp(t, vec2(0.5), vec2(${N}.0 - 0.5));
+    float out_ = length(t - c) * PX * 0.6;
+    ${floatLinear
+      ? `return texture(H, c / ${N}.0).r - out_;`
+      : `vec2 g = c - 0.5; ivec2 i = ivec2(floor(g)); vec2 f = g - vec2(i);
+    float a = texelFetch(H, i, 0).r, b = texelFetch(H, min(i + ivec2(1, 0), ivec2(${N - 1})), 0).r;
+    float d = texelFetch(H, min(i + ivec2(0, 1), ivec2(${N - 1})), 0).r, e = texelFetch(H, min(i + ivec2(1, 1), ivec2(${N - 1})), 0).r;
+    return mix(mix(a, b, f.x), mix(d, e, f.x), f.y) - out_;`}
   }
 
-  vec3 nrm(vec2 w, float t) {
-    float e = max(PX, t * 0.0012);
+  /* The 2 m residual on top, faded out over the last 80 m of its box. */
+  float hgt(vec2 w) {
+    float h = base(w);
+    vec2 t = vec2(w.x + DORG.x, DORG.y - w.y);
+    float edge = min(min(t.x, t.y), min(3100.0 - t.x, 3100.0 - t.y));
+    if (edge <= 0.0) return h;
+    float r = (texture(D, t / 3100.0).r * 255.0 - 128.0) * 0.5;
+    return h + r * smoothstep(0.0, 80.0, edge);
+  }
+
+  vec3 nrm(vec2 w, float e) {
     return normalize(vec3(hgt(w - vec2(e, 0.0)) - hgt(w + vec2(e, 0.0)),
                           hgt(w - vec2(0.0, e)) - hgt(w + vec2(0.0, e)),
                           2.0 * e));
   }
 
-  float shadow(vec3 p) {
-    if (sunDir.z < -0.12) return 0.0;
-    float r = 1.0, t = 12.0;
-    for (int i = 0; i < 56; i++) {
-      vec3 q = p + sunDir * t;
-      if (q.z > 4500.0) break;
-      float h = q.z - hgt(q.xy);
-      r = min(r, 10.0 * h / t);
-      if (r < 0.001) break;
-      t += clamp(h * 0.6, 10.0, 260.0);
-    }
-    return clamp(r, 0.0, 1.0);
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+  }
+  float fbm(vec2 p) {
+    float s = 0.0, a = 0.5;
+    for (int i = 0; i < 4; i++) { s += a * vnoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
+    return s;
   }
 
-  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float shadow(vec3 p) {
+    if (sunDir.z < -0.08) return 0.0;
+    float r = 1.0, t = 6.0;
+    for (int i = 0; i < 64; i++) {
+      vec3 q = p + sunDir * t;
+      if (q.z > 4490.0) break;
+      float h = q.z - hgt(q.xy);
+      r = min(r, 9.0 * h / t);
+      if (r < 0.002) break;
+      t += clamp(h * 0.55, 4.0, 240.0);
+    }
+    return smoothstep(0.0, 1.0, clamp(r, 0.0, 1.0));
+  }
+
+  /* Cheap occlusion: how far the ground around a point stands above it. */
+  float occl(vec2 w, float h) {
+    float o = 0.0;
+    for (int i = 0; i < 6; i++) {
+      float a = float(i) * 1.0472 + 0.4;
+      vec2 d = vec2(cos(a), sin(a));
+      o += max(hgt(w + d * 22.0) - h, 0.0) / 22.0;
+      o += max(hgt(w + d * 90.0) - h, 0.0) / 90.0 * 0.6;
+    }
+    return clamp(1.0 - o * 0.16, 0.25, 1.0);
+  }
 
   vec3 skyAt(vec3 rd) {
-    vec3 s = skyCol;
-    /* Haze low over the ridges — the air is thicker where the line of sight
-       is long. A sky, not a surface: this is light, not decoration. */
-    s += skyCol * 1.4 * exp(-max(rd.z, 0.0) * 14.0);
+    float e = clamp(rd.z, 0.0, 1.0);
+    vec3 s = mix(horCol, zenCol, pow(e, 0.42));
+    /* Forward scattering round the sun, and its warmth on the horizon. */
+    float mu = max(dot(rd, sunDir), 0.0);
+    s += sunCol * (0.012 * pow(mu, 6.0) + 0.05 * pow(mu, 60.0)) * (1.0 - e * 0.7);
     if (stars > 0.0) {
-      vec2 g = vec2(atan(rd.y, rd.x) * 260.0, asin(clamp(rd.z, -1.0, 1.0)) * 260.0);
+      vec2 g = vec2(atan(rd.y, rd.x) * 300.0, asin(clamp(rd.z, -1.0, 1.0)) * 300.0);
       vec2 cell = floor(g);
       float h = hash(cell);
       float d = length(fract(g) - 0.5);
-      float tw = step(0.9935, h) * smoothstep(0.32, 0.0, d) * (0.4 + 0.6 * hash(cell + 7.0));
-      s += vec3(0.85, 0.85, 1.0) * tw * stars * smoothstep(0.02, 0.2, rd.z);
+      float tw = step(0.9955, h) * smoothstep(0.3, 0.0, d) * (0.25 + 0.75 * hash(cell + 7.0));
+      s += vec3(0.8, 0.82, 1.0) * tw * 0.35 * stars * smoothstep(0.03, 0.25, rd.z);
     }
     return s;
   }
 
+  /* Distance from p to a route IN PLAN, and how far up the route the closest
+     point is. In plan because the route's points are simplified: between two
+     of them the straight line runs metres above or below the real crest, and
+     a 3D distance would lose it. Painted from above, the crest is the crest. */
+  vec2 route(int r, int n, vec3 p) {
+    float best = 1e9, frac = 0.0;
+    vec4 a = texelFetch(RT, ivec2(0, r), 0);
+    for (int i = 1; i < 128; i++) {
+      if (i >= n) break;
+      vec4 b = texelFetch(RT, ivec2(i, r), 0);
+      vec2 ab = b.xy - a.xy;
+      float h = clamp(dot(p.xy - a.xy, ab) / dot(ab, ab), 0.0, 1.0);
+      float d = length(p.xy - a.xy - ab * h);
+      if (abs(p.z - mix(a.z, b.z, h)) > 60.0) d = 1e9;
+      if (d < best) { best = d; frac = mix(a.w, b.w, h); }
+      a = b;
+    }
+    return vec2(best, frac);
+  }
+
+  vec3 aces(vec3 x) {
+    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+  }
+
   void main() {
-    vec2 q = (uv - 0.5) * vec2(res.x / res.y, 1.0) * 2.0 * tan(fov * 0.5);
+    float tf = tan(fov * 0.5);
+    vec2 q = (uv - 0.5) * vec2(res.x / res.y, 1.0) * 2.0 * tf;
     vec3 rd = normalize(fwd + q.x * rgt + q.y * up);
     vec3 ro = cam;
+    float pix = 2.0 * tf / res.y;   /* radians per pixel */
 
-    float t = 30.0, tmax = 16000.0;
+    float t = 30.0, tmax = 18000.0;
     bool hit = false;
     float last = 0.0;
-    for (int i = 0; i < 260; i++) {
+    for (int i = 0; i < 300; i++) {
       vec3 p = ro + rd * t;
-      if (p.z > 4520.0 && rd.z > 0.0) break;
+      if (p.z > 4500.0 && rd.z > 0.0) break;
       float d = p.z - hgt(p.xy);
       if (d < 0.0) {
-        /* Step back and halve to the surface — the skyline is the picture,
-           and a coarse hit makes it stair-step. */
         float a = last, b = t;
-        for (int k = 0; k < 6; k++) {
+        for (int k = 0; k < 7; k++) {
           float m = 0.5 * (a + b);
           vec3 pm = ro + rd * m;
           if (pm.z - hgt(pm.xy) < 0.0) b = m; else a = m;
@@ -317,38 +425,84 @@
         t = b; hit = true; break;
       }
       last = t;
-      t += max(d * 0.45, 0.6 + t * 0.0016);
+      t += max(d * 0.42, 0.5 + t * pix * 0.8);
       if (t > tmax) break;
     }
 
     vec3 col;
+    vec3 sky = skyAt(rd);
+    float line = 0.0, halo = 0.0;
     if (!hit) {
-      col = skyAt(rd);
+      col = sky;
     } else {
       vec3 p = ro + rd * t;
-      vec3 n = nrm(p.xy, t);
-      /* Snow holds where the slope lets it and the air is cold enough; the
-         faces of the pyramid are too steep for it, which is why the mountain
-         reads as dark rock with white seams. */
-      float snow = smoothstep(0.5, 0.78, n.z) * smoothstep(2500.0, 2950.0, p.z);
-      vec3 alb = mix(vec3(0.075, 0.07, 0.065), vec3(0.82, 0.86, 0.92), snow);
+      float e = max(2.0, t * pix * 1.5);
+      vec3 n = nrm(p.xy, e);
+
+      /* Rock and snow. Noise breaks every threshold so nothing reads as a
+         contour; it fades out with distance so far slopes do not shimmer. */
+      float near = 1.0 - smoothstep(1500.0, 7000.0, t);
+      /* On a wall, plan coordinates smear noise into vertical streaks; there
+         it is sampled along the face and up it instead. */
+      vec2 th = normalize(vec2(-n.y, n.x) + 1e-5);
+      vec2 nc = mix(p.xy, vec2(dot(p.xy, th), p.z * 1.4), smoothstep(0.25, 0.6, 1.0 - n.z));
+      float f1 = fbm(nc / 9.0);
+      float f2 = fbm(p.xy / 60.0 + 3.0);
+      float strata = vnoise(vec2(p.z / 7.0, (p.x + p.y) / 400.0));
+      vec3 rock = vec3(0.115, 0.1, 0.085) * (0.6 + 0.55 * f2 + 0.35 * (strata - 0.5) * near + 0.3 * (f1 - 0.5) * near);
+      rock = mix(rock, vec3(0.105, 0.098, 0.075), smoothstep(2900.0, 2500.0, p.z));
+      float lip = (f1 - 0.5) * 0.1 * near + (f2 - 0.5) * 0.2;
+      float snow = smoothstep(0.5, 0.7, n.z + lip) * smoothstep(2450.0, 2950.0, p.z + (f2 - 0.5) * 300.0);
+      /* Rock micro-relief: bend the normal by the noise's slope, near only. */
+      if (near > 0.0) {
+        float g0 = fbm(nc / 5.0), gx = fbm((nc + vec2(0.7, 0.0)) / 5.0), gy = fbm((nc + vec2(0.0, 0.7)) / 5.0);
+        vec3 tu = normalize(vec3(th, 0.0)), tv = normalize(cross(n, tu));
+        n = normalize(n + (tu * (g0 - gx) + tv * (g0 - gy)) * 1.4 * near * (1.0 - snow));
+      }
+      vec3 alb = mix(rock, vec3(0.86, 0.89, 0.93), snow);
+
       float dif = max(dot(n, sunDir), 0.0);
-      float sh = dif > 0.0 ? shadow(p + n * 2.0) : 0.0;
-      float sky = 0.55 + 0.45 * n.z;
-      col = alb * (sunCol * dif * sh + ambCol * sky);
-      /* Aerial perspective, toward the sky's own colour. */
-      float fog = 1.0 - exp(-t / 26000.0);
-      col = mix(col, skyCol * 2.0, fog);
+      float sh = dif > 0.0 ? shadow(p + n * 1.5) : 0.0;
+      float ao = occl(p.xy, p.z);
+      vec3 amb = ambCol * (0.55 + 0.45 * n.z) * ao;
+      /* Snow in shade is lit by blue sky; light off the snowfields fills the
+         rock from below. */
+      amb += sunCol * 0.035 * (1.0 - n.z) * ao * (0.3 + 0.7 * snow);
+      vec3 hv = normalize(sunDir - rd);
+      float spec = pow(max(dot(n, hv), 0.0), 60.0) * 0.18 * snow * sh;
+      col = alb * (sunCol * dif * sh + amb) + sunCol * spec;
+
+      /* Aerial perspective: thicker low down, warmed toward the sun. */
+      float dens = exp(-(0.5 * (ro.z + p.z) - 1600.0) / 2600.0);
+      float fog = 1.0 - exp(-t * dens / 22000.0);
+      float mu = max(dot(rd, sunDir), 0.0);
+      vec3 air = horCol * 1.1 + sunCol * 0.02 * pow(mu, 4.0);
+      col = mix(col, air, fog);
+
       /* The data ends; let it end in the dark. */
-      vec2 w = abs(p.xy + vec2(4048.0, -4326.0) - vec2(SPAN * 0.5, -SPAN * 0.5)) / (SPAN * 0.5);
-      float edge = 1.0 - smoothstep(0.82, 1.0, max(w.x, w.y));
-      col = mix(skyAt(rd) * 0.6, col, edge);
+      vec2 w = abs((p.xy + vec2(ORIGIN.x, -ORIGIN.y)) - vec2(4000.0, -4000.0)) / 4000.0;
+      col = mix(sky * 0.5, col, 1.0 - smoothstep(0.84, 1.0, max(w.x, w.y)));
+
+      /* The routes. Width is set in pixels, not metres, so the line is the
+         same weight at the hut and at the top. */
+      float lw = t * pix;
+      for (int r = 0; r < 2; r++) {
+        float prog = r == 0 ? rs.x : rs.z;
+        float k = r == 0 ? rs.y : rs.w;
+        if (k <= 0.001) continue;
+        vec2 rr = route(r, r == 0 ? rn.x : rn.y, p);
+        float on = step(rr.y, prog);
+        float c = smoothstep(lw * 2.4, lw * 1.0, rr.x) * on;
+        float tip = exp(-abs(rr.y - prog) * 30.0) * on;
+        line = max(line, c * k * (0.85 + 0.6 * tip));
+        halo = max(halo, exp(-rr.x / (lw * 9.0)) * on * k * (0.45 + 0.8 * tip));
+      }
     }
 
-    /* Filmic-ish curve, then sRGB. */
-    col = col / (1.0 + col * 0.6);
+    col = aces(col * 2.2);
     col = pow(col, vec3(1.0 / 2.2));
-    col += (hash(gl_FragCoord.xy + fract(stars * 13.0)) - 0.5) / 255.0;
+    col = mix(col, SIGNAL, clamp(line, 0.0, 1.0)) + SIGNAL * halo * 0.35;
+    col += (hash(gl_FragCoord.xy + seed) - 0.5) / 255.0;
     o = vec4(col, 1.0);
   }`;
 
@@ -360,23 +514,21 @@
     return s;
   }
 
-  async function loadHeights(src: string) {
+  async function pixels(src: string) {
     const blob = await (await fetch(src)).blob();
     const bmp = await createImageBitmap(blob, { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
     const c = new OffscreenCanvas(bmp.width, bmp.height);
-    const ctx = c.getContext('2d', { colorSpace: 'srgb' })!;
+    const ctx = c.getContext('2d')!;
     ctx.drawImage(bmp, 0, 0);
-    const px = ctx.getImageData(0, 0, bmp.width, bmp.height).data;
-    const h = new Float32Array(bmp.width * bmp.height);
-    for (let i = 0; i < h.length; i++) h[i] = (px[i * 4] * 256 + px[i * 4 + 1]) / 4 + 1500;
-    return h;
+    return ctx.getImageData(0, 0, bmp.width, bmp.height).data;
   }
 
   async function start() {
-    if (!root || !canvas || !gl) return;
+    if (!root || !canvas || !gl) throw new Error('no webgl2');
+    const floatLinear = !!gl.getExtension('OES_texture_float_linear');
     const prog = gl.createProgram()!;
     gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS));
-    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FS));
+    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs(floatLinear)));
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || 'link');
     gl.useProgram(prog);
@@ -388,21 +540,84 @@
     gl.enableVertexAttribArray(loc);
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
 
-    const heights = await loadHeights(root.dataset.src!);
-    const tex = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, tex);
+    const [hp, dp] = await Promise.all([pixels(root.dataset.src!), pixels(root.dataset.detail!)]);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, N, N, 0, gl.RED, gl.FLOAT, heights);
+
+    /* Coarse heights as float: two bytes cannot be filtered as one number. */
+    const h = new Float32Array(N * N);
+    for (let i = 0; i < h.length; i++) h[i] = (hp[i * 4] * 256 + hp[i * 4 + 1]) / 4 + 1500;
+    const texH = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texH);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, N, N, 0, gl.RED, gl.FLOAT, h);
+    const filt = floatLinear ? gl.LINEAR : gl.NEAREST;
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filt);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filt);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    /* Detail residual is one byte, so R8 and the hardware filter is exact. */
+    const d8 = new Uint8Array(ND * ND);
+    for (let i = 0; i < d8.length; i++) d8[i] = dp[i * 4 + 1];
+    const texD = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, texD);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, ND, ND, 0, gl.RED, gl.UNSIGNED_BYTE, d8);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    /* Routes: one row each, x y z and fraction-of-climb per texel. */
+    const R = JSON.parse(root.dataset.routes!) as Record<string, number[][]>;
+    const keys = ['hornligrat', 'zmuttgrat'] as const;
+    const RW = 128;
+    const rt = new Float32Array(RW * 2 * 4);
+    keys.forEach((k, r) => R[k].slice(0, RW).forEach((pt, i) => rt.set(pt, (r * RW + i) * 4)));
+    const texR = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, texR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, RW, 2, 0, gl.RGBA, gl.FLOAT, rt);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
     const U = (n: string) => gl.getUniformLocation(prog, n);
+    gl.uniform1i(U('H'), 0);
+    gl.uniform1i(U('D'), 1);
+    gl.uniform1i(U('RT'), 2);
+    gl.uniform2i(U('rn'), Math.min(RW, R.hornligrat.length), Math.min(RW, R.zmuttgrat.length));
     const u = {
       res: U('res'), cam: U('cam'), fwd: U('fwd'), rgt: U('rgt'), up: U('up'), fov: U('fov'),
-      sunDir: U('sunDir'), sunCol: U('sunCol'), skyCol: U('skyCol'), ambCol: U('ambCol'), stars: U('stars'),
+      sunDir: U('sunDir'), sunCol: U('sunCol'), zenCol: U('zenCol'), horCol: U('horCol'), ambCol: U('ambCol'),
+      stars: U('stars'), rs: U('rs'), seed: U('seed'),
     };
 
-    /* ---- Time: now, an intro sweep, or wherever the viewer dragged it ---- */
+    /* ---- The routes as the menu ----------------------------------------- */
+    /* Per route: how far up the line is drawn, and how strong. The intro
+       climbs both once; after that a route rests as a faint trace, and climbs
+       again in full when its name is pointed at. */
+    const REST = 0.16;
+    const rState = keys.map(() => ({ prog: 0, k: 0, hot: false, from: 0, at: 0 }));
+    let introAt = Infinity;
+    const isHot = (k: string) => !!root.querySelector(`.seg[data-seg="${k}"].hot`);
+    const mo = new MutationObserver(() => {
+      keys.forEach((k, i) => {
+        const hot = isHot(k);
+        const s = rState[i];
+        if (hot && !s.hot) { s.from = 0; s.prog = 0; s.at = performance.now(); }
+        s.hot = hot;
+      });
+      kick();
+    });
+    root.querySelectorAll('.seg').forEach((n) => mo.observe(n, { attributes: true, attributeFilter: ['class'] }));
+    let level = root.dataset.level ?? 'root';
+    let levelAt = 0;
+    new MutationObserver(() => {
+      const l = root.dataset.level ?? 'root';
+      if (l !== level) { level = l; levelAt = performance.now(); kick(); }
+    }).observe(root, { attributes: true, attributeFilter: ['data-level'] });
+
+    /* ---- Time ------------------------------------------------------------ */
     const timeEl = root.querySelector<HTMLElement>('.lys-time')!;
     const dial = root.querySelector<HTMLElement>('.lys-dial')!;
     const mark = dial.querySelector<HTMLElement>('.lys-mark')!;
@@ -412,7 +627,7 @@
     dial.querySelector<HTMLElement>('.lys-set')!.style.setProperty('--x', String(Math.max(0, rs.set)));
 
     /* Offset from the real clock, in minutes. The intro starts the day at the
-       last midnight and runs it up to now; dragging moves the offset. */
+       last midnight and runs it up to now; dragging moves the target. */
     const nowMin = zermattMinutes(new Date());
     let offset = still ? 0 : -nowMin;
     let target = 0;
@@ -421,77 +636,101 @@
     if (pin) target = Number(pin[1]) * 60 + Number(pin[2]) - nowMin;
     const shown = () => new Date(Date.now() + offset * 60000);
 
+    /* Drag anywhere that is not a control: the screen's width is a day. The
+       menu's rows are links and buttons, so they keep their clicks. */
     let dragX: number | null = null;
     let dragFrom = 0;
-    root.addEventListener('pointerdown', (e) => {
-      if ((e.target as HTMLElement).closest('button')) return;
+    let moved = false;
+    document.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      if ((e.target as HTMLElement).closest('a, button, input, select, textarea, [role="dialog"], nav, header')) return;
       dragX = e.clientX;
       dragFrom = target;
-      root.setPointerCapture(e.pointerId);
+      moved = false;
     });
-    root.addEventListener('pointermove', (e) => {
+    document.addEventListener('pointermove', (e) => {
       if (dragX === null) return;
-      /* The full width of the screen is a whole day. */
-      target = dragFrom + ((e.clientX - dragX) / root.clientWidth) * 1440;
+      const dx = e.clientX - dragX;
+      if (!moved && Math.abs(dx) < 4) return;
+      moved = true;
+      document.documentElement.classList.add('lys-drag');
+      target = dragFrom + (dx / innerWidth) * 1440;
       kick();
     });
-    const end = () => { dragX = null; };
-    root.addEventListener('pointerup', end);
-    root.addEventListener('pointercancel', end);
+    const end = () => { dragX = null; document.documentElement.classList.remove('lys-drag'); };
+    document.addEventListener('pointerup', end);
+    document.addEventListener('pointercancel', end);
     root.querySelector('.lys-read')!.addEventListener('click', () => { target = 0; kick(); });
-    root.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') target -= 15;
-      else if (e.key === 'ArrowRight') target += 15;
-      else return;
-      e.preventDefault();
-      kick();
-    });
 
-    /* ---- Camera: north-east, the Zermatt side, drifting ---------------- */
+    /* ---- Camera ---------------------------------------------------------- */
     let px = 0, py = 0, pxT = 0, pyT = 0;
     addEventListener('pointermove', (e) => {
       pxT = (e.clientX / innerWidth - 0.5) * 2;
       pyT = (e.clientY / innerHeight - 0.5) * 2;
+      kick();
     }, { passive: true });
 
-    let scale = 0.55;
+    /* Pixels per CSS pixel. 1.25 is sharp on a retina screen at a third of
+       its pixel count; slow frames step it down. */
+    let scale = Math.min(devicePixelRatio || 1, 1.25);
     const resize = () => {
-      const dpr = Math.min(devicePixelRatio || 1, 2);
-      canvas.width = Math.round(canvas.clientWidth * dpr * scale);
-      canvas.height = Math.round(canvas.clientHeight * dpr * scale);
+      canvas.width = Math.max(2, Math.round(canvas.clientWidth * scale));
+      canvas.height = Math.max(2, Math.round(canvas.clientHeight * scale));
       gl.viewport(0, 0, canvas.width, canvas.height);
     };
     resize();
     addEventListener('resize', () => { resize(); kick(); });
 
     const t0 = performance.now();
-    let raf = 0;
-    let slow = 0;
-    let lastFrame = 0;
-    let firstDrawn = false;
+    let raf = 0, slow = 0, lastFrame = 0, lastDraw = 0, firstDrawn = false;
+    let push = 0;
+    const ease = (x: number) => 1 - Math.pow(1 - clamp01(x), 3);
 
     const frame = (now: number) => {
       raf = 0;
       const dt = Math.min(0.1, (now - (lastFrame || now)) / 1000);
       lastFrame = now;
 
-      /* Ease the shown time toward the target: the intro and every drag. */
       const k = 1 - Math.exp(-dt * (dragX === null ? 2.4 : 10));
       offset += (target - offset) * (still ? 1 : k);
       if (Math.abs(target - offset) < 0.5) offset = target;
-
       px += (pxT - px) * (1 - Math.exp(-dt * 2));
       py += (pyT - py) * (1 - Math.exp(-dt * 2));
+      const pushT = level === 'work' ? 1 : 0;
+      push += (pushT - push) * (still ? 1 : 1 - Math.exp(-dt * 1.6));
+
+      /* Routes. */
+      let busy = Math.abs(target - offset) > 0.01 || Math.abs(pushT - push) > 0.002;
+      rState.forEach((s) => {
+        if (s.hot) {
+          s.prog = still ? 1 : ease((now - s.at) / 900);
+          s.k += (1 - s.k) * (1 - Math.exp(-dt * 12));
+        } else if (now >= introAt) {
+          const it = (now - introAt) / 2600;
+          if (it < 1) { s.prog = ease(it); s.k = 0.6; }
+          else {
+            s.prog = 1;
+            s.k += (REST - s.k) * (1 - Math.exp(-dt * 2.2));
+          }
+        }
+        if (s.hot ? s.prog < 1 : (now >= introAt && Math.abs(s.k - REST) > 0.005)) busy = true;
+        if (s.hot && Math.abs(1 - s.k) > 0.005) busy = true;
+      });
+
+      /* Idle drift redraws at ~24 fps; anything moving on purpose at full. */
+      const animate = !still;
+      if (!busy && firstDrawn && now - lastDraw < 41) { if (animate) kick(); return; }
+      lastDraw = now;
 
       const el = (now - t0) / 1000;
       const portrait = canvas.clientHeight > canvas.clientWidth;
-      /* Bearing from the summit to the camera. 52° is the Zermatt side; the
-         drift is a few degrees either way over a minute and a half. */
-      const drift = still ? 0 : Math.sin(el / 90 * Math.PI * 2) * 5;
-      const bear = (52 + drift + px * 3) * rad;
-      const dist = portrait ? 6200 : 5200;
-      const cam = [Math.sin(bear) * dist, Math.cos(bear) * dist, 2850 - py * 60];
-      const look = [0, 0, portrait ? 3650 : 3900];
+      /* Bearing from the summit to the camera: 52° is the Zermatt side. Going
+         to the work level pushes in and swings toward the Hörnligrat. */
+      const drift = still ? 0 : Math.sin((el / 100) * Math.PI * 2) * 4;
+      const bear = (52 + drift + px * 2.5 + push * 6) * rad;
+      const dist = (portrait ? 6400 : 5300) * (1 - push * 0.2);
+      const cam = [Math.sin(bear) * dist, Math.cos(bear) * dist, 2900 - py * 50 + push * 120];
+      const look = [push * 150, push * 120, (portrait ? 3600 : 3880) + push * 80];
       const f = look.map((v, i) => v - cam[i]);
       const fl = Math.hypot(...f);
       const fwd = f.map((v) => v / fl);
@@ -509,34 +748,35 @@
       gl.uniform3fv(u.fwd, fwd);
       gl.uniform3fv(u.rgt, rgt);
       gl.uniform3fv(u.up, up);
-      gl.uniform1f(u.fov, (portrait ? 48 : 34) * rad);
+      gl.uniform1f(u.fov, (portrait ? 46 : 33) * rad);
       gl.uniform3fv(u.sunDir, sun.dir);
       gl.uniform3fv(u.sunCol, L.sun);
-      gl.uniform3fv(u.skyCol, L.sky);
+      gl.uniform3fv(u.zenCol, L.zen);
+      gl.uniform3fv(u.horCol, L.hor);
       gl.uniform3fv(u.ambCol, L.amb);
       gl.uniform1f(u.stars, L.stars);
+      gl.uniform4f(u.rs, rState[0].prog, rState[0].k, rState[1].prog, rState[1].k);
+      gl.uniform1f(u.seed, (el * 7.3) % 100);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
       timeEl.textContent = zermattClock(date);
-      const day = (((zermattMinutes(date)) % 1440) + 1440) % 1440 / 1440;
-      mark.style.setProperty('--x', day.toFixed(4));
+      mark.style.setProperty('--x', (((zermattMinutes(date) % 1440) + 1440) % 1440 / 1440).toFixed(4));
       nowDot.style.setProperty('--x', (zermattMinutes(new Date()) / 1440).toFixed(4));
       root.classList.toggle('away', Math.abs(target) > 1);
 
       if (!firstDrawn) {
         firstDrawn = true;
         requestAnimationFrame(() => root.classList.add('ready'));
+        introAt = now + (still ? 0 : 2200);
       }
 
-      /* Adapt: three slow frames in a row and the resolution steps down. */
-      if (dt > 0.045) slow++; else slow = Math.max(0, slow - 1);
-      if (slow > 3 && scale > 0.3) { scale *= 0.8; slow = 0; resize(); }
+      if (dt > 0.05) slow++; else slow = Math.max(0, slow - 1);
+      if (slow > 3 && scale > 0.45) { scale *= 0.85; slow = 0; resize(); }
 
-      if (!still || Math.abs(target - offset) > 0.01) kick();
+      if (animate || busy) kick();
     };
     const kick = () => { if (!raf && !document.hidden) raf = requestAnimationFrame(frame); };
     document.addEventListener('visibilitychange', kick);
-    /* The real clock moves too; once a minute is enough for a still page. */
     setInterval(kick, 60000);
     kick();
   }

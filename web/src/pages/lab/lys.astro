@@ -1,13 +1,11 @@
 ---
-/* Matterhorn from height data, lit by the sun over Zermatt right now.
-   See `Lys.astro`. */
+/* The front page with the mountain drawn from height data and lit by the sun
+   over Zermatt now. The menu is the live one; the ridges answer it. See
+   `Lys.astro`. */
 import Layout from '../../layouts/Layout.astro';
-import Lys from '../../components/Lys.astro';
-import '../../styles/instrument.css';
+import Home from '../../components/pages/Home.astro';
 ---
 
 <Layout title="Variant — Lys" nav="inst">
-  <div class="always-dark inst">
-    <Lys />
-  </div>
+  <Home mountain="lys" />
 </Layout>
