@@ -103,9 +103,11 @@ const log = [
   }
   .climb :global(.footer), :global(body:has(.climb) footer) { display: none; }
 
+  /* No z-index: a stacking context here would isolate the portrait's blend
+     from the mountain under it. Positioned and later in the page, the
+     sections paint over the fixed canvas anyway. */
   .wp {
     position: relative;
-    z-index: 1;
     min-height: 130svh;
     display: flex;
     align-items: center;
@@ -209,6 +211,8 @@ const log = [
     width: clamp(220px, 24vw, 340px);
     height: auto;
     margin: 0 0 -24px -28px;
+    /* The photo's light and shade, the sky's colour. */
+    mix-blend-mode: luminosity;
   }
   .who-name {
     margin: 0;
