@@ -47,8 +47,8 @@ const { mode = 'view', markers = [] } = Astro.props;
   <!-- The routes, drawn over the picture: projected from 3D every frame, and
        broken wherever nearer rock stands in front. See the script. -->
   <svg class="lys-route" aria-hidden="true">
-    <path class="lys-glow" /><path class="lys-line" /><circle class="lys-tip" r="3" />
-    <path class="lys-glow" /><path class="lys-line" /><circle class="lys-tip" r="3" />
+    <path class="lys-hid" /><path class="lys-glow" /><path class="lys-line" /><circle class="lys-tip" r="3" />
+    <path class="lys-hid" /><path class="lys-glow" /><path class="lys-line" /><circle class="lys-tip" r="3" />
   </svg>
   <img class="lys-fallback" src="/hero/matterhorn-still.webp" alt="" width="2400" height="1350" decoding="async" loading="lazy" />
   <!-- What `OneScreen` toggles. Never drawn; read by the script below. -->
@@ -120,7 +120,8 @@ const { mode = 'view', markers = [] } = Astro.props;
     overflow: visible;
   }
   .lys-line,
-  .lys-glow {
+  .lys-glow,
+  .lys-hid {
     fill: none;
     stroke: var(--signal);
     stroke-linecap: round;
@@ -128,6 +129,9 @@ const { mode = 'view', markers = [] } = Astro.props;
   }
   .lys-line { stroke-width: 1.6; }
   .lys-glow { stroke-width: 7; opacity: 0.16; }
+  /* Where the ridge goes behind nearer rock, the route carries on dotted,
+     as on a topo — the line never just stops. */
+  .lys-hid { stroke-width: 1.2; stroke-dasharray: 1 5; opacity: 0.45; }
   .lys-tip { fill: var(--signal); }
 
   /* THE POINTS: the menu, hung on the routes. A dot on the rock, a hairline
@@ -1138,15 +1142,28 @@ const { mode = 'view', markers = [] } = Astro.props;
     const lines = [...svg.querySelectorAll<SVGPathElement>('.lys-line')];
     const glows = [...svg.querySelectorAll<SVGPathElement>('.lys-glow')];
     const tips = [...svg.querySelectorAll<SVGCircleElement>('.lys-tip')];
-    const seen = (P: number[], cam: number[]) => {
+    const hids = [...svg.querySelectorAll<SVGPathElement>('.lys-hid')];
+    /* The first rock between a point and the camera: null when the view is
+       clear, else where the ray first hits. */
+    const blocker = (P: number[], cam: number[]) => {
       const d = [cam[0] - P[0], cam[1] - P[1], cam[2] - P[2]];
       const L = Math.hypot(d[0], d[1], d[2]);
       for (let s = 18; s < Math.min(L, 7000); s *= 1.07) {
         const x = P[0] + (d[0] / L) * s, y = P[1] + (d[1] / L) * s, z = P[2] + (d[2] / L) * s;
-        if (z > 4490) return true;
-        if (groundAt(x, y) > z + 5) return false;
+        if (z > 4490) return null;
+        const g = groundAt(x, y);
+        if (g > z + 5) return { s, at: [x, y, g] };
       }
-      return true;
+      return null;
+    };
+    const seen = (P: number[], cam: number[]) => !blocker(P, cam);
+    /* The traced line can sit a few metres off the true crest, on the far
+       side of it. Hidden by its own ridge — rock within 150 m — it is drawn on
+       the crest that hides it, which is the skyline the eye reads as the
+       ridge. Hidden by another ridge, it is hidden. */
+    const onRidge = (P: number[], cam: number[]) => {
+      const b = blocker(P, cam);
+      return !b ? P : b.s < 150 ? b.at : null;
     };
     const pointOn = (key: string, f: number) => {
       const pts = R[key];
@@ -1184,11 +1201,12 @@ const { mode = 'view', markers = [] } = Astro.props;
       keys.forEach((key, r) => {
         const st = rState[r];
         if (st.k < 0.004 || st.prog <= 0) {
-          lines[r].setAttribute('d', ''); glows[r].setAttribute('d', ''); tips[r].style.opacity = '0';
+          lines[r].setAttribute('d', ''); glows[r].setAttribute('d', ''); hids[r].setAttribute('d', ''); tips[r].style.opacity = '0';
           return;
         }
         const pts = R[key];
-        let d = '', pen = false, last: number[] | null = null;
+        let d = '', dh = '', pen = false, hid = false, last: number[] | null = null, prev: number[] | null = null;
+        const xy = (q: number[]) => q[0].toFixed(1) + ' ' + q[1].toFixed(1);
         for (let i = 0; i < pts.length; i++) {
           let P = [pts[i][0], pts[i][1], pts[i][2] + 2];
           const f = pts[i][3];
@@ -1197,13 +1215,23 @@ const { mode = 'view', markers = [] } = Astro.props;
             const a = pts[i - 1], t = (st.prog - a[3]) / Math.max(1e-6, f - a[3]);
             P = [a[0] + (P[0] - a[0]) * t, a[1] + (P[1] - a[1]) * t, a[2] + 2 + (P[2] - a[2] - 2) * t];
           }
-          const s2 = seen(P, cam) ? proj(P) : null;
-          if (s2) { d += (pen ? 'L' : 'M') + s2[0].toFixed(1) + ' ' + s2[1].toFixed(1); pen = true; last = s2; }
-          else pen = false;
+          const q = proj(P);
+          const V = q && onRidge(P, cam);
+          const qv = V && proj(V);
+          if (qv) {
+            if (hid) { dh += 'L' + xy(qv); hid = false; }
+            d += (pen ? 'L' : 'M') + xy(qv); pen = true; last = qv;
+          } else if (q) {
+            if (!hid) { dh += 'M' + xy(prev ?? q); hid = true; }
+            dh += 'L' + xy(q); pen = false;
+          } else { pen = false; hid = false; }
+          prev = qv || q;
           if (f > st.prog) break;
         }
         lines[r].setAttribute('d', d);
         glows[r].setAttribute('d', d);
+        hids[r].setAttribute('d', dh);
+        hids[r].style.opacity = String(0.45 * Math.min(1, st.k));
         lines[r].style.opacity = String(Math.min(1, st.k));
         glows[r].style.opacity = String(0.16 * Math.min(1, st.k));
         const climbing = st.prog < 0.999 && last;
