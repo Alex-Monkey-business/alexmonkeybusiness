@@ -1,0 +1,215 @@
+---
+/**
+ * THE CLIMB — the whole site as one scroll up the Hörnligrat.
+ *
+ * Not a portfolio. There is no «ting jeg har laget», no grid of cards: the
+ * work is a numbered log of experiments, met where they lie on the route,
+ * and the page's only running voice is an altimeter. From the Zermatt view
+ * (1608 m) to the hut, past the shoulder, to the top (4478 m), where the
+ * channels are. The light is the sun over Zermatt now. See `Lys.astro`.
+ *
+ * Every section carries `data-wp`: it is a keyframe of the flight, reached
+ * when it is centred on screen. Five sections, five keyframes — the Zermatt
+ * view and four points up the ridge.
+ */
+import Layout from '../../layouts/Layout.astro';
+import Lys from '../../components/Lys.astro';
+import { projects } from '../../data/projects';
+import { contact } from '../../data/contact';
+import { t } from '../../i18n';
+import '../../styles/instrument.css';
+
+const s = t('nb');
+const line = (slug: string) => (s.projects as Record<string, string>)[slug] ?? '';
+const p = Object.fromEntries(projects.map((x) => [x.slug, x]));
+
+const log = [
+  {
+    n: '001',
+    slug: 'halsen-g15',
+    name: 'benchboss',
+    href: '/projects/halsen-g15/',
+    media: { kind: 'video' as const, src: '/assets/halsen/rolig/byttet.webm', poster: '/assets/halsen/rolig/byttet-poster.jpg', w: 390, h: 844 },
+  },
+  {
+    n: '002',
+    slug: 'larvik-beach',
+    name: 'larvik beach volley',
+    href: '/projects/larvik-beach/',
+    media: { kind: 'image' as const, src: '/assets/larvik-beach/spill.jpg', w: 390, h: 844 },
+  },
+  {
+    n: '003',
+    slug: 'simons-solfilm',
+    name: 'simons solfilm',
+    href: p['simons-solfilm']?.url ?? 'https://simonssolfilm.no',
+    external: true,
+  },
+];
+---
+
+<Layout title="Variant — Klatring" nav="inst">
+  <div class="always-dark inst climb">
+    <Lys mode="climb" />
+
+    <h1 class="sr-only">Alex Monkey Business — lab</h1>
+
+    <section class="wp wp-start" data-wp>
+      <span class="cue" aria-hidden="true"></span>
+    </section>
+
+    {log.map((x) => (
+      <section class="wp" data-wp>
+        <article class="exp">
+          <p class="exp-n">{x.n}<span>{p[x.slug]?.year}</span></p>
+          <h2 class="exp-name">
+            <a href={x.href} target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>{x.name}</a>
+          </h2>
+          <p class="exp-line">{line(x.slug)}</p>
+          {x.media?.kind === 'video' && (
+            <video class="exp-media" src={x.media.src} poster={x.media.poster} width={x.media.w} height={x.media.h} muted loop playsinline preload="none" aria-hidden="true"></video>
+          )}
+          {x.media?.kind === 'image' && (
+            <img class="exp-media" src={x.media.src} width={x.media.w} height={x.media.h} alt="" loading="lazy" decoding="async" />
+          )}
+        </article>
+      </section>
+    ))}
+
+    <section class="wp wp-top" data-wp>
+      <ul class="channels">
+        {contact.map((c) => (
+          <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined}>{c.value}</a></li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .climb {
+    position: relative;
+    background: #000;
+    font-family: var(--font-inst);
+    color: var(--fg1);
+  }
+  .climb :global(.footer), :global(body:has(.climb) footer) { display: none; }
+
+  .wp {
+    position: relative;
+    z-index: 1;
+    min-height: 130svh;
+    display: flex;
+    align-items: center;
+    padding: 0 clamp(20px, 6vw, 96px);
+  }
+  .wp-start { min-height: 100svh; align-items: flex-end; justify-content: center; padding-bottom: 72px; }
+  .wp-top { min-height: 100svh; }
+
+  /* One hairline that keeps drawing downward: the only instruction. */
+  .cue {
+    width: 1px;
+    height: 56px;
+    background: var(--fg3);
+    transform-origin: top;
+    animation: cue 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+  @keyframes cue {
+    0% { transform: scaleY(0); opacity: 1; }
+    60% { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(1); opacity: 0; }
+  }
+
+  /* An entry in the log. A solid plate, not a card: it is there so type can
+     be read over sunlit snow, and it says nothing itself. */
+  .exp {
+    width: min(440px, 100%);
+    padding: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    /* No backdrop blur: over a canvas that redraws while scrolling, the
+       browser would re-blur it every frame. */
+    background: rgba(0, 0, 0, 0.74);
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 700ms var(--ease-out), transform 900ms var(--ease-out);
+  }
+  .exp.in { opacity: 1; transform: none; }
+  .exp-n {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0 18px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--signal);
+  }
+  .exp-n span { color: var(--fg3); }
+  .exp-name {
+    margin: 0;
+    font-family: var(--font-inst);
+    font-weight: 300;
+    font-size: clamp(24px, 3vw, 36px);
+    line-height: 1.15;
+    letter-spacing: 0.04em;
+    text-transform: lowercase;
+  }
+  .exp-name a {
+    color: inherit;
+    text-decoration: none;
+    background-image: linear-gradient(var(--signal), var(--signal));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 1px;
+    transition: background-size 420ms var(--ease-out), color 180ms linear;
+  }
+  .exp-name a:hover,
+  .exp-name a:focus-visible { color: var(--signal); background-size: 100% 1px; outline: none; }
+  .exp-line {
+    margin: 14px 0 0;
+    font-size: 13px;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    color: var(--fg2);
+  }
+  .exp-media {
+    display: block;
+    width: min(220px, 60%);
+    height: auto;
+    margin-top: 24px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0b0b0b;
+  }
+
+  .channels { list-style: none; margin: 0; padding: 0; }
+  .channels li + li { margin-top: clamp(10px, 1.8vh, 18px); }
+  .channels a {
+    font-size: clamp(16px, 2vw, 24px);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    color: var(--fg1);
+    text-decoration: none;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+  }
+  .channels a:hover, .channels a:focus-visible { color: var(--signal); outline: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cue { animation: none; transform: none; }
+    .exp { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+
+<script>
+  /* Entries rise in as they reach the screen; the one recording plays only
+     while it can be seen. */
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      const el = e.target as HTMLElement;
+      if (el.classList.contains('exp') && e.isIntersecting) el.classList.add('in');
+      if (el instanceof HTMLVideoElement) {
+        if (e.isIntersecting) el.play().catch(() => {}); else el.pause();
+      }
+    }
+  }, { threshold: 0.25 });
+  document.querySelectorAll('.exp, .exp-media').forEach((el) => io.observe(el));
+</script>
