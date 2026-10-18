@@ -275,11 +275,11 @@ const { mode = 'view', markers = [] } = Astro.props;
     left: auto;
     width: clamp(160px, 20vw, 260px);
     bottom: calc(clamp(24px, 4vh, 40px) + 30px);
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.36);
   }
   .lys[data-mode='climb'].away .lys-read { pointer-events: auto; }
   /* The slider is the hairline itself: invisible, with a wide grip, so the
-     signal tick is the only thumb you see. */
+     signal knob is the only thumb you see. */
   .lys-slide {
     position: absolute;
     left: -12px;
@@ -307,7 +307,7 @@ const { mode = 'view', markers = [] } = Astro.props;
     width: 1px;
     height: 7px;
     margin-top: -3px;
-    background: var(--fg3);
+    background: var(--fg2);
   }
   .lys-now {
     width: 3px;
@@ -315,22 +315,22 @@ const { mode = 'view', markers = [] } = Astro.props;
     margin: -1px 0 0 -1px;
     background: var(--fg2);
   }
+  /* The shown minute is a knob, always: it says the day can be moved. */
   .lys-mark {
-    width: 1px;
-    height: 13px;
-    margin: -6px 0 0 0;
-    border-radius: 1px;
-    background: var(--signal);
-    transition: width 180ms cubic-bezier(0.16, 1, 0.3, 1), height 180ms cubic-bezier(0.16, 1, 0.3, 1), margin 180ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 180ms linear;
-  }
-  /* Pointed at, held or focused, the tick becomes a knob to grab. */
-  .lys-dial:hover .lys-mark,
-  .lys-dial:active .lys-mark,
-  .lys-dial:has(.lys-slide:focus-visible) .lys-mark {
     width: 11px;
     height: 11px;
     margin: -5px 0 0 -5px;
     border-radius: 50%;
+    background: var(--signal);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--signal) 24%, transparent);
+    transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* Pointed at, held or focused, it grows a halo to grab. */
+  .lys-dial:hover .lys-mark,
+  .lys-dial:active .lys-mark,
+  .lys-dial:has(.lys-slide:focus-visible) .lys-mark {
+    transform: scale(1.25);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--signal) 24%, transparent);
   }
   :global(html.lys-drag),
   :global(html.lys-drag *) { cursor: ew-resize !important; }
@@ -357,14 +357,10 @@ const { mode = 'view', markers = [] } = Astro.props;
   /* ---- The sun (SunCalc's formulae, trimmed) ----------------------------- */
 
   const rad = Math.PI / 180;
-  function sunAt(date: Date) {
-    const d = date.valueOf() / 86400000 - 0.5 + 2440588 - 2451545;
-    const M = rad * (357.5291 + 0.98560028 * d);
-    const C = rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M));
-    const L = M + C + rad * 102.9372 + Math.PI;
-    const e = rad * 23.4397;
-    const dec = Math.asin(Math.sin(L) * Math.sin(e));
-    const ra = Math.atan2(Math.sin(L) * Math.cos(e), Math.cos(L));
+  const OBL = rad * 23.4397;
+  const days = (date: Date) => date.valueOf() / 86400000 - 0.5 + 2440588 - 2451545;
+  /** Right ascension and declination to height and a direction in x east, y north. */
+  function horizon(d: number, ra: number, dec: number) {
     const H = rad * (280.16 + 360.9856235 * d) + rad * LNG - ra;
     const phi = rad * LAT;
     const alt = Math.asin(Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H));
@@ -374,6 +370,33 @@ const { mode = 'view', markers = [] } = Astro.props;
       alt,
       dir: [Math.sin(bearing) * Math.cos(alt), Math.cos(bearing) * Math.cos(alt), Math.sin(alt)] as [number, number, number],
     };
+  }
+  function sunEq(d: number) {
+    const M = rad * (357.5291 + 0.98560028 * d);
+    const C = rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M));
+    const L = M + C + rad * 102.9372 + Math.PI;
+    return { dec: Math.asin(Math.sin(L) * Math.sin(OBL)), ra: Math.atan2(Math.sin(L) * Math.cos(OBL), Math.cos(L)) };
+  }
+  function sunAt(date: Date) {
+    const d = days(date);
+    const s = sunEq(d);
+    return horizon(d, s.ra, s.dec);
+  }
+  /** The moon: where it stands and how much of it is lit (0 new, 1 full). */
+  function moonAt(date: Date) {
+    const d = days(date);
+    const L = rad * (218.316 + 13.176396 * d);
+    const M = rad * (134.963 + 13.064993 * d);
+    const F = rad * (93.272 + 13.22935 * d);
+    const l = L + rad * 6.289 * Math.sin(M);
+    const b = rad * 5.128 * Math.sin(F);
+    const dist = 385001 - 20905 * Math.cos(M);
+    const ra = Math.atan2(Math.sin(l) * Math.cos(OBL) - Math.tan(b) * Math.sin(OBL), Math.cos(l));
+    const dec = Math.asin(Math.sin(b) * Math.cos(OBL) + Math.cos(b) * Math.sin(OBL) * Math.sin(l));
+    const s = sunEq(d);
+    const phi = Math.acos(Math.sin(s.dec) * Math.sin(dec) + Math.cos(s.dec) * Math.cos(dec) * Math.cos(s.ra - ra));
+    const inc = Math.atan2(149598000 * Math.sin(phi), dist - 149598000 * Math.cos(phi));
+    return { ...horizon(d, ra, dec), lit: (1 + Math.cos(inc)) / 2 };
   }
 
   const fmt = new Intl.DateTimeFormat('nb-NO', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit', hour12: false });
@@ -453,6 +476,20 @@ const { mode = 'view', markers = [] } = Astro.props;
     return { sun, zen, hor, amb, stars };
   }
 
+  /* Moonlight, once the sun's light is gone: cool, as the eye sees it at
+     night, and much weaker at half than at full. Under it, always, a fill from
+     a fixed high east, so on a moonless night the mountain still reads as a
+     shape: the floor Alex asked for, not the truth. */
+  const MOON: V3 = [0.5, 0.58, 0.82];
+  function moonFor(sunAltDeg: number, moon: { alt: number; lit: number }) {
+    const night = 1 - ss(-6, -1, sunAltDeg);
+    const k = moon.lit * moon.lit * ss(-1, 8, moon.alt / rad) * night;
+    return {
+      moon: MOON.map((v) => v * 0.3 * k) as V3,
+      fill: MOON.map((v) => v * 0.08 * night) as V3,
+    };
+  }
+
   /* ---- GL ---------------------------------------------------------------- */
 
   const VS = `#version 300 es
@@ -468,8 +505,10 @@ const { mode = 'view', markers = [] } = Astro.props;
   uniform vec3 cam, fwd, rgt, up;
   uniform float fov;
   uniform vec3 sunDir, sunCol, zenCol, horCol, ambCol;
+  uniform vec3 moonDir, moonCol, fillCol;
   uniform float stars;
   uniform float seed;
+  uniform float dpr;
 
   const float PX = ${(8000 / N).toFixed(6)};
   const vec2 ORIGIN = vec2(4048.0, 4326.0);
@@ -516,11 +555,11 @@ const { mode = 'view', markers = [] } = Astro.props;
     return s;
   }
 
-  float shadow(vec3 p) {
-    if (sunDir.z < -0.08) return 0.0;
+  float shadow(vec3 p, vec3 L) {
+    if (L.z < -0.08) return 0.0;
     float r = 1.0, t = 6.0;
     for (int i = 0; i < 64; i++) {
-      vec3 q = p + sunDir * t;
+      vec3 q = p + L * t;
       if (q.z > 4490.0) break;
       float h = q.z - hgt(q.xy);
       r = min(r, 9.0 * h / t);
@@ -542,19 +581,34 @@ const { mode = 'view', markers = [] } = Astro.props;
     return clamp(1.0 - o * 0.16, 0.25, 1.0);
   }
 
-  vec3 skyAt(vec3 rd) {
+  /* One layer of stars: one chance per cell, set anywhere in it, a point a
+     CSS pixel wide however far the canvas is scaled. Most are faint, few are
+     bright, and their colour runs from warm to cold. */
+  vec3 starLayer(vec3 rd, float cells, float chance, float pix, float salt) {
+    float el = asin(clamp(rd.z, -1.0, 1.0));
+    vec2 g = vec2(atan(rd.y, rd.x), el) * cells;
+    vec2 cell = floor(g);
+    float h = hash(cell + salt);
+    if (h < 1.0 - chance) return vec3(0.0);
+    vec2 at = 0.15 + 0.7 * vec2(hash(cell + salt + 3.1), hash(cell + salt + 5.7));
+    vec2 d = (fract(g) - at) / cells;
+    d.x *= cos(el);
+    float r = length(d) / (pix * dpr);
+    float b = pow(hash(cell + salt + 9.3), 7.0);
+    float c = hash(cell + salt + 1.9);
+    vec3 tint = c < 0.2 ? vec3(1.0, 0.82, 0.62) : c > 0.8 ? vec3(0.72, 0.8, 1.0) : vec3(0.92, 0.93, 1.0);
+    return tint * (0.06 + 1.6 * b) * exp(-r * r * 2.2);
+  }
+
+  vec3 skyAt(vec3 rd, float pix) {
     float e = clamp(rd.z, 0.0, 1.0);
     vec3 s = mix(horCol, zenCol, pow(e, 0.42));
     /* Forward scattering round the sun, and its warmth on the horizon. */
     float mu = max(dot(rd, sunDir), 0.0);
     s += sunCol * (0.012 * pow(mu, 6.0) + 0.05 * pow(mu, 60.0)) * (1.0 - e * 0.7);
     if (stars > 0.0) {
-      vec2 g = vec2(atan(rd.y, rd.x) * 300.0, asin(clamp(rd.z, -1.0, 1.0)) * 300.0);
-      vec2 cell = floor(g);
-      float h = hash(cell);
-      float d = length(fract(g) - 0.5);
-      float tw = step(0.9955, h) * smoothstep(0.3, 0.0, d) * (0.25 + 0.75 * hash(cell + 7.0));
-      s += vec3(0.8, 0.82, 1.0) * tw * 0.35 * stars * smoothstep(0.03, 0.25, rd.z);
+      vec3 st = starLayer(rd, 260.0, 0.012, pix, 0.0) + starLayer(rd, 620.0, 0.02, pix, 41.0) * 0.35;
+      s += st * 0.3 * stars * smoothstep(0.02, 0.2, rd.z);
     }
     return s;
   }
@@ -593,7 +647,7 @@ const { mode = 'view', markers = [] } = Astro.props;
     }
 
     vec3 col;
-    vec3 sky = skyAt(rd);
+    vec3 sky = skyAt(rd, pix);
     if (!hit) {
       col = sky;
     } else {
@@ -656,7 +710,7 @@ const { mode = 'view', markers = [] } = Astro.props;
       vec3 alb = mix(rock, vec3(0.86, 0.89, 0.93), snow);
 
       float dif = max(dot(n, sunDir), 0.0);
-      float sh = dif > 0.0 ? shadow(p + n * 1.5) : 0.0;
+      float sh = dif > 0.0 ? shadow(p + n * 1.5, sunDir) : 0.0;
       float ao = occl(p.xy, p.z);
       vec3 amb = ambCol * (0.55 + 0.45 * n.z) * ao;
       /* Snow in shade is lit by blue sky; light off the snowfields fills the
@@ -669,6 +723,13 @@ const { mode = 'view', markers = [] } = Astro.props;
       vec3 sunRock = mix(vec3(dot(sunCol, vec3(0.3, 0.5, 0.2))), sunCol, 0.66);
       vec3 sunLit = mix(sunRock, sunCol, snow);
       col = alb * (sunLit * dif * sh + amb) + sunCol * spec;
+      /* Night: the moon throws its own shadows; the fill only shapes. */
+      if (fillCol.b > 0.0) {
+        float md = max(dot(n, moonDir), 0.0);
+        float ms = (md > 0.0 && moonCol.b > 0.0) ? shadow(p + n * 1.5, moonDir) : 0.0;
+        float fd = max(dot(n, normalize(vec3(0.85, 0.25, 0.62))) * 0.7 + 0.3, 0.0);
+        col += alb * (moonCol * md * ms + fillCol * fd * ao);
+      }
 
       /* Aerial perspective: thicker low down, warmed toward the sun. */
       float dens = exp(-(0.5 * (ro.z + p.z) - 1600.0) / 2600.0);
@@ -800,7 +861,8 @@ const { mode = 'view', markers = [] } = Astro.props;
     const u = {
       res: U('res'), cam: U('cam'), fwd: U('fwd'), rgt: U('rgt'), up: U('up'), fov: U('fov'),
       sunDir: U('sunDir'), sunCol: U('sunCol'), zenCol: U('zenCol'), horCol: U('horCol'), ambCol: U('ambCol'),
-      stars: U('stars'), seed: U('seed'),
+      moonDir: U('moonDir'), moonCol: U('moonCol'), fillCol: U('fillCol'),
+      stars: U('stars'), seed: U('seed'), dpr: U('dpr'),
     };
 
     /* ---- The routes as the menu ----------------------------------------- */
@@ -1099,6 +1161,8 @@ const { mode = 'view', markers = [] } = Astro.props;
       const date = shown();
       const sun = sunAt(date);
       const L = lightFor(sun.alt / rad);
+      const moon = moonAt(date);
+      const ML = moonFor(sun.alt / rad, moon);
 
       gl.uniform2f(u.res, canvas.width, canvas.height);
       gl.uniform3fv(u.cam, cam);
@@ -1111,7 +1175,11 @@ const { mode = 'view', markers = [] } = Astro.props;
       gl.uniform3fv(u.zenCol, L.zen);
       gl.uniform3fv(u.horCol, L.hor);
       gl.uniform3fv(u.ambCol, L.amb);
+      gl.uniform3fv(u.moonDir, moon.dir);
+      gl.uniform3fv(u.moonCol, ML.moon);
+      gl.uniform3fv(u.fillCol, ML.fill);
       gl.uniform1f(u.stars, L.stars);
+      gl.uniform1f(u.dpr, curScale);
       gl.uniform1f(u.seed, (el * 7.3) % 100);
 
       gl.drawArrays(gl.TRIANGLES, 0, 3);
