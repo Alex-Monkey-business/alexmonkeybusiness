@@ -1,16 +1,18 @@
 ---
 /**
- * THE CLIMB — the whole site as one scroll up the Hörnligrat.
+ * THE CLIMB — the whole site as one scroll up the mountain.
  *
- * Not a portfolio. There is no «ting jeg har laget», no grid of cards: the
- * work is a numbered log of experiments, met where they lie on the route,
- * and the page's only running voice is an altimeter. From the Zermatt view
- * (1608 m) to the hut, past the shoulder, to the top (4478 m), where the
- * channels are. The light is the sun over Zermatt now. See `Lys.astro`.
+ * Not a portfolio, and no cards: the mountain carries the page. As you scroll
+ * the camera flies the Hörnligrat and the route draws itself up the rock;
+ * where it passes a piece of work a point lights on the ridge — a dot, a
+ * hairline, a name. The other side, the Zmuttgrat, is drawn on the last
+ * stretch and carries the person. The name of the place sits on the summit
+ * from the first frame. Pressing a point opens a sheet over the mountain;
+ * the climb never leaves the screen. The only running voice is an altimeter.
+ * See `Lys.astro` for the points and the routes.
  *
  * Every section carries `data-wp`: it is a keyframe of the flight, reached
- * when it is centred on screen. Five sections, five keyframes — the Zermatt
- * view and four points up the ridge.
+ * when it is centred on screen. The sections hold nothing; they are length.
  */
 import Layout from '../../layouts/Layout.astro';
 import Lys from '../../components/Lys.astro';
@@ -25,71 +27,86 @@ const p = Object.fromEntries(projects.map((x) => [x.slug, x]));
 
 const log = [
   {
+    id: 'benchboss',
     n: '001',
     slug: 'halsen-g15',
     name: 'benchboss',
+    f: 0.22,
     href: '/projects/halsen-g15/',
+    cta: 'Les caset',
     media: { kind: 'video' as const, src: '/assets/halsen/rolig/byttet.webm', poster: '/assets/halsen/rolig/byttet-poster.jpg', w: 390, h: 844 },
   },
   {
+    id: 'larvik',
     n: '002',
     slug: 'larvik-beach',
     name: 'larvik beach volley',
+    f: 0.55,
     href: '/projects/larvik-beach/',
+    cta: 'Les caset',
     media: { kind: 'image' as const, src: '/assets/larvik-beach/spill.jpg', w: 390, h: 844 },
   },
   {
+    id: 'solfilm',
     n: '003',
     slug: 'simons-solfilm',
     name: 'simons solfilm',
+    f: 0.86,
     href: p['simons-solfilm']?.url ?? 'https://simonssolfilm.no',
+    cta: 'Se siden',
     external: true,
   },
+];
+
+const markers = [
+  { id: 'top', route: 'top' as const, f: 1, label: 'alex monkey business', open: false },
+  ...log.map((x) => ({ id: x.id, route: 'hornligrat' as const, f: x.f, n: x.n, label: x.name })),
+  { id: 'alex', route: 'zmuttgrat' as const, f: 0.55, label: 'alexander samnøy' },
 ];
 ---
 
 <Layout title="Variant — Klatring" nav="inst">
   <div class="always-dark inst climb">
-    <Lys mode="climb" />
+    <Lys mode="climb" markers={markers} />
 
     <h1 class="sr-only">Alex Monkey Business — lab</h1>
 
     <section class="wp wp-start" data-wp>
       <span class="cue" aria-hidden="true"></span>
     </section>
+    <section class="wp" data-wp></section>
+    <section class="wp" data-wp></section>
+    <section class="wp" data-wp></section>
+    <section class="wp wp-top" data-wp></section>
 
+    <!-- The sheets the points open. The mountain stays behind them. -->
+    <div class="veil" hidden></div>
     {log.map((x) => (
-      <section class="wp" data-wp>
-        <article class="exp">
-          <p class="exp-n">{x.n}<span>{p[x.slug]?.year}</span></p>
-          <h2 class="exp-name">
-            <a href={x.href} target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>{x.name}</a>
-          </h2>
-          <p class="exp-line">{line(x.slug)}</p>
-          {x.media?.kind === 'video' && (
-            <video class="exp-media" src={x.media.src} poster={x.media.poster} width={x.media.w} height={x.media.h} muted loop playsinline preload="none" aria-hidden="true"></video>
-          )}
-          {x.media?.kind === 'image' && (
-            <img class="exp-media" src={x.media.src} width={x.media.w} height={x.media.h} alt="" loading="lazy" decoding="async" />
-          )}
-        </article>
+      <section class="sheet" id={`sheet-${x.id}`} role="dialog" aria-modal="true" aria-labelledby={`h-${x.id}`} hidden>
+        <button class="sheet-x" type="button" aria-label="Lukk"><span></span></button>
+        <p class="sheet-n">{x.n}<span>{p[x.slug]?.year}</span></p>
+        <h2 class="sheet-name" id={`h-${x.id}`}>{x.name}</h2>
+        <p class="sheet-line">{line(x.slug)}</p>
+        {x.media?.kind === 'video' && (
+          <video class="sheet-media" src={x.media.src} poster={x.media.poster} width={x.media.w} height={x.media.h} muted loop playsinline preload="none" aria-hidden="true"></video>
+        )}
+        {x.media?.kind === 'image' && (
+          <img class="sheet-media" src={x.media.src} width={x.media.w} height={x.media.h} alt="" loading="lazy" decoding="async" />
+        )}
+        <a class="sheet-go" href={x.href} target={x.external ? '_blank' : undefined} rel={x.external ? 'noopener' : undefined}>{x.cta}<span aria-hidden="true">→</span></a>
       </section>
     ))}
-
-    <section class="wp wp-top" data-wp>
-      <div class="top">
-      <!-- Who made it, at the top and not before: the person is what you
-           reach after the climb, not the first thing you are told. -->
-      <div class="who exp">
-        <img class="who-img" src="/assets/about/alex-topp.webp" width="640" height="640" alt="Alexander Samnøy" loading="lazy" decoding="async" />
-        <p class="who-name">alexander samnøy</p>
-      </div>
+    <section class="sheet sheet-who" id="sheet-alex" role="dialog" aria-modal="true" aria-labelledby="h-alex" hidden>
+      <button class="sheet-x" type="button" aria-label="Lukk"><span></span></button>
+      <!-- The portrait keeps its shadow side and has no frame: the grade is
+           baked in with its edges dissolving. See tools/make-portrait-top.py. -->
+      <img class="who-img" src="/assets/about/alex-topp.webp" width="640" height="640" alt="" loading="lazy" decoding="async" />
+      <h2 class="sheet-name" id="h-alex">alexander samnøy</h2>
       <ul class="channels">
         {contact.map((c) => (
           <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined}>{c.value}</a></li>
         ))}
       </ul>
-      </div>
     </section>
   </div>
 </Layout>
@@ -103,17 +120,10 @@ const log = [
   }
   .climb :global(.footer), :global(body:has(.climb) footer) { display: none; }
 
-  /* No z-index: a stacking context here would isolate the portrait's blend
-     from the mountain under it. Positioned and later in the page, the
-     sections paint over the fixed canvas anyway. */
-  .wp {
-    position: relative;
-    min-height: 130svh;
-    display: flex;
-    align-items: center;
-    padding: 0 clamp(20px, 6vw, 96px);
-  }
-  .wp-start { min-height: 100svh; align-items: flex-end; justify-content: center; padding-bottom: 72px; }
+  /* Length only, and see-through to the pointer: the points underneath are
+     the buttons. */
+  .wp { position: relative; min-height: 130svh; pointer-events: none; }
+  .wp-start { min-height: 100svh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 72px; }
   .wp-top { min-height: 100svh; }
 
   /* One hairline that keeps drawing downward: the only instruction. */
@@ -130,126 +140,177 @@ const log = [
     100% { transform: scaleY(1); opacity: 0; }
   }
 
-  /* An entry in the log. A solid plate, not a card: it is there so type can
-     be read over sunlit snow, and it says nothing itself. */
-  .exp {
-    width: min(440px, 100%);
-    padding: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    /* No backdrop blur: over a canvas that redraws while scrolling, the
-       browser would re-blur it every frame. */
-    background: rgba(0, 0, 0, 0.74);
+  /* ---- The sheet ------------------------------------------------------- */
+
+  /* A dim over the mountain, not a curtain: the climb is still there. */
+  .veil {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.35);
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 700ms var(--ease-out), transform 900ms var(--ease-out);
+    transition: opacity 400ms linear;
   }
-  .exp.in { opacity: 1; transform: none; }
-  .exp-n {
+  .veil.open { opacity: 1; }
+
+  /* Up from the bottom, solid, one radius. On a wide screen it is a column
+     at the left, where the points are not. */
+  .sheet {
+    position: fixed;
+    z-index: 41;
+    left: clamp(12px, 4vw, 56px);
+    bottom: clamp(12px, 4vh, 40px);
+    width: min(440px, calc(100vw - 24px));
+    max-height: calc(100svh - 120px);
+    overflow: auto;
+    box-sizing: border-box;
+    padding: 28px 28px 24px;
+    border-radius: 28px;
+    background: #0b0b0d;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    translate: 0 40px;
+    opacity: 0;
+    transition: translate 520ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms linear;
+  }
+  .sheet.open { translate: 0 0; opacity: 1; }
+  .sheet-x {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+  }
+  .sheet-x span,
+  .sheet-x span::after {
+    position: absolute;
+    left: 13px;
+    top: 21px;
+    width: 18px;
+    height: 1px;
+    background: var(--fg2);
+    rotate: 45deg;
+  }
+  .sheet-x span::after { content: ''; left: 0; top: 0; rotate: 90deg; }
+  .sheet-x:hover span,
+  .sheet-x:hover span::after,
+  .sheet-x:focus-visible span,
+  .sheet-x:focus-visible span::after { background: var(--signal); }
+  .sheet-x:focus-visible { outline: none; }
+  .sheet-n {
     display: flex;
-    justify-content: space-between;
-    margin: 0 0 18px;
+    gap: 1.4em;
+    margin: 0 0 16px;
     font-size: 11px;
     letter-spacing: 0.18em;
     color: var(--signal);
   }
-  .exp-n span { color: var(--fg3); }
-  .exp-name {
+  .sheet-n span { color: var(--fg3); }
+  .sheet-name {
     margin: 0;
     font-family: var(--font-inst);
     font-weight: 300;
-    font-size: clamp(24px, 3vw, 36px);
+    font-size: clamp(24px, 3vw, 32px);
     line-height: 1.15;
     letter-spacing: 0.04em;
     text-transform: lowercase;
   }
-  .exp-name a {
-    color: inherit;
-    text-decoration: none;
-    background-image: linear-gradient(var(--signal), var(--signal));
-    background-repeat: no-repeat;
-    background-position: 0 100%;
-    background-size: 0% 1px;
-    transition: background-size 420ms var(--ease-out), color 180ms linear;
-  }
-  .exp-name a:hover,
-  .exp-name a:focus-visible { color: var(--signal); background-size: 100% 1px; outline: none; }
-  .exp-line {
-    margin: 14px 0 0;
+  .sheet-line {
+    margin: 12px 0 0;
     font-size: 13px;
     line-height: 1.6;
     letter-spacing: 0.02em;
     color: var(--fg2);
   }
-  .exp-media {
+  .sheet-media {
     display: block;
     width: min(220px, 60%);
     height: auto;
-    margin-top: 24px;
+    margin-top: 22px;
     border-radius: 18px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: #0b0b0b;
   }
-
-  .top { display: flex; flex-direction: column; gap: clamp(28px, 5vh, 48px); }
-  /* The portrait has no frame: the About page's grade and shadow side are
-     baked into the file with its edges dissolving to transparent, so it sits
-     in the sky over the summit like the rest of the night does. See
-     `tools/make-portrait-top.py`. */
-  .who {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    width: auto;
-    padding: 0;
-    border: 0;
-    background: none;
+  .sheet-go {
+    display: inline-flex;
+    gap: 0.8em;
+    margin-top: 22px;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--fg1);
+    text-decoration: none;
   }
+  .sheet-go:hover,
+  .sheet-go:focus-visible { color: var(--signal); outline: none; }
+
+  .sheet-who { padding-top: 12px; }
   .who-img {
     display: block;
-    width: clamp(220px, 24vw, 340px);
+    width: clamp(150px, 15vw, 210px);
     height: auto;
-    margin: 0 0 -24px -28px;
-    /* The photo's light and shade, the sky's colour. */
-    mix-blend-mode: luminosity;
+    margin: 0 0 -14px -18px;
   }
-  .who-name {
-    margin: 0;
-    font-size: clamp(18px, 2vw, 24px);
-    font-weight: 300;
-    letter-spacing: 0.06em;
-    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
-  }
-  .channels { list-style: none; margin: 0; padding: 0; }
-  .channels li + li { margin-top: clamp(10px, 1.8vh, 18px); }
+  .channels { list-style: none; margin: 18px 0 0; padding: 0; }
+  .channels li + li { margin-top: 10px; }
   .channels a {
-    font-size: clamp(16px, 2vw, 24px);
+    font-size: 15px;
     font-weight: 300;
     letter-spacing: 0.06em;
     color: var(--fg1);
     text-decoration: none;
-    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
   }
   .channels a:hover, .channels a:focus-visible { color: var(--signal); outline: none; }
 
   @media (prefers-reduced-motion: reduce) {
     .cue { animation: none; transform: none; }
-    .exp { opacity: 1; transform: none; transition: none; }
+    .sheet, .veil { transition: none; }
   }
 </style>
 
 <script>
-  /* Entries rise in as they reach the screen; the one recording plays only
-     while it can be seen. */
-  const io = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      const el = e.target as HTMLElement;
-      if (el.classList.contains('exp') && e.isIntersecting) el.classList.add('in');
-      if (el instanceof HTMLVideoElement) {
-        if (e.isIntersecting) el.play().catch(() => {}); else el.pause();
-      }
-    }
-  }, { threshold: 0.25 });
-  document.querySelectorAll('.exp, .exp-media').forEach((el) => io.observe(el));
+  /* One sheet at a time. Opened by a point on the mountain (`lys:open`),
+     closed by its cross, the dim, Escape or the browser's back. Focus goes
+     into the sheet and back to the point it came from. */
+  const veil = document.querySelector<HTMLElement>('.veil')!;
+  let current: HTMLElement | null = null;
+  let from: HTMLElement | null = null;
+
+  const close = (viaHistory = false) => {
+    if (!current) return;
+    const s = current;
+    current = null;
+    s.classList.remove('open');
+    veil.classList.remove('open');
+    s.querySelector('video')?.pause();
+    window.setTimeout(() => { s.hidden = true; veil.hidden = true; }, 420);
+    from?.focus({ preventScroll: true });
+    if (!viaHistory && history.state?.sheet) history.back();
+  };
+
+  const open = (id: string, el: HTMLElement | null) => {
+    const s = document.getElementById('sheet-' + id);
+    if (!s) return;
+    if (current && current !== s) close();
+    current = s;
+    from = el;
+    veil.hidden = false;
+    s.hidden = false;
+    requestAnimationFrame(() => { s.classList.add('open'); veil.classList.add('open'); });
+    s.querySelector<HTMLVideoElement>('video')?.play().catch(() => {});
+    s.querySelector<HTMLElement>('.sheet-x')?.focus({ preventScroll: true });
+    history.pushState({ ...(history.state ?? {}), sheet: id }, '');
+  };
+
+  document.addEventListener('lys:open', (e) => {
+    const d = (e as CustomEvent<{ id: string; from: HTMLElement }>).detail;
+    open(d.id, d.from);
+  });
+  document.querySelectorAll('.sheet-x').forEach((b) => b.addEventListener('click', () => close()));
+  veil.addEventListener('click', () => close());
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  addEventListener('popstate', () => close(true));
 </script>
