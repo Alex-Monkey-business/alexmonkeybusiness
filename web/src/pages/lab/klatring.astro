@@ -81,7 +81,7 @@ const log = [
       <!-- Who made it, at the top and not before: the person is what you
            reach after the climb, not the first thing you are told. -->
       <div class="who exp">
-        <img class="who-img" src="/assets/about/alex-topp.webp" width="320" height="320" alt="Alexander Samnøy" loading="lazy" decoding="async" />
+        <img class="who-img" src="/assets/about/alex-topp.webp" width="640" height="640" alt="Alexander Samnøy" loading="lazy" decoding="async" />
         <p class="who-name">alexander samnøy</p>
       </div>
       <ul class="channels">
@@ -190,22 +190,25 @@ const log = [
   }
 
   .top { display: flex; flex-direction: column; gap: clamp(28px, 5vh, 48px); }
+  /* The portrait has no frame: the About page's grade and shadow side are
+     baked into the file with its edges dissolving to transparent, so it sits
+     in the sky over the summit like the rest of the night does. See
+     `tools/make-portrait-top.py`. */
   .who {
+    position: relative;
     display: flex;
-    align-items: center;
-    gap: 20px;
+    flex-direction: column;
+    gap: 0;
     width: auto;
     padding: 0;
     border: 0;
     background: none;
   }
   .who-img {
-    width: 88px;
-    height: 88px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    display: block;
+    width: clamp(220px, 24vw, 340px);
+    height: auto;
+    margin: 0 0 -24px -28px;
   }
   .who-name {
     margin: 0;
