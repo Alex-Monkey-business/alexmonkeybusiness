@@ -56,14 +56,26 @@ const skyWords = lang === 'nb'
     <div class="lys-climber" aria-hidden="true">
       {/* The climber: at the head of the line on the Hörnligrat, walking
           only while the page scrolls. */}
-    <svg viewBox="0 0 24 32" width="22" height="30" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M11 18L15.2 23.5L15.5 29" stroke-width="2.6"><animate attributeName="d" values="M11 18L15.2 23.5L15.5 29;M11 18L10.6 24.2L7.5 30.5;M11 18L15.2 23.5L15.5 29" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-      <path d="M11 18L10.6 24.2L7.5 30.5" stroke-width="2.6"><animate attributeName="d" values="M11 18L10.6 24.2L7.5 30.5;M11 18L15.2 23.5L15.5 29;M11 18L10.6 24.2L7.5 30.5" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-      <path d="M11 18.5L12.8 9" stroke-width="4.4"/>
-      <path d="M7.6 8.6Q10 7.2 11.8 8.4L11.6 16.4Q9 17.6 7.8 16.2Z" fill="currentColor" stroke-width="0.8"/>
-      <circle cx="14" cy="4.6" r="2.6" fill="currentColor" stroke="none"/>
-      <path d="M12.6 9.5L14.4 12.8L17 14" stroke-width="1.8"><animate attributeName="d" values="M12.6 9.5L14.4 12.8L17 14;M12.6 9.5L10.4 13.5L9 15.5;M12.6 9.5L14.4 12.8L17 14" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-      <path d="M17 13L19.6 22.5" stroke-width="1.2"><animate attributeName="d" values="M17 13L19.6 22.5;M9 14.5L11.6 24.0;M17 13L19.6 22.5" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+    <svg viewBox="0 -4 24 36" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <ellipse cx="11.5" cy="30.6" rx="6.5" ry="1.3" fill="#000" opacity="0.35"/>
+      <path d="M7.2 17.4L3.6 -2.6M8.6 17L6.4 -3.2" stroke="#d8d2c4" stroke-width="1.3"/>
+      <path d="M3.6 -2.6l-0.5 -0.9M6.4 -3.2l-0.3 -1" stroke="#b9442b" stroke-width="1.3"/>
+      <path d="M11 18L15.2 23.5L15.5 29" stroke="#23262d" stroke-width="2.7"><animate attributeName="d" values="M11 18L15.2 23.5L15.5 29;M11 18L10.6 24.2L7.5 30.5;M11 18L15.2 23.5L15.5 29" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+      <path d="M14.9 29L17.1 29" stroke="#121315" stroke-width="2"><animate attributeName="d" values="M14.9 29L17.1 29;M6.9 30.5L9.1 30.5;M14.9 29L17.1 29" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+      <path d="M11 18L10.6 24.2L7.5 30.5" stroke="#2f333c" stroke-width="2.7"><animate attributeName="d" values="M11 18L10.6 24.2L7.5 30.5;M11 18L15.2 23.5L15.5 29;M11 18L10.6 24.2L7.5 30.5" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+      <path d="M6.9 30.5L9.1 30.5" stroke="#121315" stroke-width="2"><animate attributeName="d" values="M6.9 30.5L9.1 30.5;M14.9 29L17.1 29;M6.9 30.5L9.1 30.5" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+      <path d="M7.4 8.8Q9.8 7.4 11.8 8.6L11.6 16.6Q8.8 17.8 7.6 16.4Z" fill="#3b4250"/>
+      <path d="M7.6 9.6Q8.4 9 9.2 8.8L9 16.8Q8.1 16.8 7.7 16.3Z" fill="#2a2f39"/>
+      <path d="M11 18.4L12.8 9" stroke="#a63e28" stroke-width="4.6"/>
+      <path d="M12.4 17.6L14 9.6" stroke="#d2603f" stroke-width="1.4"/>
+      <path d="M10.4 15.4l2.8 0.5" stroke="#2a2f39" stroke-width="1"/>
+      <path d="M17 13L19.6 22.5" stroke="#9aa1aa" stroke-width="1.1"><animate attributeName="d" values="M17 13L19.6 22.5;M9 14.5L11.6 24.0;M17 13L19.6 22.5" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+      <path d="M12.6 9.5L14.4 12.8L17 14" stroke="#bf5034" stroke-width="1.9"><animate attributeName="d" values="M12.6 9.5L14.4 12.8L17 14;M12.6 9.5L10.4 13.5L9 15.5;M12.6 9.5L14.4 12.8L17 14" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+      <path d="M17 14l0.01 0" stroke="#1b1c20" stroke-width="2.2"><animate attributeName="d" values="M17 14l0.01 0;M9 15.5l0.01 0;M17 14l0.01 0" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+      <circle cx="14" cy="4.6" r="2.4" fill="#e6c3a5"/>
+      <path d="M11.5 4.4a2.6 2.6 0 0 1 5.1 -0.6" stroke="#4b525e" stroke-width="2.2"/>
+      <path d="M14.6 5l1.9 0.1" stroke="#1d2026" stroke-width="1.1"/>
+      <path d="M12.3 6.2a2.4 2.4 0 0 0 1.8 0.8" stroke="#b58f73" stroke-width="0.8"/>
     </svg>
     </div>
   )}
@@ -147,16 +159,17 @@ const skyWords = lang === 'nb'
     left: 0;
     top: 0;
     width: 22px;
-    height: 30px;
-    margin: -29px 0 0 -11px;
-    color: #fff;
-    filter: drop-shadow(0 0 1.2px rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+    height: 33px;
+    margin: -30px 0 0 -11px;
+    /* Lit like the mountain: dim at night, full by day, with a soft rim of
+       dark so the figure never melts into snow. */
+    filter: brightness(var(--lit, 1)) drop-shadow(0 0 0.8px rgba(0, 0, 0, 0.7)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
     opacity: 0;
     pointer-events: none;
     transition: opacity 400ms linear;
   }
   .lys-climber svg { display: block; width: 100%; height: 100%; transform: scaleX(var(--face, 1)); }
-  @media (min-width: 900px) { .lys-climber { width: 27px; height: 36px; margin: -35px 0 0 -13.5px; } }
+  @media (min-width: 900px) { .lys-climber { width: 27px; height: 40px; margin: -37px 0 0 -13.5px; } }
   .lys.ready .lys-climber.on { opacity: 1; }
   /* Before the first scroll, a ring breathes at its feet: this is the thing
      that moves. */
@@ -1462,6 +1475,7 @@ const skyWords = lang === 'nb'
       gl.uniform3fv(u.fillCol, ML.fill);
       gl.uniform1f(u.stars, L.stars);
       night = L.stars;
+      climber?.style.setProperty('--lit', (0.42 + 0.58 * ss(-8, 12, sun.alt / rad)).toFixed(3));
       gl.uniform1f(u.moonVis, ss(-0.6, 1.5, moon.alt / rad));
       gl.uniform1f(u.moonPhase, moon.lit);
       gl.uniform1f(u.dpr, curScale);
