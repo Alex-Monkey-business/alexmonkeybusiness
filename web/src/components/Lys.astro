@@ -52,6 +52,7 @@ const skyWords = lang === 'nb'
   <!-- The routes, drawn over the picture: projected from 3D every frame, and
        broken wherever nearer rock stands in front. See the script. -->
   <span class="lys-meteor" aria-hidden="true"></span>
+  {mode === 'climb' && <div class="lys-spray" aria-hidden="true"></div>}
   {mode === 'climb' && (
     <div class="lys-climber" aria-hidden="true">
       {/* The climber: at the head of the line on the Hörnligrat, walking
@@ -189,7 +190,26 @@ const skyWords = lang === 'nb'
   .lys-climber svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; transform-origin: 50% 92%; }
   .lys-climber .c-up { transform: scaleX(var(--face, 1)); }
   /* Past the top he skis: the downhill figure, tilted with the slope. */
-  .lys-climber .c-ski { display: none; transform: scaleX(var(--face, 1)) rotate(var(--tilt, 0deg)); }
+  .lys-climber .c-ski {
+    display: none;
+    transform-origin: 50% 62%;
+    transform: scaleX(var(--face, 1)) translateY(var(--lift, 0px)) rotate(calc(var(--tilt, 0deg) + var(--flip, 0deg)));
+  }
+  /* Snow thrown off the skis: puffs left where he was, drifting back and
+     up, fading. Only while he moves. */
+  .lys-spray { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  /* Global: the puffs are made by script and carry no scope attribute. */
+  .lys-spray :global(i) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    border-radius: 50%;
+    background: #f4f6fb;
+    filter: brightness(var(--lit, 1)) blur(0.6px);
+  }
   .lys-climber.ski .c-ski { display: block; }
   .lys-climber.ski .c-up { display: none; }
   @media (min-width: 900px) { .lys-climber { width: 27px; height: 40px; margin: -37px 0 0 -13.5px; } }
@@ -1499,7 +1519,9 @@ const skyWords = lang === 'nb'
       gl.uniform3fv(u.fillCol, ML.fill);
       gl.uniform1f(u.stars, L.stars);
       night = L.stars;
-      climber?.style.setProperty('--lit', (0.42 + 0.58 * ss(-8, 12, sun.alt / rad)).toFixed(3));
+      const lit = (0.42 + 0.58 * ss(-8, 12, sun.alt / rad)).toFixed(3);
+      climber?.style.setProperty('--lit', lit);
+      root.querySelector<HTMLElement>('.lys-spray')?.style.setProperty('--lit', lit);
       gl.uniform1f(u.moonVis, ss(-0.6, 1.5, moon.alt / rad));
       gl.uniform1f(u.moonPhase, moon.lit);
       gl.uniform1f(u.dpr, curScale);
@@ -1548,6 +1570,25 @@ const skyWords = lang === 'nb'
     const climberSvg = climber?.querySelector<SVGSVGElement>('.c-up');
     climberSvg?.pauseAnimations();
     let walking = false;
+    const sprayEl = root.querySelector<HTMLElement>('.lys-spray');
+    let lastPuff = 0;
+    function spray(at: number[], from: number[], now: number) {
+      if (!sprayEl || still || now - lastPuff < 45 || sprayEl.childElementCount > 40) return;
+      lastPuff = now;
+      const dx = at[0] - from[0], dy = at[1] - from[1];
+      const L = Math.hypot(dx, dy) || 1;
+      const bx = -dx / L, by = -dy / L;
+      for (let n = 0; n < 3; n++) {
+        const el = document.createElement('i');
+        sprayEl.appendChild(el);
+        const d = 10 + Math.random() * 22, up = 4 + Math.random() * 12, sz = 0.5 + Math.random() * 0.8;
+        const x0 = at[0] + bx * 6, y0 = at[1] + by * 6 - 2;
+        el.animate([
+          { transform: `translate(${x0}px, ${y0}px) scale(${sz})`, opacity: 0.85 },
+          { transform: `translate(${x0 + bx * d}px, ${y0 + by * d - up}px) scale(${sz * 2.2})`, opacity: 0 },
+        ], { duration: 420 + Math.random() * 300, easing: 'cubic-bezier(0.2, 0.6, 0.4, 1)' }).onfinish = () => el.remove();
+      }
+    }
     /* The legs move only while the page does. */
     function walk(on: boolean) {
       if (!climberSvg || on === walking) return;
@@ -1687,7 +1728,15 @@ const skyWords = lang === 'nb'
             climber.style.setProperty('--tilt', (sk ? tilt : 0).toFixed(1) + 'deg');
           }
         }
+        /* The little cliff just under the top: a backflip off it — driven by the scroll
+           like everything else, so a slow scroll is a slow-motion flip. */
+        const fl = sk ? clamp01((rState[1].prog - 0.05) / 0.14) : 0;
+        const air = fl > 0 && fl < 1;
+        const fk = fl * fl * (3 - 2 * fl);
+        climber.style.setProperty('--flip', (-360 * fk).toFixed(1) + 'deg');
+        climber.style.setProperty('--lift', (-26 * Math.sin(Math.PI * fl)).toFixed(1) + 'px');
         climber.classList.toggle('hint', uS < 0.02 && !still);
+        if (sk && walking && !air && h?.last && h.before) spray(h.last, h.before, performance.now());
       }
 
       /* The points, with the same camera and the same line of sight. */
