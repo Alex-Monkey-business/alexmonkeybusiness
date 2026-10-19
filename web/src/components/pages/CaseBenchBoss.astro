@@ -51,6 +51,16 @@ const features = s.features.map((f, i) => ({
     <p class="case-lede inst-body">{s.lede}</p>
   </section>
 
+  {/* The film (made in Claude Motion, 19 Oct 2026): the coach's week in 39
+      seconds, before the chapters take it screen by screen. Silent by design,
+      so it plays muted the moment it is on screen. */}
+  <section class="case-film">
+    <video class="case-film-v" poster="/assets/halsen/film/benchboss-poster.jpg" width="1280" height="720" muted loop playsinline preload="none" aria-label={lang === 'nb' ? 'Film: BenchBoss på 39 sekunder' : 'Film: BenchBoss in 39 seconds'}>
+      <source src="/assets/halsen/film/benchboss.mp4" type="video/mp4" />
+      <source src="/assets/halsen/film/benchboss.webm" type="video/webm" />
+    </video>
+  </section>
+
   {features.map((f, i) => (
     <section class="case-feature">
       <div class="case-feature-copy">
@@ -115,6 +125,14 @@ const features = s.features.map((f, i) => ({
       if (v.duration && v.currentTime >= v.duration - 0.25) v.currentTime = start || 0;
     });
   });
+
+  // The film: plays while half of it is on screen, from where it was.
+  const film = document.querySelector<HTMLVideoElement>('.case-film-v');
+  if (film && !reduce) {
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) film.play().catch(() => {}); else film.pause();
+    }, { threshold: 0.5 }).observe(film);
+  } else if (film) film.controls = true;
 
   if (!reduce) {
     const vidObs = new IntersectionObserver(

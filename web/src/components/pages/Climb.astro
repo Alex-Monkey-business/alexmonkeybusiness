@@ -38,7 +38,7 @@ const log = [
     f: 0.72,
     href: path(lang, '/projects/halsen-g15/'),
     cta: nb ? 'Les caset' : 'Read the case',
-    media: { kind: 'video' as const, src: '/assets/halsen/rolig/byttet.webm', poster: '/assets/halsen/rolig/byttet-poster.jpg', w: 390, h: 844 },
+    media: { kind: 'video' as const, src: '/assets/halsen/film/benchboss.mp4', alt: '/assets/halsen/film/benchboss.webm', poster: '/assets/halsen/film/benchboss-poster.jpg', w: 1280, h: 720 },
   },
   {
     id: 'larvik',
@@ -81,9 +81,12 @@ const markers = [
         <h2 class="sheet-name" id={`h-${x.id}`} data-decode>{x.name}</h2>
         <p class="sheet-line" data-type>{line(x.slug)}</p>
         {x.media && (
-          <div class="sheet-media rz" data-still={x.media.kind === 'video' ? x.media.poster : x.media.src}>
+          <div class={`sheet-media rz${x.media.w > x.media.h ? ' wide' : ''}`} data-still={x.media.kind === 'video' ? x.media.poster : x.media.src}>
             {x.media.kind === 'video' ? (
-              <video src={x.media.src} poster={x.media.poster} width={x.media.w} height={x.media.h} muted loop playsinline preload="none" aria-hidden="true"></video>
+              <video poster={x.media.poster} width={x.media.w} height={x.media.h} muted loop playsinline preload="none" aria-hidden="true">
+                <source src={x.media.src} type={x.media.src.endsWith('.mp4') ? 'video/mp4' : 'video/webm'} />
+                {x.media.alt && <source src={x.media.alt} type="video/webm" />}
+              </video>
             ) : (
               <img src={x.media.src} width={x.media.w} height={x.media.h} alt="" loading="lazy" decoding="async" />
             )}
@@ -237,6 +240,9 @@ const markers = [
     background: #0b0b0b;
     overflow: hidden;
   }
+
+  /* A film fills the sheet's width; a phone recording stays phone-sized. */
+  .sheet-media.wide { width: 100%; border-radius: 14px; }
 
   /* THE RESOLVE, from /about: a picture arrives as information — eight
      squares across, then finer, nearest-neighbour, with one signal line

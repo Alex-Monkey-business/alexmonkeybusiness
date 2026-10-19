@@ -63,6 +63,20 @@
 }
 @keyframes case-in { to { opacity: 1; transform: none; } }
 
+/* ============ THE FILM ============ */
+/* Full width, its own black, one hairline: a screen in the page, not a card. */
+.case-film { padding: 8vh 0 2vh; }
+.case-film-v {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 20px;
+  border: 1px solid var(--border-hair);
+  background: #0b0b0d;
+}
+@media (max-width: 640px) { .case-film-v { border-radius: 14px; } }
+
 /* ============ FEATURE SECTIONS ============ */
 /* One chapter per screen. Copy left, the device right, both centred in a
    viewport-tall row — so only one recording is on screen at a time and the
