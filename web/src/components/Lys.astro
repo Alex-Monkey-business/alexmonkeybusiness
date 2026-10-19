@@ -43,8 +43,8 @@ interface Props {
 }
 const { mode = 'view', markers = [], lang = 'nb' } = Astro.props;
 const skyWords = lang === 'nb'
-  ? { day: 'dag', morning: 'morgen', evening: 'kveld', dawn: 'gry', dusk: 'skumring', night: 'natt', moonrise: 'måne opp', moonset: 'måne ned', moon: 'måne', next: 'Neste lys', clock: 'Klokka i Zermatt' }
-  : { day: 'day', morning: 'morning', evening: 'evening', dawn: 'dawn', dusk: 'dusk', night: 'night', moonrise: 'moonrise', moonset: 'moonset', moon: 'moon', next: 'Next light', clock: 'Time in Zermatt' };
+  ? { day: 'dag', morning: 'morgen', evening: 'kveld', dawn: 'gry', dusk: 'skumring', night: 'natt', moonrise: 'måne opp', moonset: 'måne ned', moon: 'måne', next: 'Neste lys', clock: 'Klokka i Zermatt', now: 'Tilbake til nå' }
+  : { day: 'day', morning: 'morning', evening: 'evening', dawn: 'dawn', dusk: 'dusk', night: 'night', moonrise: 'moonrise', moonset: 'moonset', moon: 'moon', next: 'Next light', clock: 'Time in Zermatt', now: 'Back to now' };
 ---
 
 <div class="sky lys" data-sky-words={JSON.stringify(skyWords)} data-mode={mode} data-src="/hero/matterhorn-dem.webp" data-detail="/hero/matterhorn-detail.webp" data-ortho="/hero/matterhorn-ortho.webp" data-routes={JSON.stringify(routes)}>
@@ -81,22 +81,39 @@ const skyWords = lang === 'nb'
       <g class="pt" style="transform-origin: 12.6px 9.5px"><path d="M12.6 9.5L21.4 9.5" stroke="#a68c5e" stroke-width="2.8"/><path d="M21.8 9.5l0.01 0" stroke="#1b1c20" stroke-width="2.6"/><path d="M22.8 9.5l2 0" stroke="#e6c3a5" stroke-width="1.1"/></g>
     </svg>
 <svg class="c-ski" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      {/* Freeride stance: low, hands forward, the weight over the front of
+          wide skis. Legs and upper body are separate so the legs can take
+          the terrain and the body can lean into the line. */}
       <ellipse cx="12" cy="31" rx="9.5" ry="1.3" fill="#000" opacity="0.3"/>
-      <path d="M0.5 30L21 30Q23.4 30 23.8 27.8" stroke="#2b2b2b" stroke-width="2.4"/>
-      <path d="M1.2 30L20.6 30" stroke="#e2b84a" stroke-width="0.7"/>
-      <path d="M17.6 18.4L6.6 29.4" stroke="#8d939b" stroke-width="0.9"/>
-      <path d="M10 19.2L15 23.6L11.6 28.4" stroke="#3a3d36" stroke-width="3.8"/>
-      <path d="M11.2 18.8L17 22.8L14 28" stroke="#4a4e45" stroke-width="3.8"/>
-      <path d="M10.4 28.6l2.6 0M13 28.2l2.6 0" stroke="#151614" stroke-width="2.3"/>
-      <path d="M10.6 20.4L15 11" stroke="#b39a6b" stroke-width="6.2"/>
-      <path d="M12.8 19.4L16.6 11.4" stroke="#d6c08f" stroke-width="1.6"/>
-      <path class="hand" d="M15 12L18 15.8L18.6 18.6" stroke="#a68c5e" stroke-width="2.6"/>
-      <path class="hand" d="M18.6 18.8l0.01 0" stroke="#1b1c1a" stroke-width="2.4"/>
-      <path class="hand" d="M19.2 18L9.6 29" stroke="#8d939b" stroke-width="0.9"/>
-      <circle cx="17.2" cy="7.6" r="2.4" fill="#e6c3a5"/>
-      <path d="M14.6 7.6a2.7 2.7 0 0 1 5.3 -0.8" stroke="#2c2f2a" stroke-width="2.6"/>
-      <path d="M17.4 8.2l2.4 0.2" stroke="#e0782c" stroke-width="1.4"/>
-      <g class="pt" style="transform-origin: 15px 12px"><path d="M15 12L23.8 12" stroke="#a68c5e" stroke-width="2.8"/><path d="M24.2 12l0.01 0" stroke="#1b1c1a" stroke-width="2.6"/><path d="M25.2 12l2 0" stroke="#e6c3a5" stroke-width="1.1"/></g>
+      <path d="M1.6 29.1L21.4 29.1Q23.6 29.1 24 27.2" stroke="#1d1d1d" stroke-width="2"/>
+      <path d="M0.5 30.2L21 30.2Q23.4 30.2 23.8 28" stroke="#2b2b2b" stroke-width="2.4"/>
+      <path d="M1.2 30.2L20.6 30.2" stroke="#e2b84a" stroke-width="0.7"/>
+      <g class="sk-legs" style="transform-origin: 12px 29.6px">
+        <path d="M10 19.2L15 23.6L11.8 28.6" stroke="#33362f" stroke-width="3.8"/>
+        <path d="M11.2 18.8L17 22.8L14.2 28.4" stroke="#4a4e45" stroke-width="3.8"/>
+        <path d="M16.2 23.6L14 27.4" stroke="#5f6458" stroke-width="0.9"/>
+        <path d="M10.6 28.8l2.6 0M13.2 28.6l2.6 0" stroke="#151614" stroke-width="2.3"/>
+      </g>
+      <g class="sk-up" style="transform-origin: 11px 19.6px">
+        <path d="M8.2 12.6Q9.6 11 11.6 11.9L10 17.8Q8.3 18 7.8 16.9Z" fill="#2a2f39"/>
+        <path d="M8.6 13.4l2.4 0.9" stroke="#e0782c" stroke-width="0.6"/>
+        <path class="hand" d="M14.2 11.8L16.8 14.6L19.8 15" stroke="#8f784f" stroke-width="2.3"/>
+        <path class="hand" d="M20 15.2L8.2 28.8" stroke="#6f757d" stroke-width="0.8"/>
+        <path d="M10.6 20.4L15 11" stroke="#b39a6b" stroke-width="6.2"/>
+        <path d="M12.8 19.4L16.6 11.4" stroke="#d6c08f" stroke-width="1.6"/>
+        <path d="M9 19.2L12.8 11.2" stroke="#8f784f" stroke-width="1.1"/>
+        <path d="M9.6 17.8l3.4 1.4" stroke="#7d6942" stroke-width="0.9"/>
+        <path class="hand" d="M15 12L18 15.8L19.8 17.2" stroke="#a68c5e" stroke-width="2.6"/>
+        <path class="hand" d="M19.9 17.3l0.01 0" stroke="#1b1c1a" stroke-width="2.4"/>
+        <path class="hand" d="M20.2 16.6L9.8 29.2" stroke="#8d939b" stroke-width="0.9"/>
+        <path class="hand" d="M9.1 28.8l1.4 0.4" stroke="#8d939b" stroke-width="0.7"/>
+        <circle cx="17.2" cy="7.6" r="2.4" fill="#e6c3a5"/>
+        <path d="M14.6 7.6a2.7 2.7 0 0 1 5.3 -0.8" stroke="#2c2f2a" stroke-width="2.6"/>
+        <path d="M17.2 8.2l2.6 0.2" stroke="#e0782c" stroke-width="1.5"/>
+        <path d="M19.1 7.9l0.01 0" stroke="#fff4dc" stroke-width="0.7"/>
+        <path d="M15.4 10.4q1.4 0.9 2.8 0.3" stroke="#3b4250" stroke-width="1.3"/>
+        <g class="pt" style="transform-origin: 15px 12px"><path d="M15 12L23.8 12" stroke="#a68c5e" stroke-width="2.8"/><path d="M24.2 12l0.01 0" stroke="#1b1c1a" stroke-width="2.6"/><path d="M25.2 12l2 0" stroke="#e6c3a5" stroke-width="1.1"/></g>
+      </g>
     </svg>
     <svg class="c-air" viewBox="0 -4 24 36" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M1 26.2L19.6 26.2Q22 26.2 22.4 24.2" stroke="#2b2b2b" stroke-width="2.4"/>
@@ -145,7 +162,7 @@ const skyWords = lang === 'nb'
       </button>
     ))}
   </div>
-  <button class="lys-read" type="button" aria-label="Tilbake til nå" tabindex={mode === 'climb' ? -1 : undefined}>
+  <button class="lys-read" type="button" aria-label={skyWords.now} tabindex={mode === 'climb' ? -1 : undefined}>
     <span class="lys-place">zermatt</span>
     <span class="lys-time">--:--</span>
     {mode === 'climb' && <span class="lys-alt">1608 m</span>}
@@ -233,6 +250,21 @@ const skyWords = lang === 'nb'
     filter: brightness(var(--lit, 1)) blur(0.6px);
   }
   .lys-climber.ski .c-ski { display: block; }
+  /* The legs take the terrain (--crouch), the body leans into the line
+     (--lean). Set from the run's speed and its turns; eased here. */
+  .c-ski .sk-legs { transform: scaleY(var(--crouch, 1)); transition: transform 260ms cubic-bezier(0.3, 0.7, 0.4, 1); }
+  .c-ski .sk-up {
+    transform: translateY(calc((1 - var(--crouch, 1)) * 10px)) rotate(var(--lean, 0deg));
+    transition: transform 260ms cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  /* Down by the instruments he skis on behind them. */
+  .lys-climber.under { opacity: 0 !important; }
+  .lys-spray :global(i.c) {
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    filter: brightness(var(--lit, 1)) blur(2.4px);
+  }
   /* In the air: knees up, the skis a little apart — freeride, not gymnastics. */
   .lys-climber .c-air {
     display: none;
@@ -370,6 +402,8 @@ const skyWords = lang === 'nb'
     padding: 7px 12px 7px 13px;
     border-radius: 999px;
     background: rgba(8, 8, 10, 0.66);
+    /* A hairline edge, so the pill still has a shape against a black sky. */
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   }
   .mk:hover .mk-label { color: var(--signal); }
   .mk-n { color: var(--signal); margin-right: 0.9em; }
@@ -841,7 +875,7 @@ const skyWords = lang === 'nb'
      read on a phone. The moon is a lit sphere: its bright side faces the sun,
      so the phase is the true one tonight; the dark side keeps a trace of
      earthshine. Only on open sky — the mountain hides them for free. */
-  vec3 discs(vec3 rd, float pix) {
+  vec3 discs(vec3 rd, float pix, vec2 q) {
     vec3 c = vec3(0.0);
     float ds = acos(clamp(dot(rd, sunDir), -1.0, 1.0));
     float rs = 0.0095;
@@ -854,20 +888,30 @@ const skyWords = lang === 'nb'
          air dims it and warms it. */
       float dm = acos(clamp(dot(rd, moonDir), -1.0, 1.0));
       float rm = 0.0072;
-      float disc = smoothstep(rm + pix * 1.6, rm - pix * 1.2, dm);
+      /* Measured on the screen, not on the sky: a wide lens stretches a
+         round body into an egg toward the edges, and a moon has to be round. */
+      float mf = dot(moonDir, fwd);
+      vec2 qm = vec2(dot(moonDir, rgt), dot(moonDir, up)) / max(mf, 0.05);
+      float rq = rm * pow(1.0 + dot(qm, qm), 0.75);
+      vec2 dq = q - qm;
+      float dsq = length(dq) / rq * rm;
+      float disc = mf > 0.05 ? smoothstep(rm + pix * 1.6, rm - pix * 1.2, dsq) : 0.0;
       float air = exp(-0.06 / max(moonDir.z, 0.03));
       vec3 tint = mix(vec3(1.0, 0.72, 0.48), vec3(0.93, 0.94, 1.0), air);
       if (disc > 0.0) {
-        vec3 off = (rd - moonDir * dot(rd, moonDir)) / rm;
+        vec3 off = (dq.x * rgt + dq.y * up) / rq;
+        off -= moonDir * dot(off, moonDir);
         float z = sqrt(max(0.0, 1.0 - dot(off, off)));
         vec3 nrm = off - moonDir * z;
-        float lit = smoothstep(-0.18, 0.3, dot(nrm, sunDir));
+        float lit = smoothstep(-0.06, 0.14, dot(nrm, sunDir));
         vec3 e1 = normalize(cross(moonDir, vec3(0.0, 0.0, 1.0)));
         vec3 e2 = cross(e1, moonDir);
         vec2 m = vec2(dot(off, e1), dot(off, e2));
         float seas = smoothstep(0.4, 0.66, fbm(m * 1.6 + vec2(3.1, 7.4)));
         float alb = (1.0 - 0.22 * seas) * mix(0.8, 1.0, z);
-        c += tint * disc * moonVis * air * (lit * 1.25 * alb + 0.004);
+        /* Earthshine on the dark side, just enough that the whole round
+           body is there — a soft-edged gibbous alone reads as an egg. */
+        c += tint * disc * moonVis * air * (lit * 1.25 * alb + 0.035 * alb);
       }
       float g = moonVis * air * (0.25 + 0.75 * moonPhase);
       c += tint * g * (0.06 * exp(-dm * dm / (rm * rm * 4.0)) + 0.018 * exp(-dm / (rm * 3.5)) + 0.004 * exp(-dm / (rm * 16.0)));
@@ -910,7 +954,7 @@ const skyWords = lang === 'nb'
     vec3 col;
     vec3 sky = skyAt(rd, pix);
     if (!hit) {
-      col = sky + discs(rd, pix);
+      col = sky + discs(rd, pix, q);
     } else {
       vec3 p = ro + rd * t;
       float e = max(2.0, t * pix * 1.5);
@@ -1579,7 +1623,10 @@ const skyWords = lang === 'nb'
       drawRoutes(cam, fwd, rgt, up, fovDeg * rad);
 
       timeEl.textContent = zermattClock(date);
-      paintSky(date, sun.alt / rad, moon);
+      /* The switch names the light the sky is heading to, not each minute
+         it sweeps through on the way. */
+      if (Math.abs(target - offset) < 1) paintSky(date, sun.alt / rad, moon);
+      else { const to = new Date(Date.now() + target * 60000); paintSky(to, sunAt(to).alt / rad, moonAt(to)); }
       if (mark) mark.style.setProperty('--x', (((zermattMinutes(date) % 1440) + 1440) % 1440 / 1440).toFixed(4));
       if (nowDot) nowDot.style.setProperty('--x', (zermattMinutes(new Date()) / 1440).toFixed(4));
       root.classList.toggle('away', Math.abs(target) > 1);
@@ -1618,24 +1665,53 @@ const skyWords = lang === 'nb'
     const climberSvg = climber?.querySelector<SVGSVGElement>('.c-up');
     climberSvg?.pauseAnimations();
     let walking = false;
+    let prevHead: number[] | null = null, prevT = 0, prevTilt = 0, wasAir = false, landAt = -1e9;
+    /* Where the switch, the slider and the read-out sit, measured on resize. */
+    let instruments: DOMRect[] = [];
+    const measureInstruments = () => { instruments = [...root.querySelectorAll<HTMLElement>('.lys-sky, .lys-dial, .lys-read')].map((e) => e.getBoundingClientRect()); };
+    addEventListener('resize', measureInstruments);
+    setTimeout(measureInstruments, 0);
     const sprayEl = root.querySelector<HTMLElement>('.lys-spray');
     let lastPuff = 0;
-    function spray(at: number[], from: number[], now: number) {
-      if (!sprayEl || still || now - lastPuff < 45 || sprayEl.childElementCount > 40) return;
+    /* Snow off the tails: grains thrown back and up that fall again, and
+       now and then a soft cloud of powder that hangs and spreads. More of
+       both the faster he goes. */
+    const puff = (x: number, y: number, vx: number, vy: number, sz: number, ms: number, cloud = false) => {
+      if (!sprayEl) return;
+      const el = document.createElement('i');
+      if (cloud) el.className = 'c';
+      sprayEl.appendChild(el);
+      const fall = cloud ? -4 : 10 + Math.random() * 10;
+      el.animate([
+        { transform: `translate(${x}px, ${y}px) scale(${sz})`, opacity: cloud ? 0.26 : 0.9 },
+        { transform: `translate(${x + vx * 0.55}px, ${y + vy * 0.55}px) scale(${sz * (cloud ? 2 : 1.1)})`, opacity: cloud ? 0.18 : 0.7, offset: 0.45 },
+        { transform: `translate(${x + vx}px, ${y + vy + fall}px) scale(${sz * (cloud ? 3.2 : 0.7)})`, opacity: 0 },
+      ], { duration: ms, easing: 'cubic-bezier(0.2, 0.6, 0.4, 1)' }).onfinish = () => el.remove();
+    };
+    let puffs = 0;
+    function spray(at: number[], from: number[], now: number, speed: number) {
+      if (!sprayEl || still || now - lastPuff < 40 || sprayEl.childElementCount > 110) return;
       lastPuff = now;
       const dx = at[0] - from[0], dy = at[1] - from[1];
       const L = Math.hypot(dx, dy) || 1;
       const bx = -dx / L, by = -dy / L;
-      for (let n = 0; n < 3; n++) {
-        const el = document.createElement('i');
-        sprayEl.appendChild(el);
-        const d = 10 + Math.random() * 22, up = 4 + Math.random() * 12, sz = 0.5 + Math.random() * 0.8;
-        const x0 = at[0] + bx * 6, y0 = at[1] + by * 6 - 2;
-        el.animate([
-          { transform: `translate(${x0}px, ${y0}px) scale(${sz})`, opacity: 0.85 },
-          { transform: `translate(${x0 + bx * d}px, ${y0 + by * d - up}px) scale(${sz * 2.2})`, opacity: 0 },
-        ], { duration: 420 + Math.random() * 300, easing: 'cubic-bezier(0.2, 0.6, 0.4, 1)' }).onfinish = () => el.remove();
+      const k = Math.min(1.6, 0.5 + speed / 400);
+      const x0 = at[0] + bx * 7, y0 = at[1] + by * 7 - 1;
+      for (let n = 0, N = Math.round(4 + 4 * k); n < N; n++) {
+        const d = (8 + Math.random() * 26) * k, up = (6 + Math.random() * 18) * k;
+        puff(x0 + Math.random() * 4 - 2, y0 + Math.random() * 2, bx * d, by * d - up, 0.12 + Math.random() * 0.22, 300 + Math.random() * 320);
       }
+      if (++puffs % 2 === 0) puff(x0, y0 - 2, bx * 12 * k, by * 12 * k - 5, 0.5 + Math.random() * 0.5, 1000 + Math.random() * 500, true);
+    }
+    /* Landing the flip: snow thrown out on both sides, and a cloud. */
+    function burst(at: number[]) {
+      if (still) return;
+      for (let n = 0; n < 26; n++) {
+        const side = n % 2 ? 1 : -1, d = 8 + Math.random() * 30, up = 8 + Math.random() * 24;
+        puff(at[0] + side * 4, at[1] - 1, side * d, -up, 0.14 + Math.random() * 0.26, 450 + Math.random() * 350);
+      }
+      puff(at[0], at[1] - 3, -8, -6, 1, 1300, true);
+      puff(at[0], at[1] - 3, 8, -6, 0.9, 1200, true);
     }
     /* The legs move only while the page does. */
     let stoppedAt = 0;
@@ -1789,7 +1865,35 @@ const skyWords = lang === 'nb'
         climber.style.setProperty('--lift', (-30 * Math.sin(Math.PI * fl)).toFixed(1) + 'px');
         climber.classList.toggle('air', air && fl > 0.08 && fl < 0.92);
         climber.classList.toggle('hint', uS < 0.02 && !still);
-        if (sk && walking && !air && h?.last && h.before) spray(h.last, h.before, performance.now());
+        const t = performance.now();
+        /* How fast he goes, and how fast the line under him bends. */
+        let speed = 0, turn = 0;
+        if (h?.last && prevHead && t > prevT) {
+          const ds = Math.hypot(h.last[0] - prevHead[0], h.last[1] - prevHead[1]);
+          speed = ds / ((t - prevT) / 1000);
+          const tl = parseFloat(climber.style.getPropertyValue('--tilt')) || 0;
+          turn = (tl - prevTilt) / ((t - prevT) / 1000);
+          prevTilt = tl;
+        }
+        prevHead = h?.last ?? null;
+        prevT = t;
+        if (sk) {
+          const going = walking && !air && speed > 4;
+          if (wasAir && fl >= 1 && h?.last) { burst(h.last); landAt = t; setTimeout(kick, 380); }
+          wasAir = air;
+          const landing = t - landAt < 340;
+          /* Low when fast, lower through a change of slope, lowest on landing. */
+          const crouch = landing ? 0.68 : going ? Math.max(0.78, 0.92 - speed / 4000 - Math.min(0.08, Math.abs(turn) / 2500)) : 1;
+          const lean = going ? Math.max(-6, Math.min(16, 6 + speed / 120 - turn / 60)) : landing ? 10 : 0;
+          climber.style.setProperty('--crouch', crouch.toFixed(3));
+          climber.style.setProperty('--lean', lean.toFixed(1) + 'deg');
+          if (going && h?.last && h.before) spray(h.last, h.before, t, speed);
+        }
+        /* At the foot of the screen the instruments stand in front of him. */
+        if (h?.last) {
+          const [x, y] = h.last;
+          climber.classList.toggle('under', instruments.some((r) => x > r.left - 20 && x < r.right + 20 && y > r.top - 10 && y < r.bottom + 44));
+        }
       }
 
       /* The points, with the same camera and the same line of sight. */

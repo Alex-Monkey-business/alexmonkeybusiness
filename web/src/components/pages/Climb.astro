@@ -113,7 +113,7 @@ const markers = [
       <h2 class="sheet-name" id="h-alex" data-decode>alexander samnøy</h2>
       <ul class="channels">
         {contact.map((c) => (
-          <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined} data-decode>{c.value}</a></li>
+          <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined}><span class="ch-k">{s.about.channels[c.key]}</span><span class="ch-v" data-decode>{c.value}</span><span class="ch-go" aria-hidden="true">{c.external ? '↗' : '→'}</span></a></li>
         ))}
       </ul>
       {/* What the menu used to carry: the credit the mountain's data asks
@@ -324,17 +324,40 @@ const markers = [
   }
   /* The portrait's squares take the sky's colour the way the picture does. */
   .who-img .rz-px { mix-blend-mode: luminosity; }
+  /* The ways in, as rows: what it is, the address, and the arrow every
+     link on this page carries. A hairline between them. */
   .channels { list-style: none; margin: 18px 0 0; padding: 0; }
-  .channels li + li { margin-top: 10px; }
+  .channels li + li { border-top: 1px solid rgba(255, 255, 255, 0.06); }
   .channels a {
-    font-size: clamp(13px, 4.1vw, 15px);
-    overflow-wrap: anywhere;
+    display: grid;
+    grid-template-columns: 5.6em 1fr auto;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 0;
+    font-size: 13px;
     font-weight: 300;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     color: var(--fg1);
     text-decoration: none;
   }
-  .channels a:hover, .channels a:focus-visible { color: var(--signal); outline: none; }
+  .ch-k { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg3); }
+  .ch-v { overflow-wrap: anywhere; }
+  .ch-go { color: var(--signal); transition: transform 200ms ease-out; }
+  .channels a:hover .ch-v, .channels a:focus-visible .ch-v { color: var(--signal); }
+  .channels a:hover .ch-go, .channels a:focus-visible .ch-go { transform: translate(2px, -2px); }
+  .channels a[href^='mailto']:hover .ch-go, .channels a[href^='tel']:hover .ch-go { transform: translateX(3px); }
+  .channels a:focus-visible { outline: none; }
+  /* A short phone: the rows close up and the portrait steps back, so the
+     sheet still fits without scrolling. */
+  /* Too narrow for three columns: the addresses say what they are. */
+  @media (max-width: 380px) {
+    .channels a { grid-template-columns: 1fr auto; font-size: 12px; letter-spacing: 0.02em; }
+    .ch-k { display: none; }
+  }
+  @media (max-height: 640px) {
+    .channels a { padding: 7px 0; }
+    .who-img { width: 120px; }
+  }
   .who-foot {
     display: flex;
     flex-wrap: wrap;
