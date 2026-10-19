@@ -56,7 +56,7 @@ const skyWords = lang === 'nb'
     <div class="lys-climber" aria-hidden="true">
       {/* The climber: at the head of the line on the Hörnligrat, walking
           only while the page scrolls. */}
-    <svg viewBox="0 -4 24 36" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <svg class="c-up" viewBox="0 -4 24 36" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <ellipse cx="11.5" cy="30.6" rx="6.5" ry="1.3" fill="#000" opacity="0.35"/>
       <path d="M7.2 17.4L3.6 -2.6M8.6 17L6.4 -3.2" stroke="#d8d2c4" stroke-width="1.3"/>
       <path d="M3.6 -2.6l-0.5 -0.9M6.4 -3.2l-0.3 -1" stroke="#b9442b" stroke-width="1.3"/>
@@ -76,6 +76,24 @@ const skyWords = lang === 'nb'
       <path d="M11.5 4.4a2.6 2.6 0 0 1 5.1 -0.6" stroke="#4b525e" stroke-width="2.2"/>
       <path d="M14.6 5l1.9 0.1" stroke="#1d2026" stroke-width="1.1"/>
       <path d="M12.3 6.2a2.4 2.4 0 0 0 1.8 0.8" stroke="#b58f73" stroke-width="0.8"/>
+    </svg>
+<svg class="c-ski" viewBox="0 -4 24 36" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <ellipse cx="12" cy="31" rx="9" ry="1.2" fill="#000" opacity="0.3"/>
+      <path d="M1.5 30.2L21 30.2Q22.6 30.2 23 28.8" stroke="#d8d2c4" stroke-width="1.3"/>
+      <path d="M2.5 29L20 29Q21.6 29 22 27.6" stroke="#b9442b" stroke-width="1.1"/>
+      <path d="M17.2 17.8L7 29.6" stroke="#9aa1aa" stroke-width="0.9"/>
+      <path d="M10.4 19.6L14.8 23.6L11.4 28.6" stroke="#23262d" stroke-width="2.7"/>
+      <path d="M11.4 19.2L16.6 23L13.6 28.2" stroke="#2f333c" stroke-width="2.7"/>
+      <path d="M10.6 28.8l2.2 0M12.8 28.4l2.2 0" stroke="#121315" stroke-width="2"/>
+      <path d="M7.8 11.4Q10 9.8 12.4 10.6L13 17.2Q10.2 18.6 8.6 17.4Z" fill="#3b4250"/>
+      <path d="M11 19.4L15 11.4" stroke="#a63e28" stroke-width="4.6"/>
+      <path d="M12.6 18.4L16 11.8" stroke="#d2603f" stroke-width="1.3"/>
+      <path d="M14.8 12L17.6 15.6L18 18.2" stroke="#bf5034" stroke-width="1.9"/>
+      <path d="M18 18.4l0.01 0" stroke="#1b1c20" stroke-width="2.2"/>
+      <path d="M18.8 17.6L9.4 29.2" stroke="#9aa1aa" stroke-width="0.9"/>
+      <circle cx="17" cy="7.8" r="2.4" fill="#e6c3a5"/>
+      <path d="M14.6 7.4a2.6 2.6 0 0 1 5.1 -0.4" stroke="#4b525e" stroke-width="2.2"/>
+      <path d="M17.6 8.2l1.9 0.2" stroke="#1d2026" stroke-width="1.1"/>
     </svg>
     </div>
   )}
@@ -168,7 +186,12 @@ const skyWords = lang === 'nb'
     pointer-events: none;
     transition: opacity 400ms linear;
   }
-  .lys-climber svg { display: block; width: 100%; height: 100%; transform: scaleX(var(--face, 1)); }
+  .lys-climber svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; transform-origin: 50% 92%; }
+  .lys-climber .c-up { transform: scaleX(var(--face, 1)); }
+  /* Past the top he skis: the downhill figure, tilted with the slope. */
+  .lys-climber .c-ski { display: none; transform: scaleX(var(--face, 1)) rotate(var(--tilt, 0deg)); }
+  .lys-climber.ski .c-ski { display: block; }
+  .lys-climber.ski .c-up { display: none; }
   @media (min-width: 900px) { .lys-climber { width: 27px; height: 40px; margin: -37px 0 0 -13.5px; } }
   .lys.ready .lys-climber.on { opacity: 1; }
   /* Before the first scroll, a ring breathes at its feet: this is the thing
@@ -1180,7 +1203,7 @@ const skyWords = lang === 'nb'
         [52, 5300, 2900, [0, 0, 3880]],
         [74, 3600, 3450, [500, 250, 3800]],
         [18, 3000, 3850, [0, 0, 4050]],
-        [108, 3100, 4050, [80, 0, 4100]],
+        [2, 3300, 4000, [-350, 120, 3950]],
         [32, 3300, 4600, [0, 0, 4230]],
       ];
       const n = Math.max(1, wps.length - 1);
@@ -1426,8 +1449,9 @@ const skyWords = lang === 'nb'
         const last = keys3.length - 1;
         rState[0].prog = Math.max(0.004, Math.min(1, uS / Math.max(1, last - 1.8)));
         rState[0].k = 0.95;
-        /* The other side is drawn from halfway, into the top. */
-        rState[1].prog = clamp01((uS - last * 0.45) / (last * 0.4));
+        /* Then down the other side: from the top, he skis the Zmuttgrat and
+           its line is drawn behind him, from the summit down. */
+        rState[1].prog = clamp01((uS - (last - 1.8)) / 1.8);
         rState[1].k = rState[1].prog > 0 ? 0.95 : 0;
         if (altEl) {
           const i = Math.min(keys3.length - 2, Math.floor(uS));
@@ -1521,7 +1545,7 @@ const skyWords = lang === 'nb'
     const glows = [...svg.querySelectorAll<SVGPathElement>('.lys-glow')];
     const tips = [...svg.querySelectorAll<SVGCircleElement>('.lys-tip')];
     const climber = root.querySelector<HTMLElement>('.lys-climber');
-    const climberSvg = climber?.querySelector('svg');
+    const climberSvg = climber?.querySelector<SVGSVGElement>('.c-up');
     climberSvg?.pauseAnimations();
     let walking = false;
     /* The legs move only while the page does. */
@@ -1599,13 +1623,18 @@ const skyWords = lang === 'nb'
         return [(qx / (asp * 2 * tf) + 0.5) * W, (0.5 - qy / (2 * tf)) * Hh];
       };
       skyLine = proj([0, 0, 4478])?.[1] ?? Hh * 0.3;
+      const heads: { last: number[] | null; before: number[] | null; on: boolean }[] = [];
       keys.forEach((key, r) => {
         const st = rState[r];
+        heads[r] = { last: null, before: null, on: false };
         if (st.k < 0.004 || st.prog <= 0) {
           lines[r].setAttribute('d', ''); glows[r].setAttribute('d', ''); tips[r].style.opacity = '0';
           return;
         }
-        const pts = R[key];
+        /* Climbing, the Zmuttgrat runs top-down: same loop, the points in
+           reverse and their fractions flipped. */
+        const down = climb && r === 1;
+        const pts = down ? R[key].map((p) => [p[0], p[1], p[2], 1 - p[3]]).reverse() : R[key];
         let d = '', pen = false, last: number[] | null = null, before: number[] | null = null;
         const xy = (q: number[]) => q[0].toFixed(1) + ' ' + q[1].toFixed(1);
         for (let i = 0; i < pts.length; i++) {
@@ -1633,24 +1662,41 @@ const skyWords = lang === 'nb'
         lines[r].style.opacity = String(Math.min(1, st.k));
         glows[r].style.opacity = String(0.16 * Math.min(1, st.k));
         const climbing = st.prog < 0.999 && last;
-        tips[r].style.opacity = climbing && !(climber && r === 0) ? String(Math.min(1, st.k)) : '0';
-        if (climber && r === 0) {
-          climber.classList.toggle('on', !!climbing);
-          if (last) {
-            climber.style.transform = `translate(${last[0].toFixed(1)}px, ${last[1].toFixed(1)}px)`;
-            if (before) climber.style.setProperty('--face', last[0] < before[0] ? '-1' : '1');
-          }
-          climber.classList.toggle('hint', uS < 0.02 && !still);
-        }
+        tips[r].style.opacity = climbing && !climber ? String(Math.min(1, st.k)) : '0';
+        heads[r] = { last, before, on: !!last && st.prog < 0.999 };
         if (last) { tips[r].setAttribute('cx', last[0].toFixed(1)); tips[r].setAttribute('cy', last[1].toFixed(1)); }
       });
+
+      /* The figure: climbing at the head of the Hörnli line, standing on the
+         top between the two, skiing at the head of the Zmutt line. */
+      if (climber) {
+        /* Once he has started down he stays on skis, to the foot of the line. */
+        const descending = rState[1].prog > 0;
+        const sk = !!heads[1]?.last, up = heads[0];
+        const h = sk ? heads[1] : up;
+        /* Behind the mountain on the way down, he is out of sight. */
+        climber.classList.toggle('on', !!h?.last && (sk || (!descending && !!up?.last)));
+        climber.classList.toggle('ski', !!sk);
+        if (h?.last) {
+          climber.style.transform = `translate(${h.last[0].toFixed(1)}px, ${h.last[1].toFixed(1)}px)`;
+          if (h.before) {
+            const dx = h.last[0] - h.before[0], dy = h.last[1] - h.before[1];
+            const face = dx < 0 ? -1 : 1;
+            climber.style.setProperty('--face', String(face));
+            const tilt = Math.max(-35, Math.min(35, (Math.atan2(dy, Math.abs(dx)) * 180) / Math.PI));
+            climber.style.setProperty('--tilt', (sk ? tilt : 0).toFixed(1) + 'deg');
+          }
+        }
+        climber.classList.toggle('hint', uS < 0.02 && !still);
+      }
 
       /* The points, with the same camera and the same line of sight. */
       let newest: HTMLElement | null = null;
       for (const m of marks) {
         const P = m.route === 'top' ? [0, 0, 4478 + 6] : pointOn(m.route, m.f);
         const st = m.route === 'top' ? null : rState[keys.indexOf(m.route)];
-        const lit = climb && (m.route === 'top' || (!!st && st.k > 0.01 && st.prog >= m.f));
+        const reach = climb && m.route === 'zmuttgrat' ? 1 - m.f : m.f;
+        const lit = climb && (m.route === 'top' || (!!st && st.k > 0.01 && st.prog >= reach));
         const s2 = lit && seen(P, cam) ? proj(P) : null;
         const on = !!s2 && s2[0] > 6 && s2[0] < W - 6 && s2[1] > 6 && s2[1] < Hh - 6;
         if (s2) {
