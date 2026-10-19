@@ -141,8 +141,7 @@ const markers = [
   /* On a narrow screen the cue would stand beside the light switch. */
   @media (max-width: 520px) { .wp-start { padding-bottom: 170px; } }
 
-  /* The one instruction: a pill like the points' names, and under it a
-     hairline that keeps drawing downward. Gone at the first scroll. */
+  /* A hairline that keeps drawing downward. Gone at the first scroll. */
   .cue-wrap {
     display: flex;
     flex-direction: column;
@@ -264,7 +263,6 @@ const markers = [
   /* A device cut from the film brings its own bezel: no frame of ours, and
      the corners follow its. Big enough to read on a phone. */
   .sheet-media.device {
-    /* Big enough to read on a phone; the sheet scrolls to the link. */
     width: min(260px, 72%);
     border: 0;
     border-radius: 15.5% / 7.3%;
@@ -329,7 +327,8 @@ const markers = [
   .channels { list-style: none; margin: 18px 0 0; padding: 0; }
   .channels li + li { margin-top: 10px; }
   .channels a {
-    font-size: 15px;
+    font-size: clamp(13px, 4.1vw, 15px);
+    overflow-wrap: anywhere;
     font-weight: 300;
     letter-spacing: 0.06em;
     color: var(--fg1);
@@ -449,7 +448,7 @@ const markers = [
     const ratio = Number(media?.getAttribute('width')) / Number(media?.getAttribute('height')) || 0.46;
     const over = s.scrollHeight - s.clientHeight;
     if (over <= 0) return;
-    const h = Math.max(220, m.offsetHeight - over - 2);
+    const h = Math.max(innerHeight < 640 ? 150 : 220, m.offsetHeight - over - 2);
     m.style.height = h + 'px';
     m.style.width = h * ratio + 'px';
   };
@@ -478,7 +477,16 @@ const markers = [
   });
   document.querySelectorAll('.sheet-x').forEach((b) => b.addEventListener('click', () => close()));
   veil.addEventListener('click', () => close());
-  addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+    /* Tab stays inside the open sheet. */
+    if (e.key !== 'Tab' || !current) return;
+    const f = [...current.querySelectorAll<HTMLElement>('button, a[href]')];
+    const i = f.indexOf(document.activeElement as HTMLElement);
+    const next = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i === f.length - 1 ? 0 : i + 1);
+    e.preventDefault();
+    f[next]?.focus();
+  });
   addEventListener('popstate', () => close(true));
 
   /* The hint leaves at the first scroll and does not come back. */

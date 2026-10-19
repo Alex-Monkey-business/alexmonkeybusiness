@@ -43,8 +43,8 @@ interface Props {
 }
 const { mode = 'view', markers = [], lang = 'nb' } = Astro.props;
 const skyWords = lang === 'nb'
-  ? { day: 'dag', morning: 'morgen', evening: 'kveld', dawn: 'gry', dusk: 'skumring', night: 'natt', moonrise: 'måne opp', moonset: 'måne ned', moon: 'måne', next: 'Neste lys' }
-  : { day: 'day', morning: 'morning', evening: 'evening', dawn: 'dawn', dusk: 'dusk', night: 'night', moonrise: 'moonrise', moonset: 'moonset', moon: 'moon', next: 'Next light' };
+  ? { day: 'dag', morning: 'morgen', evening: 'kveld', dawn: 'gry', dusk: 'skumring', night: 'natt', moonrise: 'måne opp', moonset: 'måne ned', moon: 'måne', next: 'Neste lys', clock: 'Klokka i Zermatt' }
+  : { day: 'day', morning: 'morning', evening: 'evening', dawn: 'dawn', dusk: 'dusk', night: 'night', moonrise: 'moonrise', moonset: 'moonset', moon: 'moon', next: 'Next light', clock: 'Time in Zermatt' };
 ---
 
 <div class="sky lys" data-sky-words={JSON.stringify(skyWords)} data-mode={mode} data-src="/hero/matterhorn-dem.webp" data-detail="/hero/matterhorn-detail.webp" data-ortho="/hero/matterhorn-ortho.webp" data-routes={JSON.stringify(routes)}>
@@ -161,7 +161,7 @@ const skyWords = lang === 'nb'
     <span class="lys-set" aria-hidden="true"></span>
     <span class="lys-now" aria-hidden="true"></span>
     <span class="lys-mark" aria-hidden="true"></span>
-    <input class="lys-slide" type="range" min="0" max="1439" step="1" aria-label="Klokka i Zermatt" />
+    <input class="lys-slide" type="range" min="0" max="1439" step="1" aria-label={skyWords.clock} />
   </div>
 </div>
 
@@ -1802,13 +1802,11 @@ const skyWords = lang === 'nb'
         const lit = climb && (m.route === 'top' || (!!st && st.k > 0.01 && st.prog >= reach));
         const s2 = lit && seen(P, cam) ? proj(P) : null;
         const on = !!s2 && s2[0] > 6 && s2[0] < W - 6 && s2[1] > 6 && s2[1] < Hh - 6;
-        /* The point he is nearest along the route — just ahead, or passed
-           within a stretch — is the one he turns to. One not lit yet is
-           still drawn where it will be, so he can point ahead to it. */
+        /* The point he is nearest along the route, passed within a stretch,
+           is the one he turns to. Only a lit one: pointing at bare rock
+           says nothing. */
         const since = st ? st.prog - reach : 9;
-        const where = s2 ?? (st && since > -0.14 && since < 0 && seen(P, cam) ? proj(P) : null);
-        if (where && m.route !== 'top' && since > -0.14 && since <= 0.32
-            && where[0] > 6 && where[0] < W - 6 && where[1] > 6 && where[1] < Hh - 6) seenMarks.push([where[0], where[1], Math.abs(since)]);
+        if (on && m.route !== 'top' && since <= 0.32) seenMarks.push([s2![0], s2![1], since]);
         if (s2) {
           m.el.style.transform = `translate(${s2[0].toFixed(1)}px, ${s2[1].toFixed(1)}px)`;
           /* A name that would run off the screen — a phone, a ridge near the
@@ -1835,6 +1833,7 @@ const skyWords = lang === 'nb'
           window.setTimeout(() => m.el.classList.remove('pulse'), 3000);
         }
         m.el.classList.toggle('on', on);
+        m.el.tabIndex = on ? 0 : -1;
         if (on && m.route !== 'top') newest = m.el;
       }
       for (const m of marks) m.el.classList.toggle('now', m.el === newest || (m.route === 'top' && m.el.classList.contains('on')));
@@ -1869,8 +1868,24 @@ const skyWords = lang === 'nb'
       const shown = marks.filter((m) => m.el.classList.contains('on')).sort((a, b) => rank(b) - rank(a));
       const kept: DOMRect[] = [];
       for (const m of shown) {
-        const b = m.label.getBoundingClientRect();
-        const hit = kept.some((k) => b.left < k.right + 6 && b.right > k.left - 6 && b.top < k.bottom + 4 && b.bottom > k.top - 4);
+        let b = m.label.getBoundingClientRect();
+        const clash = (b: DOMRect) => kept.some((k) => b.left < k.right + 6 && b.right > k.left - 6 && b.top < k.bottom + 4 && b.bottom > k.top - 4);
+        let hit = clash(b);
+        /* Before it goes quiet, a name tries the other side of its point,
+           then over it, held inside the screen. */
+        const side = m.el.dataset.side!, was = m.label.style.translate;
+        for (const alt of ['left', 'right', 'up'].filter((x) => x !== side)) {
+          if (!hit) break;
+          m.el.dataset.side = alt;
+          m.label.style.translate = '';
+          let nb = m.label.getBoundingClientRect();
+          if (alt === 'up') {
+            const nx = Math.max(0, 12 - nb.left) - Math.max(0, nb.right - (W - 12));
+            if (nx) { m.label.style.translate = `${nx.toFixed(1)}px 0`; nb = m.label.getBoundingClientRect(); }
+          }
+          if (!clash(nb) && nb.left > 6 && nb.right < W - 6 && nb.top > 6) { hit = false; b = nb; }
+        }
+        if (hit) { m.el.dataset.side = side; m.label.style.translate = was; }
         m.el.classList.toggle('quiet', hit);
         if (!hit) kept.push(b);
       }
