@@ -404,6 +404,25 @@ const markers = [
     if (!viaHistory && history.state?.sheet) history.back();
   };
 
+  /* No scrolling inside a sheet: when it would run past the screen, the
+     picture gives up the difference — it keeps its shape and the words and
+     the link keep their size. Below a point it stops shrinking and the
+     sheet scrolls instead, on a screen too short to be helped. */
+  const fit = (s: HTMLElement) => {
+    const m = s.querySelector<HTMLElement>('.sheet-media');
+    if (!m) return;
+    m.style.width = '';
+    m.style.height = '';
+    const media = m.querySelector<HTMLElement>('video, img');
+    const ratio = Number(media?.getAttribute('width')) / Number(media?.getAttribute('height')) || 0.46;
+    const over = s.scrollHeight - s.clientHeight;
+    if (over <= 0) return;
+    const h = Math.max(220, m.offsetHeight - over - 2);
+    m.style.height = h + 'px';
+    m.style.width = h * ratio + 'px';
+  };
+  addEventListener('resize', () => { if (current) fit(current); });
+
   const open = (id: string, el: HTMLElement | null) => {
     const s = document.getElementById('sheet-' + id);
     if (!s) return;
@@ -413,6 +432,7 @@ const markers = [
     veil.hidden = false;
     s.hidden = false;
     requestAnimationFrame(() => { s.classList.add('open'); veil.classList.add('open'); });
+    fit(s);
     words(s);
     s.querySelectorAll<HTMLElement>('.rz').forEach((b) => resolve(b));
     s.querySelector<HTMLVideoElement>('video')?.play().catch(() => {});
