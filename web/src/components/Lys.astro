@@ -275,7 +275,12 @@ const skyWords = lang === 'nb'
   }
   .lys.ready .lys-read { opacity: 1; }
   /* Climbing, the readout is an altimeter and nothing to click. */
-  .lys[data-mode='climb'] .lys-read { pointer-events: none; bottom: clamp(24px, 4vh, 40px); }
+  .lys[data-mode='climb'] .lys-read { pointer-events: none; bottom: var(--foot); }
+  /* The canvas is the LARGE viewport, so on a phone its bottom edge sits under
+     the browser's toolbar. The controls measure from what is visible instead:
+     `--gap` is how much of the canvas the toolbar covers (set from script),
+     plus room for the home bar, never less than a thumb's margin. */
+  .lys[data-mode='climb'] { --foot: calc(var(--gap, 0px) + max(32px, calc(env(safe-area-inset-bottom, 0px) + 20px))); }
   .lys-alt { color: var(--fg1); min-width: 6ch; text-align: right; font-variant-numeric: tabular-nums; }
   /* The canvas holds the large viewport, so a phone's address bar sliding
      away does not resize it mid-scroll. */
@@ -308,7 +313,7 @@ const skyWords = lang === 'nb'
     transition: opacity 900ms linear 1400ms, border-color 160ms linear, color 160ms linear;
   }
   .lys.ready .lys-sky { opacity: 1; }
-  .lys[data-mode='climb'] .lys-sky { bottom: calc(clamp(24px, 4vh, 40px) + 54px); }
+  .lys[data-mode='climb'] .lys-sky { bottom: calc(var(--foot) + 58px); }
   .lys-sky:hover,
   .lys-sky:focus-visible { border-color: var(--signal); outline: none; }
   .lys-sky:hover .lys-sky-ic,
@@ -346,7 +351,7 @@ const skyWords = lang === 'nb'
   .lys[data-mode='climb'] .lys-dial {
     left: auto;
     width: clamp(160px, 20vw, 260px);
-    bottom: calc(clamp(24px, 4vh, 40px) + 30px);
+    bottom: calc(var(--foot) + 30px);
     background: rgba(255, 255, 255, 0.36);
   }
   .lys[data-mode='climb'].away .lys-read { pointer-events: auto; }
@@ -1180,6 +1185,10 @@ const skyWords = lang === 'nb'
     };
     resize();
     let lastW = innerWidth;
+    /* How much of the (large-viewport) canvas the browser's toolbar hides. */
+    const gap = () => root.style.setProperty('--gap', Math.max(0, root.clientHeight - innerHeight).toFixed(0) + 'px');
+    gap();
+    addEventListener('resize', gap);
     addEventListener('resize', () => {
       /* A phone's address bar changes the height by a toolbar's worth on every
          scroll direction change; redrawing a full-screen ray-march for that is
