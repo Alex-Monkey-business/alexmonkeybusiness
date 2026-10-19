@@ -1308,7 +1308,7 @@ const skyWords = lang === 'nb'
       /* Routes. */
       let busy = Math.abs(target - offset) > 0.01 || Math.abs(pushT - push) > 0.002;
       if (climb) {
-        uS += (uT - uS) * (still ? 1 : 1 - Math.exp(-dt * 6));
+        uS += (uT - uS) * (still ? 1 : 1 - Math.exp(-dt * 9));
         if (Math.abs(uT - uS) < 0.002) uS = uT;
         else busy = true;
       }
@@ -1356,11 +1356,13 @@ const skyWords = lang === 'nb'
         cam = c;
         /* The line runs ahead of the camera, up to where it is looking: drawn
            only behind it, nobody would ever see it. */
-        const fc = uS <= 1 ? 0 : clamp01((uS - 1) / Math.max(1, keys3.length - 2));
-        rState[0].prog = uS <= 1 ? 0.4 * uS : Math.min(1, fc + 0.4);
+        /* Paced so the first point lights early (Alex: «litt treg»): the line
+           is at the top a little past halfway. */
+        const last = keys3.length - 1;
+        rState[0].prog = Math.min(1, uS / Math.max(1, last - 1.8));
         rState[0].k = 0.95;
-        /* The other side is drawn on the last stretch, into the top. */
-        rState[1].prog = clamp01(uS - (keys3.length - 2));
+        /* The other side is drawn from halfway, into the top. */
+        rState[1].prog = clamp01((uS - last * 0.45) / (last * 0.4));
         rState[1].k = rState[1].prog > 0 ? 0.95 : 0;
         if (altEl) {
           const i = Math.min(keys3.length - 2, Math.floor(uS));
@@ -1532,7 +1534,11 @@ const skyWords = lang === 'nb'
           }
           const q = proj(P);
           const V = q && onRidge(P, cam);
-          const qv = V && proj(V);
+          let qv = V && proj(V);
+          /* Snapped to the crest that hides it only when that crest is right
+             there on screen; a jump of more than a few pixels is another
+             ridge in front, and the line goes dotted instead of spiking. */
+          if (qv && q && V !== P && Math.hypot(qv[0] - q[0], qv[1] - q[1]) > 7) qv = null;
           if (qv) {
             if (hid) { dh += 'L' + xy(qv); hid = false; }
             d += (pen ? 'L' : 'M') + xy(qv); pen = true; last = qv;
