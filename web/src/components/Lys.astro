@@ -96,6 +96,24 @@ const skyWords = lang === 'nb'
       <path d="M14.6 7.6a2.7 2.7 0 0 1 5.3 -0.8" stroke="#2c2f2a" stroke-width="2.6"/>
       <path d="M17.4 8.2l2.4 0.2" stroke="#e0782c" stroke-width="1.4"/>
     </svg>
+    <svg class="c-air" viewBox="0 -4 24 36" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M1 26.2L19.6 26.2Q22 26.2 22.4 24.2" stroke="#2b2b2b" stroke-width="2.4"/>
+      <path d="M1.6 26.2L19.2 26.2" stroke="#e2b84a" stroke-width="0.7"/>
+      <path d="M3 31.4L21.4 31.4Q23.8 31.4 24 29.4" stroke="#2b2b2b" stroke-width="2.4"/>
+      <path d="M3.6 31.4L21 31.4" stroke="#e2b84a" stroke-width="0.7"/>
+      <path d="M10.4 18.6L15.6 20.4L11.6 25.4" stroke="#3a3d36" stroke-width="3.8"/>
+      <path d="M11.4 19.2L17.4 23.6L13.8 30.4" stroke="#4a4e45" stroke-width="3.8"/>
+      <path d="M10.6 25.2l2.6 0M12.8 30.2l2.6 0" stroke="#151614" stroke-width="2.3"/>
+      <path d="M10.6 19.6L14 10.6" stroke="#b39a6b" stroke-width="6.2"/>
+      <path d="M12.6 18.8L15.6 11" stroke="#d6c08f" stroke-width="1.6"/>
+      <path d="M13.6 12L9.6 13.6L6.8 12.2" stroke="#a68c5e" stroke-width="2.6"/>
+      <path d="M15 12.4L18.6 11.2L21 9.4" stroke="#a68c5e" stroke-width="2.6"/>
+      <path d="M6.6 12l0.01 0M21.2 9.2l0.01 0" stroke="#1b1c1a" stroke-width="2.4"/>
+      <path d="M6.6 12L1.6 20.4M21.2 9.2L23.6 19" stroke="#8d939b" stroke-width="0.9"/>
+      <circle cx="15.8" cy="6.8" r="2.4" fill="#e6c3a5"/>
+      <path d="M13.2 6.8a2.7 2.7 0 0 1 5.3 -0.8" stroke="#2c2f2a" stroke-width="2.6"/>
+      <path d="M16 7.4l2.4 0.2" stroke="#e0782c" stroke-width="1.4"/>
+    </svg>
     </div>
   )}
   <svg class="lys-route" aria-hidden="true">
@@ -193,10 +211,9 @@ const skyWords = lang === 'nb'
   .lys-climber .c-ski {
     display: none;
     transform-origin: 50% 62%;
-    /* Rotate first (the slope, the cork's off-axis roll), then scale x by
-       the spin: a body turning round its own length reads as a body getting
-       thin and wide again, and its facing swaps half way. */
-    transform: translateY(var(--lift, 0px)) rotate(calc(var(--tilt, 0deg) + var(--flip, 0deg))) scaleX(calc(var(--face, 1) * var(--spin, 1)));
+    /* A cork was tried: on a flat figure the spin read as a figure getting
+       thin, not a cork. A backflip turns in the picture's own plane. */
+    transform: scaleX(var(--face, 1)) translateY(var(--lift, 0px)) rotate(calc(var(--tilt, 0deg) + var(--flip, 0deg)));
   }
   /* Snow thrown off the skis: puffs left where he was, drifting back and
      up, fading. Only while he moves. */
@@ -214,6 +231,14 @@ const skyWords = lang === 'nb'
     filter: brightness(var(--lit, 1)) blur(0.6px);
   }
   .lys-climber.ski .c-ski { display: block; }
+  /* In the air: knees up, the skis a little apart — freeride, not gymnastics. */
+  .lys-climber .c-air {
+    display: none;
+    transform-origin: 50% 62%;
+    transform: scaleX(var(--face, 1)) translateY(var(--lift, 0px)) rotate(calc(var(--tilt, 0deg) + var(--flip, 0deg)));
+  }
+  .lys-climber.ski.air .c-air { display: block; }
+  .lys-climber.ski.air .c-ski { display: none; }
   .lys-climber.ski .c-up { display: none; }
   @media (min-width: 900px) { .lys-climber { width: 27px; height: 40px; margin: -37px 0 0 -13.5px; } }
   .lys.ready .lys-climber.on { opacity: 1; }
@@ -1731,17 +1756,14 @@ const skyWords = lang === 'nb'
             climber.style.setProperty('--tilt', (sk ? tilt : 0).toFixed(1) + 'deg');
           }
         }
-        /* The little cliff just under the top: a cork off it — driven by the scroll
+        /* The little cliff just under the top: a backflip off it — driven by the scroll
            like everything else, so a slow scroll is a slow-motion flip. */
         const fl = sk ? clamp01((rState[1].prog - 0.05) / 0.14) : 0;
         const air = fl > 0 && fl < 1;
         const fk = fl * fl * (3 - 2 * fl);
-        /* A cork 720: two turns round the body's length on an axis tipped
-           off the vertical, so it rolls out and back as it spins. */
-        const spin = Math.cos(fk * Math.PI * 4);
-        climber.style.setProperty('--spin', (Math.sign(spin || 1) * Math.max(0.14, Math.abs(spin))).toFixed(3));
-        climber.style.setProperty('--flip', (-62 * Math.sin(Math.PI * fl) * (h?.before && h.last && h.last[0] < h.before[0] ? -1 : 1)).toFixed(1) + 'deg');
+        climber.style.setProperty('--flip', (-360 * fk).toFixed(1) + 'deg');
         climber.style.setProperty('--lift', (-30 * Math.sin(Math.PI * fl)).toFixed(1) + 'px');
+        climber.classList.toggle('air', air && fl > 0.08 && fl < 0.92);
         climber.classList.toggle('hint', uS < 0.02 && !still);
         if (sk && walking && !air && h?.last && h.before) spray(h.last, h.before, performance.now());
       }
