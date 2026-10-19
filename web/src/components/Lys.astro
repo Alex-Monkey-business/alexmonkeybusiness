@@ -1455,22 +1455,31 @@ const skyWords = lang === 'nb'
     const blocker = (P: number[], cam: number[]) => {
       const d = [cam[0] - P[0], cam[1] - P[1], cam[2] - P[2]];
       const L = Math.hypot(d[0], d[1], d[2]);
-      for (let s = 18; s < Math.min(L, 7000); s *= 1.07) {
+      /* Steps no longer than a few cells of the height grid, so a thin
+         ridge in between is never stepped over (a growing step did, and the
+         line showed through the rock). */
+      const end = Math.min(L, 7000);
+      for (let s = 12; s < end; s += Math.min(24, Math.max(6, s * 0.04))) {
         const x = P[0] + (d[0] / L) * s, y = P[1] + (d[1] / L) * s, z = P[2] + (d[2] / L) * s;
         if (z > 4490) return null;
         const g = groundAt(x, y);
-        if (g > z + 5) return { s, at: [x, y, g] };
+        if (g > z + 4) return { s, at: [x, y, g] };
       }
       return null;
     };
     const seen = (P: number[], cam: number[]) => !blocker(P, cam);
     /* The traced line can sit a few metres off the true crest, on the far
-       side of it. Hidden by its own ridge — rock within 150 m — it is drawn on
+       side of it. Hidden by its own ridge — rock within 60 m — it is drawn on
        the crest that hides it, which is the skyline the eye reads as the
        ridge. Hidden by another ridge, it is hidden. */
     const onRidge = (P: number[], cam: number[]) => {
       const b = blocker(P, cam);
-      return !b ? P : b.s < 150 ? b.at : null;
+      if (!b) return P;
+      if (b.s >= 60) return null;
+      /* The crest it snaps to must itself be in sight; otherwise the snap
+         puts the line on rock behind the mountain, seen through it. */
+      const Q = [b.at[0], b.at[1], b.at[2] + 3];
+      return seen(Q, cam) ? Q : null;
     };
     const pointOn = (key: string, f: number) => {
       const pts = R[key];
