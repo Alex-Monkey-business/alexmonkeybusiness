@@ -57,7 +57,7 @@ const skyWords = lang === 'nb'
     <div class="lys-climber" aria-hidden="true">
       {/* The climber: at the head of the line on the Hörnligrat, walking
           only while the page scrolls. */}
-    <svg class="c-up" viewBox="0 -4 24 36" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <svg class="c-up" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <ellipse cx="11.5" cy="30.6" rx="6.5" ry="1.3" fill="#000" opacity="0.35"/>
       <path d="M7.2 17.4L3.6 -2.6M8.8 17L6.6 -3.2" stroke="#2b2b2b" stroke-width="2.1"/>
       <path d="M7.2 17.4L3.6 -2.6M8.8 17L6.6 -3.2" stroke="#e2b84a" stroke-width="0.7"/>
@@ -71,15 +71,16 @@ const skyWords = lang === 'nb'
       <path d="M10.8 20L12.8 9" stroke="#b39a6b" stroke-width="6"/>
       <path d="M13 18.8L14.6 9.8" stroke="#d6c08f" stroke-width="1.6"/>
       <path d="M10.4 15.4l2.8 0.5" stroke="#2a2f39" stroke-width="1"/>
-      <path d="M17 13L19.6 22.5" stroke="#9aa1aa" stroke-width="1.1"><animate attributeName="d" values="M17 13L19.6 22.5;M9 14.5L11.6 24.0;M17 13L19.6 22.5" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-      <path d="M12.6 9.5L14.4 12.8L17 14" stroke="#a68c5e" stroke-width="2.6"><animate attributeName="d" values="M12.6 9.5L14.4 12.8L17 14;M12.6 9.5L10.4 13.5L9 15.5;M12.6 9.5L14.4 12.8L17 14" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-      <path d="M17 14l0.01 0" stroke="#1b1c20" stroke-width="2.2"><animate attributeName="d" values="M17 14l0.01 0;M9 15.5l0.01 0;M17 14l0.01 0" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+      <path class="hand" d="M17 13L19.6 22.5" stroke="#9aa1aa" stroke-width="1.1"><animate attributeName="d" values="M17 13L19.6 22.5;M9 14.5L11.6 24.0;M17 13L19.6 22.5" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+      <path class="hand" d="M12.6 9.5L14.4 12.8L17 14" stroke="#a68c5e" stroke-width="2.6"><animate attributeName="d" values="M12.6 9.5L14.4 12.8L17 14;M12.6 9.5L10.4 13.5L9 15.5;M12.6 9.5L14.4 12.8L17 14" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
+      <path class="hand" d="M17 14l0.01 0" stroke="#1b1c20" stroke-width="2.2"><animate attributeName="d" values="M17 14l0.01 0;M9 15.5l0.01 0;M17 14l0.01 0" dur="1.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
       <circle cx="14" cy="4.6" r="2.4" fill="#e6c3a5"/>
       <path d="M11.4 4.6a2.7 2.7 0 0 1 5.3 -0.8" stroke="#2c2f2a" stroke-width="2.6"/>
       <path d="M14.4 5.2l2.4 0.1" stroke="#e0782c" stroke-width="1.4"/>
       <path d="M12.3 6.2a2.4 2.4 0 0 0 1.8 0.8" stroke="#b58f73" stroke-width="0.8"/>
+      <g class="pt" style="transform-origin: 12.6px 9.5px"><path d="M12.6 9.5L21.4 9.5" stroke="#a68c5e" stroke-width="2.8"/><path d="M21.8 9.5l0.01 0" stroke="#1b1c20" stroke-width="2.6"/><path d="M22.8 9.5l2 0" stroke="#e6c3a5" stroke-width="1.1"/></g>
     </svg>
-<svg class="c-ski" viewBox="0 -4 24 36" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<svg class="c-ski" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <ellipse cx="12" cy="31" rx="9.5" ry="1.3" fill="#000" opacity="0.3"/>
       <path d="M0.5 30L21 30Q23.4 30 23.8 27.8" stroke="#2b2b2b" stroke-width="2.4"/>
       <path d="M1.2 30L20.6 30" stroke="#e2b84a" stroke-width="0.7"/>
@@ -89,12 +90,13 @@ const skyWords = lang === 'nb'
       <path d="M10.4 28.6l2.6 0M13 28.2l2.6 0" stroke="#151614" stroke-width="2.3"/>
       <path d="M10.6 20.4L15 11" stroke="#b39a6b" stroke-width="6.2"/>
       <path d="M12.8 19.4L16.6 11.4" stroke="#d6c08f" stroke-width="1.6"/>
-      <path d="M15 12L18 15.8L18.6 18.6" stroke="#a68c5e" stroke-width="2.6"/>
-      <path d="M18.6 18.8l0.01 0" stroke="#1b1c1a" stroke-width="2.4"/>
-      <path d="M19.2 18L9.6 29" stroke="#8d939b" stroke-width="0.9"/>
+      <path class="hand" d="M15 12L18 15.8L18.6 18.6" stroke="#a68c5e" stroke-width="2.6"/>
+      <path class="hand" d="M18.6 18.8l0.01 0" stroke="#1b1c1a" stroke-width="2.4"/>
+      <path class="hand" d="M19.2 18L9.6 29" stroke="#8d939b" stroke-width="0.9"/>
       <circle cx="17.2" cy="7.6" r="2.4" fill="#e6c3a5"/>
       <path d="M14.6 7.6a2.7 2.7 0 0 1 5.3 -0.8" stroke="#2c2f2a" stroke-width="2.6"/>
       <path d="M17.4 8.2l2.4 0.2" stroke="#e0782c" stroke-width="1.4"/>
+      <g class="pt" style="transform-origin: 15px 12px"><path d="M15 12L23.8 12" stroke="#a68c5e" stroke-width="2.8"/><path d="M24.2 12l0.01 0" stroke="#1b1c1a" stroke-width="2.6"/><path d="M25.2 12l2 0" stroke="#e6c3a5" stroke-width="1.1"/></g>
     </svg>
     <svg class="c-air" viewBox="0 -4 24 36" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M1 26.2L19.6 26.2Q22 26.2 22.4 24.2" stroke="#2b2b2b" stroke-width="2.4"/>
@@ -238,6 +240,10 @@ const skyWords = lang === 'nb'
     transform: scaleX(var(--face, 1)) translateY(var(--lift, 0px)) rotate(calc(var(--tilt, 0deg) + var(--flip, 0deg)));
   }
   .lys-climber.ski.air .c-air { display: block; }
+  /* Paused by a point, he turns to it and points: the arm swings to aim. */
+  .lys-climber .pt { display: none; transform: rotate(var(--aim, -20deg)); transition: transform 300ms ease-out; }
+  .lys-climber.point .pt { display: inline; }
+  .lys-climber.point .hand { display: none; }
   .lys-climber.ski.air .c-ski { display: none; }
   .lys-climber.ski .c-up { display: none; }
   @media (min-width: 900px) { .lys-climber { width: 27px; height: 40px; margin: -37px 0 0 -13.5px; } }
@@ -1623,10 +1629,13 @@ const skyWords = lang === 'nb'
       }
     }
     /* The legs move only while the page does. */
+    let stoppedAt = 0;
     function walk(on: boolean) {
       if (!climberSvg || on === walking) return;
       walking = on;
       if (on) climberSvg.unpauseAnimations(); else climberSvg.pauseAnimations();
+      /* Stopped: in a moment he may turn and point; draw once more then. */
+      if (!on) { stoppedAt = performance.now(); setTimeout(kick, 420); }
     }
     /* The first rock between a point and the camera: null when the view is
        clear, else where the ray first hits. */
@@ -1776,6 +1785,7 @@ const skyWords = lang === 'nb'
 
       /* The points, with the same camera and the same line of sight. */
       let newest: HTMLElement | null = null;
+      const seenMarks: number[][] = [];
       for (const m of marks) {
         const P = m.route === 'top' ? [0, 0, 4478 + 6] : pointOn(m.route, m.f);
         const st = m.route === 'top' ? null : rState[keys.indexOf(m.route)];
@@ -1783,6 +1793,7 @@ const skyWords = lang === 'nb'
         const lit = climb && (m.route === 'top' || (!!st && st.k > 0.01 && st.prog >= reach));
         const s2 = lit && seen(P, cam) ? proj(P) : null;
         const on = !!s2 && s2[0] > 6 && s2[0] < W - 6 && s2[1] > 6 && s2[1] < Hh - 6;
+        if (on && s2 && m.route !== 'top') seenMarks.push(s2);
         if (s2) {
           m.el.style.transform = `translate(${s2[0].toFixed(1)}px, ${s2[1].toFixed(1)}px)`;
           /* A name that would run off the screen — a phone, a ridge near the
@@ -1812,6 +1823,28 @@ const skyWords = lang === 'nb'
         if (on && m.route !== 'top') newest = m.el;
       }
       for (const m of marks) m.el.classList.toggle('now', m.el === newest || (m.route === 'top' && m.el.classList.contains('on')));
+      /* A pause by a point: stopped for a moment, not in the air, a lit point
+         close by on screen — he turns to it and points. */
+      if (climber) {
+        const t = climber.style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
+        let aim: number[] | null = null;
+        if (t && !walking && performance.now() - stoppedAt > 380 && !climber.classList.contains('air') && climber.classList.contains('on')) {
+          const cx = Number(t[1]), cy = Number(t[2]) - 22;
+          let best = 230;
+          for (const q of seenMarks) {
+            const d = Math.hypot(q[0] - cx, q[1] - cy);
+            if (d < best) { best = d; aim = [q[0] - cx, q[1] - cy]; }
+          }
+        }
+        climber.classList.toggle('point', !!aim);
+        if (aim) {
+          const face = aim[0] < 0 ? -1 : 1;
+          climber.style.setProperty('--face', String(face));
+          climber.style.setProperty('--tilt', '0deg');
+          const deg = (Math.atan2(aim[1], Math.abs(aim[0])) * 180) / Math.PI;
+          climber.style.setProperty('--aim', Math.max(-75, Math.min(35, deg)).toFixed(1) + 'deg');
+        }
+      }
       /* Two names on top of each other read as neither. The summit wins, then
          the newest point; the other keeps its dot and drops its name. */
       const rank = (m: (typeof marks)[number]) => (m.route === 'top' ? 2 : m.el === newest ? 1 : 0);
