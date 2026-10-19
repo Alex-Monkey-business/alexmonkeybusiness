@@ -1717,9 +1717,9 @@ const skyWords = lang === 'nb'
       if (++puffs % 2 === 0) puff(x0, y0 - 2, bx * 12 * k, by * 12 * k - 5, 0.5 + Math.random() * 0.5, 1000 + Math.random() * 500, true);
     }
     /* Landing the flip: snow thrown out on both sides, and a cloud. */
-    function burst(at: number[]) {
+    function burst(at: number[], amount = 1) {
       if (still) return;
-      for (let n = 0; n < 26; n++) {
+      for (let n = 0; n < 26 * amount; n++) {
         const side = n % 2 ? 1 : -1, d = 8 + Math.random() * 30, up = 8 + Math.random() * 24;
         puff(at[0] + side * 4, at[1] - 1, side * d, -up, 0.14 + Math.random() * 0.26, 450 + Math.random() * 350);
       }
@@ -1859,8 +1859,32 @@ const skyWords = lang === 'nb'
         /* Behind the mountain on the way down, he is out of sight. */
         climber.classList.toggle('on', !!h?.last && (sk || (!descending && !!up?.last)));
         climber.classList.toggle('ski', !!sk);
-        if (h?.last) {
-          climber.style.transform = `translate(${h.last[0].toFixed(1)}px, ${h.last[1].toFixed(1)}px)`;
+        /* The little cliff just under the top, as a jump: from the lip he
+           leaves the line and flies a real arc — up first, well clear of the
+           rock — over to where the line lands, further down. The flip turns
+           in the middle of the flight and is done before he comes down, so
+           he lands looking at his landing. All driven by the scroll: a slow
+           scroll is a slow-motion jump. */
+        const LIP = 0.04, LAND = 0.22;
+        const fl = sk ? clamp01((rState[1].prog - LIP) / (LAND - LIP)) : 0;
+        const air = fl > 0 && fl < 1;
+        let flight: number[] | null = null;
+        if (air) {
+          const A = proj(pointOn('zmuttgrat', 1 - LIP)), B = proj(pointOn('zmuttgrat', 1 - LAND));
+          if (A && B) {
+            const span = Math.hypot(B[0] - A[0], B[1] - A[1]);
+            const hi = Math.min(60 + span * 0.6, 190, Hh * 0.25);
+            /* Out from the face as well as up: away from the summit's side. */
+            const top = proj([0, 0, 4478]);
+            const out = (top && A[0] < top[0] ? -1 : 1) * Math.min(70, W * 0.08);
+            flight = [A[0] + (B[0] - A[0]) * fl + out * Math.sin(Math.PI * fl), A[1] + (B[1] - A[1]) * fl - hi * 4 * fl * (1 - fl)];
+            climber.style.setProperty('--face', B[0] < A[0] ? '-1' : '1');
+            climber.style.setProperty('--tilt', '0deg');
+          }
+        }
+        const at = flight ?? h?.last;
+        if (at) climber.style.transform = `translate(${at[0].toFixed(1)}px, ${at[1].toFixed(1)}px)`;
+        if (h?.last && !flight) {
           if (h.before) {
             const dx = h.last[0] - h.before[0], dy = h.last[1] - h.before[1];
             const face = dx < 0 ? -1 : 1;
@@ -1871,12 +1895,14 @@ const skyWords = lang === 'nb'
         }
         /* The little cliff just under the top: a backflip off it — driven by the scroll
            like everything else, so a slow scroll is a slow-motion flip. */
-        const fl = sk ? clamp01((rState[1].prog - 0.05) / 0.14) : 0;
-        const air = fl > 0 && fl < 1;
-        const fk = fl * fl * (3 - 2 * fl);
-        climber.style.setProperty('--flip', (-360 * fk).toFixed(1) + 'deg');
-        climber.style.setProperty('--lift', (-30 * Math.sin(Math.PI * fl)).toFixed(1) + 'px');
-        climber.classList.toggle('air', air && fl > 0.08 && fl < 0.92);
+        /* Pop and a slight lean back off the lip, the rotation through the
+           top of the arc, then upright for the last third: spotting it. */
+        const rk = clamp01((fl - 0.14) / 0.56);
+        const fk = rk * rk * (3 - 2 * rk);
+        const pop = air ? 10 * Math.sin(Math.PI * clamp01(fl / 0.14)) * (fl < 0.14 ? 1 : 0) - 8 * Math.sin(Math.PI * clamp01((fl - 0.72) / 0.28)) : 0;
+        climber.style.setProperty('--flip', (-360 * fk - pop).toFixed(1) + 'deg');
+        climber.style.setProperty('--lift', '0px');
+        climber.classList.toggle('air', air && fl > 0.1 && fl < 0.82);
         climber.classList.toggle('hint', uS < 0.02 && !still);
         const t = performance.now();
         /* How fast he goes, and how fast the line under him bends. */
@@ -1893,6 +1919,7 @@ const skyWords = lang === 'nb'
         if (sk) {
           const going = walking && !air && speed > 4;
           if (wasAir && fl >= 1 && h?.last) { burst(h.last); landAt = t; setTimeout(kick, 380); }
+          if (!wasAir && air && fl < 0.2) { const A = proj(pointOn('zmuttgrat', 1 - LIP)); if (A) burst(A, 0.5); }
           wasAir = air;
           const landing = t - landAt < 340;
           /* Low when fast, lower through a change of slope, lowest on landing. */
