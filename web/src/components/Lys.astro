@@ -53,8 +53,8 @@ const skyWords = lang === 'nb'
        broken wherever nearer rock stands in front. See the script. -->
   <span class="lys-meteor" aria-hidden="true"></span>
   <svg class="lys-route" aria-hidden="true">
-    <path class="lys-hid" /><path class="lys-glow" /><path class="lys-line" /><circle class="lys-tip" r="3" />
-    <path class="lys-hid" /><path class="lys-glow" /><path class="lys-line" /><circle class="lys-tip" r="3" />
+    <path class="lys-glow" /><path class="lys-line" /><circle class="lys-tip" r="3" />
+    <path class="lys-glow" /><path class="lys-line" /><circle class="lys-tip" r="3" />
   </svg>
   <img class="lys-fallback" src="/hero/matterhorn-still.webp" alt="" width="2400" height="1350" decoding="async" loading="lazy" />
   <!-- What `OneScreen` toggles. Never drawn; read by the script below. -->
@@ -146,8 +146,7 @@ const skyWords = lang === 'nb'
     overflow: visible;
   }
   .lys-line,
-  .lys-glow,
-  .lys-hid {
+  .lys-glow {
     fill: none;
     stroke: var(--signal);
     stroke-linecap: round;
@@ -155,9 +154,6 @@ const skyWords = lang === 'nb'
   }
   .lys-line { stroke-width: 1.6; }
   .lys-glow { stroke-width: 7; opacity: 0.16; }
-  /* Where the ridge goes behind nearer rock, the route carries on dotted,
-     as on a topo — the line never just stops. */
-  .lys-hid { stroke-width: 1.2; stroke-dasharray: 1 5; opacity: 0.45; }
   .lys-tip { fill: var(--signal); }
 
   /* THE POINTS: the menu, hung on the routes. A dot on the rock, a hairline
@@ -1454,7 +1450,6 @@ const skyWords = lang === 'nb'
     const lines = [...svg.querySelectorAll<SVGPathElement>('.lys-line')];
     const glows = [...svg.querySelectorAll<SVGPathElement>('.lys-glow')];
     const tips = [...svg.querySelectorAll<SVGCircleElement>('.lys-tip')];
-    const hids = [...svg.querySelectorAll<SVGPathElement>('.lys-hid')];
     /* The first rock between a point and the camera: null when the view is
        clear, else where the ray first hits. */
     const blocker = (P: number[], cam: number[]) => {
@@ -1518,11 +1513,11 @@ const skyWords = lang === 'nb'
       keys.forEach((key, r) => {
         const st = rState[r];
         if (st.k < 0.004 || st.prog <= 0) {
-          lines[r].setAttribute('d', ''); glows[r].setAttribute('d', ''); hids[r].setAttribute('d', ''); tips[r].style.opacity = '0';
+          lines[r].setAttribute('d', ''); glows[r].setAttribute('d', ''); tips[r].style.opacity = '0';
           return;
         }
         const pts = R[key];
-        let d = '', dh = '', pen = false, hid = false, last: number[] | null = null, prev: number[] | null = null;
+        let d = '', pen = false, last: number[] | null = null;
         const xy = (q: number[]) => q[0].toFixed(1) + ' ' + q[1].toFixed(1);
         for (let i = 0; i < pts.length; i++) {
           let P = [pts[i][0], pts[i][1], pts[i][2] + 2];
@@ -1537,22 +1532,15 @@ const skyWords = lang === 'nb'
           let qv = V && proj(V);
           /* Snapped to the crest that hides it only when that crest is right
              there on screen; a jump of more than a few pixels is another
-             ridge in front, and the line goes dotted instead of spiking. */
+             ridge in front, and the line is hidden there instead of spiking.
+             (A dotted line through the rock was tried: it read as a bug.) */
           if (qv && q && V !== P && Math.hypot(qv[0] - q[0], qv[1] - q[1]) > 7) qv = null;
-          if (qv) {
-            if (hid) { dh += 'L' + xy(qv); hid = false; }
-            d += (pen ? 'L' : 'M') + xy(qv); pen = true; last = qv;
-          } else if (q) {
-            if (!hid) { dh += 'M' + xy(prev ?? q); hid = true; }
-            dh += 'L' + xy(q); pen = false;
-          } else { pen = false; hid = false; }
-          prev = qv || q;
+          if (qv) { d += (pen ? 'L' : 'M') + xy(qv); pen = true; last = qv; }
+          else pen = false;
           if (f > st.prog) break;
         }
         lines[r].setAttribute('d', d);
         glows[r].setAttribute('d', d);
-        hids[r].setAttribute('d', dh);
-        hids[r].style.opacity = String(0.45 * Math.min(1, st.k));
         lines[r].style.opacity = String(Math.min(1, st.k));
         glows[r].style.opacity = String(0.16 * Math.min(1, st.k));
         const climbing = st.prog < 0.999 && last;
