@@ -107,9 +107,9 @@ const skyWords = lang === 'nb'
       <path d="M10.6 19.6L14 10.6" stroke="#b39a6b" stroke-width="6.2"/>
       <path d="M12.6 18.8L15.6 11" stroke="#d6c08f" stroke-width="1.6"/>
       <path d="M13.6 12L9.6 13.6L6.8 12.2" stroke="#a68c5e" stroke-width="2.6"/>
-      <path d="M15 12.4L18.6 11.2L21 9.4" stroke="#a68c5e" stroke-width="2.6"/>
-      <path d="M6.6 12l0.01 0M21.2 9.2l0.01 0" stroke="#1b1c1a" stroke-width="2.4"/>
-      <path d="M6.6 12L1.6 20.4M21.2 9.2L23.6 19" stroke="#8d939b" stroke-width="0.9"/>
+      <path d="M15 12.4L17.6 17.6L16.4 25.4" stroke="#a68c5e" stroke-width="2.6"/>
+      <path d="M6.6 12l0.01 0M16.4 25.6l0.01 0" stroke="#1b1c1a" stroke-width="2.4"/>
+      <path d="M6.6 12L1.6 20.4M16.4 25.4L22.8 21.6" stroke="#8d939b" stroke-width="0.9"/>
       <circle cx="15.8" cy="6.8" r="2.4" fill="#e6c3a5"/>
       <path d="M13.2 6.8a2.7 2.7 0 0 1 5.3 -0.8" stroke="#2c2f2a" stroke-width="2.6"/>
       <path d="M16 7.4l2.4 0.2" stroke="#e0782c" stroke-width="1.4"/>
@@ -139,7 +139,7 @@ const skyWords = lang === 'nb'
         tabindex={m.open === false ? -1 : undefined}
         aria-hidden={m.open === false ? 'true' : undefined}
       >
-        <span class="mk-dot"></span><span class="mk-lead"></span><span class="mk-label">{m.n && <span class="mk-n">{m.n}</span>}{m.label}</span>
+        <span class="mk-dot"></span><span class="mk-lead"></span><span class="mk-label">{m.n && <span class="mk-n">{m.n}</span>}{m.label}{m.open !== false && <span class="mk-go" aria-hidden="true">→</span>}</span>
       </button>
     ))}
   </div>
@@ -346,6 +346,11 @@ const skyWords = lang === 'nb'
     opacity: 0;
   }
   .mk.pulse .mk-dot::after { animation: mk-pulse 1400ms cubic-bezier(0.16, 1, 0.3, 1) 2; }
+  /* Until a point has been opened once, the newest one keeps breathing, and
+     every name ends in the arrow the sheets' own links use: these open. */
+  .lys:not(.opened) .mk.on.now .mk-dot::after { animation: mk-pulse 1400ms cubic-bezier(0.16, 1, 0.3, 1) 600ms infinite; }
+  .mk-go { color: var(--signal); margin-left: 0.7em; display: inline-block; transition: transform 200ms var(--ease-out, ease-out); }
+  .mk:hover .mk-go, .mk:focus-visible .mk-go { transform: translateX(3px); }
   @keyframes mk-pulse {
     0% { transform: scale(1); opacity: 0.9; }
     100% { transform: scale(5); opacity: 0; }
@@ -1676,6 +1681,7 @@ const skyWords = lang === 'nb'
     for (const m of marks) {
       m.el.addEventListener('click', () => {
         if (m.el.dataset.open === 'false') return;
+        root.classList.add('opened');
         document.dispatchEvent(new CustomEvent('lys:open', { detail: { id: m.id, from: m.el } }));
       });
     }
