@@ -25,7 +25,7 @@ export const strings = {
     /** A VERB, because the row is a button. «Ting jeg har laget» was a
         heading, and people tested on the front page read it as one — a list,
         not a thing to press (Sep 2026). Nouns label; verbs act. */
-    work: { label: 'Se hva jeg har laget' },
+    work: { label: 'Labs' },
     /** The other row on the front page, and the nav's name for /about. */
     aboutCard: { title: 'Ta', titleEm: 'kontakt' },
     card: { readCase: 'Les caset', visitSite: 'Se siden', inProgress: 'Underveis' },
@@ -105,7 +105,7 @@ export const strings = {
     },
     nav: { projects: 'Projects', about: 'Contact', cta: 'Get in touch', menu: 'Menu', close: 'Close' },
     /** A verb, because the row is a button — see the Norwegian note. */
-    work: { label: "See what I've made" },
+    work: { label: 'Labs' },
     aboutCard: { title: 'Get in', titleEm: 'touch' },
     card: { readCase: 'Read the case', visitSite: 'Visit site', inProgress: 'In progress' },
     footer: { email: 'Email', github: 'GitHub', about: 'About' },
