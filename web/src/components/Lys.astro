@@ -38,11 +38,16 @@ interface Props {
       it. One with `route: 'top'` sits on the summit from the first frame.
       Pressing one fires `lys:open` on the document with its `id`. */
   markers?: { id: string; route: 'hornligrat' | 'zmuttgrat' | 'top'; f: number; n?: string; label: string; open?: boolean }[];
+  /** The words on the light switch. */
+  lang?: 'nb' | 'en';
 }
-const { mode = 'view', markers = [] } = Astro.props;
+const { mode = 'view', markers = [], lang = 'nb' } = Astro.props;
+const skyWords = lang === 'nb'
+  ? { day: 'dag', morning: 'morgen', evening: 'kveld', dawn: 'gry', dusk: 'skumring', night: 'natt', moonrise: 'måne opp', moonset: 'måne ned', moon: 'måne', next: 'Neste lys' }
+  : { day: 'day', morning: 'morning', evening: 'evening', dawn: 'dawn', dusk: 'dusk', night: 'night', moonrise: 'moonrise', moonset: 'moonset', moon: 'moon', next: 'Next light' };
 ---
 
-<div class="sky lys" data-mode={mode} data-src="/hero/matterhorn-dem.webp" data-detail="/hero/matterhorn-detail.webp" data-ortho="/hero/matterhorn-ortho.webp" data-routes={JSON.stringify(routes)}>
+<div class="sky lys" data-sky-words={JSON.stringify(skyWords)} data-mode={mode} data-src="/hero/matterhorn-dem.webp" data-detail="/hero/matterhorn-detail.webp" data-ortho="/hero/matterhorn-ortho.webp" data-routes={JSON.stringify(routes)}>
   <canvas class="lys-gl" aria-hidden="true"></canvas>
   <!-- The routes, drawn over the picture: projected from 3D every frame, and
        broken wherever nearer rock stands in front. See the script. -->
@@ -77,6 +82,12 @@ const { mode = 'view', markers = [] } = Astro.props;
     <span class="lys-place">zermatt</span>
     <span class="lys-time">--:--</span>
     {mode === 'climb' && <span class="lys-alt">1608 m</span>}
+  </button>
+  <!-- The light switch: what the sky is doing, as an icon and a word. Press
+       it for the next light of the day. -->
+  <button class="lys-sky" type="button" aria-label={skyWords.next}>
+    <svg class="lys-sky-ic" viewBox="0 0 24 24" aria-hidden="true"></svg>
+    <span class="lys-sky-w"></span>
   </button>
   <div class="lys-dial">
     <span class="lys-rise" aria-hidden="true"></span>
@@ -257,6 +268,52 @@ const { mode = 'view', markers = [] } = Astro.props;
   .lys.away .lys-read { color: var(--signal); cursor: pointer; }
   .lys-read:focus-visible { outline: 1px solid var(--signal); outline-offset: 6px; }
 
+  /* The light switch. A pill like the points' names, sat over the readout:
+     the one control on the page that says what it does. */
+  .lys-sky {
+    position: absolute;
+    right: clamp(20px, 4vw, 56px);
+    bottom: calc(clamp(44px, 7vh, 72px) + 36px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    padding: 0 16px 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    background: rgba(8, 8, 10, 0.66);
+    color: var(--fg1);
+    font-family: var(--font-inst);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: lowercase;
+    cursor: pointer;
+    pointer-events: auto;
+    opacity: 0;
+    transition: opacity 900ms linear 1400ms, border-color 160ms linear, color 160ms linear;
+  }
+  .lys.ready .lys-sky { opacity: 1; }
+  .lys[data-mode='climb'] .lys-sky { bottom: calc(clamp(24px, 4vh, 40px) + 54px); }
+  .lys-sky:hover,
+  .lys-sky:focus-visible { border-color: var(--signal); outline: none; }
+  .lys-sky:hover .lys-sky-ic,
+  .lys-sky:focus-visible .lys-sky-ic { color: var(--signal); }
+  .lys-sky-ic {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: color 160ms linear;
+  }
+  .lys-sky-ic .f { fill: currentColor; stroke: none; }
+  .lys-sky-ic .dim { opacity: 0.45; }
+  .lys-sky-w { min-width: 8ch; text-align: left; }
+  .lys-sky:active { transform: scale(0.97); }
+
   /* The day as one hairline: sunrise and sunset as ticks, now as a dot, the
      shown minute as the signal. */
   .lys-dial {
@@ -336,7 +393,7 @@ const { mode = 'view', markers = [] } = Astro.props;
   :global(html.lys-drag *) { cursor: ew-resize !important; }
 
   @media (prefers-reduced-motion: reduce) {
-    .lys-gl, .lys-read, .lys-dial { transition: none; }
+    .lys-gl, .lys-read, .lys-dial, .lys-sky { transition: none; }
   }
 </style>
 
@@ -905,7 +962,21 @@ const { mode = 'view', markers = [] } = Astro.props;
        last midnight and runs it up to now; dragging moves the target. */
     const nowMin = zermattMinutes(new Date());
     let offset = still ? 0 : -nowMin;
-    let target = 0;
+    const minOf = (m: number) => Math.round((((m % 1440) + 1440) % 1440));
+    /* The day's lights, as minutes of today in Zermatt: first light, noon,
+       dusk (the evening minute the sun is just under the horizon — Alex's favourite,
+       and the light the page opens on), and night. */
+    const midnight = Date.now() - nowMin * 60000;
+    const altAt = (m: number) => sunAt(new Date(midnight + m * 60000)).alt / rad;
+    const crossing = (from: number, to: number, deg: number) => {
+      for (let m = from; m !== to; m += from < to ? 2 : -2) if (altAt(m) < deg !== altAt(m + (from < to ? 2 : -2)) < deg) return m;
+      return from;
+    };
+    let noon = 720;
+    for (let m = 600, best = -99; m < 900; m += 4) { const a = altAt(m); if (a > best) { best = a; noon = m; } }
+    const lights = [crossing(noon, 0, 1), noon, crossing(noon, 1438, -1), 23 * 60 + 15];
+    const DUSK = lights[2];
+    let target = DUSK - nowMin;
     /* `?t=06:40` pins the clock — for looking at one light on purpose. */
     const pin = new URLSearchParams(location.search).get('t')?.match(/^(\d{1,2}):(\d{2})$/);
     if (pin) target = Number(pin[1]) * 60 + Number(pin[2]) - nowMin;
@@ -938,9 +1009,16 @@ const { mode = 'view', markers = [] } = Astro.props;
     root.querySelector('.lys-read')!.addEventListener('click', () => { target = 0; kick(); });
     /* The slider sets the minute of today; the light follows it faster than
        it follows a click, so it feels held. */
+    /* The switch steps to the next of the day's lights, wrapping at night. */
+    const skyBtn = root.querySelector<HTMLButtonElement>('.lys-sky');
+    skyBtn?.addEventListener('click', () => {
+      const cur = minOf(target + nowMin);
+      const next = lights.find((m) => m > cur + 5) ?? lights[0];
+      target = next - nowMin;
+      kick();
+    });
     const slide = root.querySelector<HTMLInputElement>('.lys-slide');
     let sliding = false;
-    const minOf = (m: number) => Math.round((((m % 1440) + 1440) % 1440));
     slide?.addEventListener('input', () => { sliding = true; target = Number(slide.value) - nowMin; kick(); });
     slide?.addEventListener('change', () => { sliding = false; });
     slide?.addEventListener('pointerup', () => { sliding = false; });
@@ -1068,6 +1146,60 @@ const { mode = 'view', markers = [] } = Astro.props;
     let push = 0;
     const ease = (x: number) => 1 - Math.pow(1 - clamp01(x), 3);
 
+    /* ---- The light switch's face ------------------------------------------ */
+    /*
+     * The icon follows the light that is shown, not the button's last press:
+     * sun high; sun low with which way it is going; the sun under the line at
+     * dawn and dusk; at night the moon — on the horizon with its direction
+     * when it is rising or setting, as a crescent when it is up, and stars
+     * when it is down.
+     */
+    const words = JSON.parse(root.dataset.skyWords ?? '{}') as Record<string, string>;
+    const skyIc = root.querySelector<SVGSVGElement>('.lys-sky-ic');
+    const skyW = root.querySelector<HTMLElement>('.lys-sky-w');
+    const RAYS = (cy: number, n: number[], r0 = 6.5, r1 = 8.8) => n.map((a) => {
+      const t = a * rad, c = Math.cos(t), s2 = Math.sin(t);
+      return `<path d="M${(12 + c * r0).toFixed(1)} ${(cy - s2 * r0).toFixed(1)}L${(12 + c * r1).toFixed(1)} ${(cy - s2 * r1).toFixed(1)}"/>`;
+    }).join('');
+    /* Which way it is going: a small chevron in the top corner. */
+    const UP = '<path d="M17.5 5.5l2-2 2 2"/>';
+    const DOWN = '<path d="M17.5 3.5l2 2 2-2"/>';
+    const MOON = (tx: number, ty: number, k: number) =>
+      `<path vector-effect="non-scaling-stroke" transform="translate(${tx} ${ty}) scale(${k})" d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>`;
+    const LOW = `<path d="M2.5 17h19"/><path d="M8 17a4 4 0 0 1 8 0"/>${RAYS(17, [30, 90, 150], 6, 8.2)}`;
+    const TWI = '<path d="M2.5 13h19"/><path class="dim" d="M7 13a5 5 0 0 1 10 0"/><path class="dim" d="M6 17h12M9 21h6"/>';
+    const MLOW = `<path d="M2.5 19h19"/>${MOON(4.6, 3.8, 0.62)}`;
+    const ICONS: Record<string, string> = {
+      day: `<circle cx="12" cy="12" r="4"/>${RAYS(12, [0, 45, 90, 135, 180, 225, 270, 315])}`,
+      morning: LOW + UP,
+      evening: LOW + DOWN,
+      dawn: TWI + UP,
+      dusk: TWI + DOWN,
+      moon: MOON(0.5, 0.5, 0.92),
+      moonrise: MLOW + UP,
+      moonset: MLOW + DOWN,
+      night: '<path class="f" d="M8 4.5l.8 2.2 2.2.8-2.2.8L8 10.5l-.8-2.2-2.2-.8 2.2-.8z"/><path class="f" d="M16 10l1 2.8 2.8 1-2.8 1L16 17.6l-1-2.8-2.8-1 2.8-1z"/><circle class="f" cx="7.5" cy="17.5" r="1.1"/>',
+    };
+    let skyState = '';
+    const paintSky = (date: Date, sunAlt: number, moon: { alt: number }) => {
+      if (!skyIc || !skyW) return;
+      const later = new Date(date.valueOf() + 10 * 60000);
+      const rising = sunAt(later).alt / rad > sunAlt;
+      let k: string;
+      if (sunAlt > 10) k = 'day';
+      else if (sunAlt > 0) k = rising ? 'morning' : 'evening';
+      else if (sunAlt > -8) k = rising ? 'dawn' : 'dusk';
+      else {
+        const ma = moon.alt / rad;
+        const up = moonAt(later).alt / rad > ma;
+        k = ma > 6 ? 'moon' : ma > -2 ? (up ? 'moonrise' : 'moonset') : 'night';
+      }
+      if (k === skyState) return;
+      skyState = k;
+      skyIc.innerHTML = ICONS[k];
+      skyW.textContent = words[k] ?? k;
+    };
+
     const frame = (now: number) => {
       raf = 0;
       const dt = Math.min(0.1, (now - (lastFrame || now)) / 1000);
@@ -1186,6 +1318,7 @@ const { mode = 'view', markers = [] } = Astro.props;
       drawRoutes(cam, fwd, rgt, up, (portrait ? 46 : climb ? 38 : 33) * rad);
 
       timeEl.textContent = zermattClock(date);
+      paintSky(date, sun.alt / rad, moon);
       if (mark) mark.style.setProperty('--x', (((zermattMinutes(date) % 1440) + 1440) % 1440 / 1440).toFixed(4));
       if (nowDot) nowDot.style.setProperty('--x', (zermattMinutes(new Date()) / 1440).toFixed(4));
       root.classList.toggle('away', Math.abs(target) > 1);
