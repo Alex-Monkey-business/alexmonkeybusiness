@@ -946,7 +946,7 @@ const skyWords = lang === 'nb'
     float t = 30.0, tmax = 18000.0;
     bool hit = false;
     float last = 0.0;
-    for (int i = 0; i < 300; i++) {
+    for (int i = 0; i < 480; i++) {
       vec3 p = ro + rd * t;
       if (p.z > 4500.0 && rd.z > 0.0) break;
       float d = p.z - hgt(p.xy);
@@ -960,7 +960,12 @@ const skyWords = lang === 'nb'
         t = b; hit = true; break;
       }
       last = t;
-      t += max(d * 0.42, 0.5 + t * pix * 0.8);
+      /* Close over the rock, short steps: on a steep face the height above
+         it says little about how near the face is, and a long step there
+         jumps a thin crest — the silhouette frays into feathers. */
+      float st = d * 0.42;
+      if (d < 90.0) st = min(st, 2.5 + t * pix * 1.2);
+      t += max(st, d < 12.0 ? 0.3 + t * pix * 0.35 : 0.5 + t * pix * 0.8);
       if (t > tmax) break;
     }
 
@@ -1865,19 +1870,18 @@ const skyWords = lang === 'nb'
            in the middle of the flight and is done before he comes down, so
            he lands looking at his landing. All driven by the scroll: a slow
            scroll is a slow-motion jump. */
-        const LIP = 0.04, LAND = 0.22;
+        const LIP = 0.04, LAND = 0.46;
         const fl = sk ? clamp01((rState[1].prog - LIP) / (LAND - LIP)) : 0;
         const air = fl > 0 && fl < 1;
         let flight: number[] | null = null;
         if (air) {
+          /* A thrown body: steady across, a parabola up and down, landing
+             where the line already runs on the way he is going — so there
+             is nothing sideways to steer back, he just keeps going. */
           const A = proj(pointOn('zmuttgrat', 1 - LIP)), B = proj(pointOn('zmuttgrat', 1 - LAND));
           if (A && B) {
-            const span = Math.hypot(B[0] - A[0], B[1] - A[1]);
-            const hi = Math.min(60 + span * 0.6, 190, Hh * 0.25);
-            /* Out from the face as well as up: away from the summit's side. */
-            const top = proj([0, 0, 4478]);
-            const out = (top && A[0] < top[0] ? -1 : 1) * Math.min(70, W * 0.08);
-            flight = [A[0] + (B[0] - A[0]) * fl + out * Math.sin(Math.PI * fl), A[1] + (B[1] - A[1]) * fl - hi * 4 * fl * (1 - fl)];
+            const hi = Math.min(40 + Math.abs(B[1] - A[1]) * 0.22, 120, Hh * 0.16);
+            flight = [A[0] + (B[0] - A[0]) * fl, A[1] + (B[1] - A[1]) * fl * fl - hi * 4 * fl * (1 - fl) * (1 - fl * 0.5)];
             climber.style.setProperty('--face', B[0] < A[0] ? '-1' : '1');
             climber.style.setProperty('--tilt', '0deg');
           }
