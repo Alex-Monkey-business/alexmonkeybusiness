@@ -67,35 +67,9 @@ const markers = [
     <h1 class="sr-only">Alex Monkey Business</h1>
 
     <section class="wp wp-start" data-wp>
-      {/* The one instruction: a ski tourer on the skin track, and under it a
-          hairline drawing downward. No words. Gone at the first scroll. */}
-      <span class="cue-wrap" aria-hidden="true">
-        <svg class="skier" viewBox="0 0 80 60" width="96" height="72" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path class="track" d="M2 56L78 26" stroke-width="1" stroke-dasharray="1.5 4" opacity="0.5"><animate attributeName="stroke-dashoffset" values="0;11" dur="1.6s" repeatCount="indefinite"/></path>
-          <g stroke-width="1.5">
-            <path d="M37.5 22.5L33.0 43.3"><animate attributeName="d" values="M37.5 22.5L33.0 43.3;M48 22.0L53.0 35.4;M37.5 22.5L33.0 43.3" dur="1.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-            <path d="M36.7 41.0L56.2 33.3"><animate attributeName="d" values="M36.7 41.0L56.2 33.3;M26.2 45.1L45.7 37.4;M36.7 41.0L56.2 33.3" dur="1.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-            <path d="M26.2 45.1L45.7 37.4"><animate attributeName="d" values="M26.2 45.1L45.7 37.4;M36.7 41.0L56.2 33.3;M26.2 45.1L45.7 37.4" dur="1.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-          </g>
-          <g stroke-width="3">
-            <path d="M40 27L45.2 31.2L46.0 36.4"><animate attributeName="d" values="M40 27L45.2 31.2L46.0 36.4;M40 27L40.0 33.3L35.5 40.6;M40 27L45.2 31.2L46.0 36.4" dur="1.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-            <path d="M40 27L40.0 33.3L35.5 40.6"><animate attributeName="d" values="M40 27L40.0 33.3L35.5 40.6;M40 27L45.2 31.2L46.0 36.4;M40 27L40.0 33.3L35.5 40.6" dur="1.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-          </g>
-          <path d="M40.3 26.5L42.8 15" stroke-width="5"/>
-          <path d="M37.2 14.6Q39.8 13 41.6 14.4L41.6 22.4Q38.8 23.6 37.6 22.2Z" fill="currentColor" stroke-width="1"/>
-          <circle cx="44.6" cy="9.6" r="2.9" fill="currentColor" stroke="none"/>
-          <g stroke-width="2.2">
-            <path d="M42.6 15.2L44.7 20.8L48 23.5"><animate attributeName="d" values="M42.6 15.2L44.7 20.8L48 23.5;M42.6 15.2L39.4 21.0L37.5 24;M42.6 15.2L44.7 20.8L48 23.5" dur="1.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-          </g>
-          <g stroke-width="1.5">
-            <path d="M48 22.0L53.0 35.4"><animate attributeName="d" values="M48 22.0L53.0 35.4;M37.5 22.5L33.0 43.3;M48 22.0L53.0 35.4" dur="1.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-          </g>
-          <g stroke-width="2.2">
-            <path d="M42.6 15.2L39.4 21.0L37.5 24" opacity="0.85"><animate attributeName="d" values="M42.6 15.2L39.4 21.0L37.5 24;M42.6 15.2L44.7 20.8L48 23.5;M42.6 15.2L39.4 21.0L37.5 24" dur="1.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1;0.45 0 0.55 1"/></path>
-          </g>
-        </svg>
-        <span class="cue"></span>
-      </span>
+      {/* The instruction is the climber on the mountain (see Lys); this
+          hairline drawing downward only says which way. */}
+      <span class="cue-wrap" aria-hidden="true"><span class="cue"></span></span>
     </section>
     <section class="wp" data-wp></section>
     <section class="wp" data-wp></section>
@@ -177,7 +151,6 @@ const markers = [
     transition: opacity 400ms linear;
   }
   .climb.moved .cue-wrap { opacity: 0; }
-  .skier { display: block; width: 88px; height: auto; color: var(--fg1); }
   .cue {
     width: 1px;
     height: 56px;
@@ -513,7 +486,6 @@ const markers = [
   const moved = () => { if (scrollY > 30) { climbEl?.classList.add('moved'); removeEventListener('scroll', moved); } };
   addEventListener('scroll', moved, { passive: true });
   moved();
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelector<SVGSVGElement>('.skier')?.pauseAnimations();
 
   /* The menu's «Prosjekter» and the cases' «Tilbake» still say /#projects:
      here that is the stretch of the climb where the work lights up. */
