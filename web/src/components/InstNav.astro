@@ -48,6 +48,13 @@ const year = new Date().getFullYear();
       <path class="t2" d="M2 15 C7 15 10 15 12 15 C14 15 17 15 22 15" />
     </svg>
   </button>}
+  {/* Without the menu, the one thing left on the right is the language:
+      both names, the one you are reading lit. */}
+  {!menu && (
+    <a class="inav-lang" href={path(other, bare)} hreflang={other === 'nb' ? 'nb-NO' : 'en'} aria-label={t(other).label}>
+      <span class={lang === 'nb' ? 'on' : ''}>no</span><span class="sep">/</span><span class={lang === 'en' ? 'on' : ''}>en</span>
+    </a>
+  )}
 </nav>
 
 {menu && <div id="inav-panel" class="inav-panel inst" hidden>
@@ -96,6 +103,24 @@ const year = new Date().getFullYear();
   .inav > * { pointer-events: auto; }
   .inav-home { color: inherit; display: inline-flex; }
   :global(.inav-mark) { display: block; }
+
+  .inav-lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    min-height: 44px;
+    padding: 0 2px;
+    font-family: var(--font-inst);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    color: var(--fg3);
+    text-decoration: none;
+  }
+  .inav-lang .on { color: var(--fg1); }
+  .inav-lang .sep { opacity: 0.5; }
+  .inav-lang:hover span:not(.on):not(.sep),
+  .inav-lang:focus-visible span:not(.on):not(.sep) { color: var(--signal); }
+  .inav-lang:focus-visible { outline: none; }
 
   .inav-btn {
     width: 44px;
