@@ -411,4 +411,15 @@ const markers = [
   veil.addEventListener('click', () => close());
   addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
   addEventListener('popstate', () => close(true));
+
+  /* The menu's «Prosjekter» and the cases' «Tilbake» still say /#projects:
+     here that is the stretch of the climb where the work lights up. */
+  const toWork = (smooth: boolean) => {
+    const wp = document.querySelectorAll<HTMLElement>('[data-wp]')[3];
+    if (!wp) return;
+    const r = wp.getBoundingClientRect();
+    scrollTo({ top: scrollY + r.top + r.height / 2 - innerHeight / 2, behavior: smooth ? 'smooth' : 'instant' });
+  };
+  if (location.hash === '#projects') requestAnimationFrame(() => toWork(false));
+  addEventListener('hashchange', () => { if (location.hash === '#projects') toWork(true); });
 </script>
