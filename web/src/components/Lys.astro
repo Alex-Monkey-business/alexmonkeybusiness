@@ -1793,7 +1793,13 @@ const skyWords = lang === 'nb'
         const lit = climb && (m.route === 'top' || (!!st && st.k > 0.01 && st.prog >= reach));
         const s2 = lit && seen(P, cam) ? proj(P) : null;
         const on = !!s2 && s2[0] > 6 && s2[0] < W - 6 && s2[1] > 6 && s2[1] < Hh - 6;
-        if (on && s2 && m.route !== 'top') seenMarks.push(s2);
+        /* The point he is nearest along the route — just ahead, or passed
+           within a stretch — is the one he turns to. One not lit yet is
+           still drawn where it will be, so he can point ahead to it. */
+        const since = st ? st.prog - reach : 9;
+        const where = s2 ?? (st && since > -0.14 && since < 0 && seen(P, cam) ? proj(P) : null);
+        if (where && m.route !== 'top' && since > -0.14 && since <= 0.32
+            && where[0] > 6 && where[0] < W - 6 && where[1] > 6 && where[1] < Hh - 6) seenMarks.push([where[0], where[1], Math.abs(since)]);
         if (s2) {
           m.el.style.transform = `translate(${s2[0].toFixed(1)}px, ${s2[1].toFixed(1)}px)`;
           /* A name that would run off the screen — a phone, a ridge near the
@@ -1823,17 +1829,17 @@ const skyWords = lang === 'nb'
         if (on && m.route !== 'top') newest = m.el;
       }
       for (const m of marks) m.el.classList.toggle('now', m.el === newest || (m.route === 'top' && m.el.classList.contains('on')));
-      /* A pause by a point: stopped for a moment, not in the air, a lit point
-         close by on screen — he turns to it and points. */
+      /* A pause by a point: stopped for a moment, not in the air, a point
+         just passed — he turns to it and points, however far up the screen
+         the camera has put it. */
       if (climber) {
         const t = climber.style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
         let aim: number[] | null = null;
         if (t && !walking && performance.now() - stoppedAt > 380 && !climber.classList.contains('air') && climber.classList.contains('on')) {
           const cx = Number(t[1]), cy = Number(t[2]) - 22;
-          let best = 230;
+          let best = Infinity;
           for (const q of seenMarks) {
-            const d = Math.hypot(q[0] - cx, q[1] - cy);
-            if (d < best) { best = d; aim = [q[0] - cx, q[1] - cy]; }
+            if (q[2] < best) { best = q[2]; aim = [q[0] - cx, q[1] - cy]; }
           }
         }
         climber.classList.toggle('point', !!aim);
