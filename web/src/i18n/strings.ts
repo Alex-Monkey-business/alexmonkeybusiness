@@ -79,6 +79,7 @@ export const strings = {
           p: 'Fra Tiim og NFF, med video og hva du skal si til spillerne.',
         },
       ],
+      split: { h: 'Del inn etter nivå, med ett trykk.', p: 'Likt nivå eller blandet, og så mange grupper du trenger.' },
     },
     beach: {
       eyebrow: 'BEACHVOLLEY I LARVIK',
@@ -151,6 +152,7 @@ export const strings = {
           p: 'From Tiim and NFF, with video and what to tell the players.',
         },
       ],
+      split: { h: 'Split by level in one tap.', p: 'Same level or mixed, and as many groups as you need.' },
     },
     beach: {
       eyebrow: 'BEACH VOLLEYBALL IN LARVIK',

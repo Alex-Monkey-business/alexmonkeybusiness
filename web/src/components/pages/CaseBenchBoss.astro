@@ -1,5 +1,4 @@
 ---
-import PhoneVideo from '../halsen/PhoneVideo.astro';
 import { t, path, type Lang } from '../../i18n';
 import '../../styles/instrument.css';
 import '../../styles/halsen.css';
@@ -8,34 +7,24 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const s = t(lang).case;
 
-/* Recordings are made against BenchBoss in demo mode — invented players, no
-   database. The real app runs a grassroots team of children, and their names
-   have no business on a public portfolio.
-
-   Media and pacing live here; the prose lives in src/i18n/strings.ts, paired to
-   these by index. */
-const media = [
-  { src: '/assets/halsen/hjem.webm',         poster: '/assets/halsen/hjem-poster.jpg', start: 2 },
-  // 28 Sep 2026 take: «Fyll resten» is one tap, so the lineup is no longer
-  // eight sheets flapping and the loop can open on the empty pitch.
-  { src: '/assets/halsen/matchmode.webm',    poster: '/assets/halsen/matchmode-poster.jpg', start: 0.9 },
-  { src: '/assets/halsen/stats-teams.webm',  poster: '/assets/halsen/stats-teams-poster.jpg', start: 1 },
-  { src: '/assets/halsen/loan-suggest.webm', poster: '/assets/halsen/loan-suggest-poster.jpg', start: 1.2 },
-  // Håndbok og treningsplan var to seksjoner. Uka bærer begge: øvelsesbanken
-  // og håndboka er inngangene nederst, og tida per øvelse er poenget.
-  { src: '/assets/halsen/trening.webm',      poster: '/assets/halsen/trening-poster.jpg', start: 1 },
-  { src: '/assets/halsen/ovelsesbank.webm', poster: '/assets/halsen/ovelsesbank-poster.jpg', start: 3.4 },
-];
-// Cut 14 Sep 2026: filter.webm (one squad at a time) and cup.webm (the cup
-// schedule) — real, but not a reason to build the app. The day view was cut in the same pass and put back the
-// same morning: it is the strongest claim the app makes, that the coach does
-// not have to remember. The files stay in public/assets/halsen.
-
-const features = s.features.map((f, i) => ({
-  ...f,
-  ...media[i],
-  n: String(i + 1).padStart(2, '0'),
-}));
+/* ONE PHONE, FIVE SCREENS (19 Oct 2026). The chapters used to carry a
+   recording each, and the page had the Motion film on top as well: the same
+   app told twice. Now one phone holds still beside the text and changes
+   screen as each chapter reaches the middle — the screens are the film's
+   own, cut out of it (public/assets/halsen/film, invented players). The
+   training week and the drill bank have no screen in the film, so they join
+   the list underneath. */
+const clip = (n: string) => ({ mp4: `/assets/halsen/film/${n}.mp4`, webm: `/assets/halsen/film/${n}.webm`, poster: `/assets/halsen/film/${n}-poster.jpg` });
+const chapters = [
+  { ...s.features[0], ...clip('hjem') },
+  { ...s.features[1], ...clip('kamp') },
+  { ...s.features[3], ...clip('lan') },
+  { ...s.split, ...clip('delinn') },
+  { ...s.features[2], ...clip('stat') },
+].map((c, i) => ({ ...c, n: String(i + 1).padStart(2, '0') }));
+const lower = (x: string) => x.charAt(0).toLowerCase() + x.slice(1);
+const extra = [s.features[4], s.features[5]].map((f) => ({ em: f.h.replace(/\.$/, ''), rest: ' — ' + lower(f.p) }));
+const hood = [...extra, ...s.hood];
 ---
 
 <div class="case inst">
@@ -51,37 +40,36 @@ const features = s.features.map((f, i) => ({
     <p class="case-lede inst-body">{s.lede}</p>
   </section>
 
-  {/* The film (made in Claude Motion, 19 Oct 2026): the coach's week in 39
-      seconds, before the chapters take it screen by screen. Silent by design,
-      so it plays muted the moment it is on screen. */}
-  <section class="case-film">
-    <video class="case-film-v" poster="/assets/halsen/film/benchboss-poster.jpg" width="1280" height="720" muted loop playsinline preload="none" aria-label={lang === 'nb' ? 'Film: BenchBoss på 39 sekunder' : 'Film: BenchBoss in 39 seconds'}>
-      <source src="/assets/halsen/film/benchboss.mp4" type="video/mp4" />
-      <source src="/assets/halsen/film/benchboss.webm" type="video/webm" />
-    </video>
+  <section class="case-story">
+    <div class="story-stage" aria-hidden="true">
+      <div class="story-phone">
+        {chapters.map((c, i) => (
+          <video class={`story-v${i === 0 ? ' on' : ''}`} data-i={i} poster={c.poster} muted loop playsinline preload={i === 0 ? 'metadata' : 'none'}>
+            <source src={c.mp4} type="video/mp4" />
+            <source src={c.webm} type="video/webm" />
+          </video>
+        ))}
+      </div>
+    </div>
+    <div class="story-text">
+      {chapters.map((c, i) => (
+        <div class="story-ch" data-i={i}>
+          <span class="ft-num inst-idx">{c.n}</span>
+          <h2 class="ft-h inst-display" data-decode>{c.h}</h2>
+          <p class="ft-p inst-body">{c.p}</p>
+        </div>
+      ))}
+    </div>
   </section>
-
-  {features.map((f, i) => (
-    <section class="case-feature">
-      <div class="case-feature-copy">
-        <span class="ft-num inst-idx">{f.n}</span>
-        <h2 class="ft-h inst-display" data-decode>{f.h}</h2>
-        <p class="ft-p inst-body">{f.p}</p>
-      </div>
-      <div class="case-feature-stage">
-        <PhoneVideo src={f.src} poster={f.poster} start={f.start ?? 0.5} />
-      </div>
-    </section>
-  ))}
 
   {/* The tail of the same count the features started: 09-12 are the things
       that run underneath and have no screen to record. The surface going
       velvet says that; a heading would only repeat it. */}
   <section class="case-list">
     <ul>
-      {s.hood.map((h, i) => (
+      {hood.map((h, i) => (
         <li style={`--i:${i}`}>
-          <span class="n inst-idx">{String(features.length + i + 1).padStart(2, '0')}</span>
+          <span class="n inst-idx">{String(chapters.length + i + 1).padStart(2, '0')}</span>
           <span class="text">{h.pre}<em>{h.em}</em>{h.rest}</span>
         </li>
       ))}
@@ -107,48 +95,43 @@ const features = s.features.map((f, i) => ({
   if (eyebrow) typeSelf(eyebrow, { delay: 200, speed: 16 });
   document.querySelectorAll<HTMLElement>('.case-title [data-decode]').forEach((el) => decode(el, { delay: 500, perChar: 70 }));
 
-  // reveal feature sections + list rows on scroll; a heading decodes as its
-  // section arrives
-  onEnter(document.querySelectorAll('.case-feature, .case-list li'), (el) => {
-    el.classList.add('is-in');
-    const h = el.querySelector<HTMLElement>('[data-decode]');
-    if (h) decode(h, { delay: 80, perChar: 10, flip: 35 });
-  }, 0.18);
+  // list rows arrive as they scroll in
+  onEnter(document.querySelectorAll('.case-list li'), (el) => el.classList.add('is-in'), 0.18);
 
-  // play each real-app recording only while on screen; loop past the first paint
-  const videos = Array.from(document.querySelectorAll<HTMLVideoElement>('.phone-video'));
-  videos.forEach((v) => {
-    const start = Number(v.dataset.start ?? '0');
-    const toStart = () => { if (start && v.currentTime < start) v.currentTime = start; };
-    v.addEventListener('loadedmetadata', toStart);
-    v.addEventListener('timeupdate', () => {
-      if (v.duration && v.currentTime >= v.duration - 0.25) v.currentTime = start || 0;
+  /* The story: the chapter whose text crosses the line is the one the phone
+     shows. Desktop reads at the middle; a phone, where the device sits at the
+     top, reads low on the screen, under it. Only the shown screen plays. */
+  const vids = Array.from(document.querySelectorAll<HTMLVideoElement>('.story-v'));
+  const chs = Array.from(document.querySelectorAll<HTMLElement>('.story-ch'));
+  let cur = -1;
+  const show = (i: number) => {
+    if (i === cur) return;
+    cur = i;
+    vids.forEach((v, j) => {
+      v.classList.toggle('on', j === i);
+      if (j === i) { v.preload = 'auto'; if (!reduce) { v.currentTime = 0; v.play().catch(() => {}); } }
+      else v.pause();
     });
-  });
-
-  // The film: plays while half of it is on screen, from where it was.
-  const film = document.querySelector<HTMLVideoElement>('.case-film-v');
-  if (film && !reduce) {
-    new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) film.play().catch(() => {}); else film.pause();
-    }, { threshold: 0.5 }).observe(film);
-  } else if (film) film.controls = true;
-
-  if (!reduce) {
-    const vidObs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          const v = e.target as HTMLVideoElement;
-          if (e.isIntersecting) {
-            if (v.currentTime < Number(v.dataset.start ?? '0')) v.currentTime = Number(v.dataset.start ?? '0');
-            v.play().catch(() => {});
-          } else {
-            v.pause();
-          }
-        });
-      },
-      { threshold: 0.35 }
-    );
-    videos.forEach((v) => vidObs.observe(v));
-  }
+    chs.forEach((c, j) => c.classList.toggle('on', j === i));
+    const h = chs[i]?.querySelector<HTMLElement>('[data-decode]');
+    if (h && !h.dataset.done) { h.dataset.done = '1'; decode(h, { delay: 0, perChar: 10, flip: 35 }); }
+  };
+  const narrow = matchMedia('(max-width: 860px)');
+  let io: IntersectionObserver | null = null;
+  const watch = () => {
+    io?.disconnect();
+    io = new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) show(Number((e.target as HTMLElement).dataset.i)); });
+    }, { rootMargin: narrow.matches ? '-78% 0px -20% 0px' : '-50% 0px -50% 0px' });
+    chs.forEach((c) => io!.observe(c));
+  };
+  watch();
+  narrow.addEventListener('change', watch);
+  // Off screen, nothing plays.
+  const stage = document.querySelector('.story-stage');
+  if (stage) new IntersectionObserver(([e]) => {
+    const v = vids[cur];
+    if (!v) return;
+    if (e.isIntersecting && !reduce) v.play().catch(() => {}); else v.pause();
+  }).observe(stage);
 </script>

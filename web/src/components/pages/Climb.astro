@@ -38,7 +38,8 @@ const log = [
     f: 0.72,
     href: path(lang, '/projects/halsen-g15/'),
     cta: nb ? 'Les caset' : 'Read the case',
-    media: { kind: 'video' as const, src: '/assets/halsen/film/benchboss.mp4', alt: '/assets/halsen/film/benchboss.webm', poster: '/assets/halsen/film/benchboss-poster.jpg', w: 1280, h: 720 },
+    /* The phone alone, cut from the Motion film: its five screens in a row. */
+    media: { kind: 'video' as const, src: '/assets/halsen/film/telefon.mp4', alt: '/assets/halsen/film/telefon.webm', poster: '/assets/halsen/film/hjem-poster.jpg', w: 318, h: 674, device: true },
   },
   {
     id: 'larvik',
@@ -81,7 +82,7 @@ const markers = [
         <h2 class="sheet-name" id={`h-${x.id}`} data-decode>{x.name}</h2>
         <p class="sheet-line" data-type>{line(x.slug)}</p>
         {x.media && (
-          <div class={`sheet-media rz${x.media.w > x.media.h ? ' wide' : ''}`} data-still={x.media.kind === 'video' ? x.media.poster : x.media.src}>
+          <div class={`sheet-media rz${x.media.w > x.media.h ? ' wide' : ''}${'device' in x.media ? ' device' : ''}`} data-still={x.media.kind === 'video' ? x.media.poster : x.media.src}>
             {x.media.kind === 'video' ? (
               <video poster={x.media.poster} width={x.media.w} height={x.media.h} muted loop playsinline preload="none" aria-hidden="true">
                 <source src={x.media.src} type={x.media.src.endsWith('.mp4') ? 'video/mp4' : 'video/webm'} />
@@ -243,6 +244,14 @@ const markers = [
 
   /* A film fills the sheet's width; a phone recording stays phone-sized. */
   .sheet-media.wide { width: 100%; border-radius: 14px; }
+  /* A device cut from the film brings its own bezel: no frame of ours, and
+     the corners follow its. Big enough to read on a phone. */
+  .sheet-media.device {
+    /* Big enough to read on a phone; the sheet scrolls to the link. */
+    width: min(260px, 72%);
+    border: 0;
+    border-radius: 15.5% / 7.3%;
+  }
 
   /* THE RESOLVE, from /about: a picture arrives as information — eight
      squares across, then finer, nearest-neighbour, with one signal line

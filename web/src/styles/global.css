@@ -12,7 +12,11 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--fg1);
+  /* clip, not hidden: hidden on both html and body makes body a scroll
+     container that never scrolls, and every position: sticky inside it
+     sticks to that instead of the window. `hidden` stays for old browsers. */
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
