@@ -1389,7 +1389,11 @@ const skyWords = lang === 'nb'
       gl.uniform3fv(u.fwd, fwd);
       gl.uniform3fv(u.rgt, rgt);
       gl.uniform3fv(u.up, up);
-      gl.uniform1f(u.fov, (portrait ? 46 : climb ? 38 : 33) * rad);
+      /* Climbing, the first screen is the wide one — the whole valley's sky —
+         and the lens closes to the climb's as the first stretch is scrolled. */
+      const wide = climb ? 1 - ss(0, 1, uS) : 0;
+      const fovDeg = (portrait ? 46 : climb ? 38 : 33) + wide * (portrait ? 12 : 16);
+      gl.uniform1f(u.fov, fovDeg * rad);
       gl.uniform3fv(u.sunDir, sun.dir);
       gl.uniform3fv(u.sunCol, L.sun);
       gl.uniform3fv(u.zenCol, L.zen);
@@ -1405,7 +1409,7 @@ const skyWords = lang === 'nb'
       gl.uniform1f(u.seed, (el * 7.3) % 100);
 
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      drawRoutes(cam, fwd, rgt, up, (portrait ? 46 : climb ? 38 : 33) * rad);
+      drawRoutes(cam, fwd, rgt, up, fovDeg * rad);
 
       timeEl.textContent = zermattClock(date);
       paintSky(date, sun.alt / rad, moon);
