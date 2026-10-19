@@ -1300,11 +1300,20 @@ const skyWords = lang === 'nb'
       }
       return anchors.length - 1;
     };
-    let uT = 0, uS = 0;
+    let uT = 0, uS = 0, lastScrollAt = 0, pointing = false;
     if (climb) {
       measure();
       uT = uS = uFromScroll();
-      addEventListener('scroll', () => { uT = uFromScroll(); kick(); }, { passive: true });
+      let settleKick = 0;
+      addEventListener('scroll', () => {
+        uT = uFromScroll();
+        lastScrollAt = performance.now();
+        kick();
+        /* A phone's scroll glides on after the finger lifts; look once more
+           when it has come to rest, so he can turn and point. */
+        clearTimeout(settleKick);
+        settleKick = window.setTimeout(kick, 300);
+      }, { passive: true });
       new ResizeObserver(() => { measure(); uT = uFromScroll(); kick(); }).observe(document.body);
     }
 
@@ -1457,7 +1466,7 @@ const skyWords = lang === 'nb'
         uS += (uT - uS) * (still ? 1 : 1 - Math.exp(-dt * 9));
         if (Math.abs(uT - uS) < 0.002) uS = uT;
         else busy = true;
-        walk(uS !== uT && !still);
+        walk(uS !== uT && !still && !pointing);
       }
       if (!climb) rState.forEach((s) => {
         if (s.hot) {
@@ -1635,7 +1644,7 @@ const skyWords = lang === 'nb'
       walking = on;
       if (on) climberSvg.unpauseAnimations(); else climberSvg.pauseAnimations();
       /* Stopped: in a moment he may turn and point; draw once more then. */
-      if (!on) { stoppedAt = performance.now(); setTimeout(kick, 420); }
+      if (!on) { stoppedAt = performance.now(); setTimeout(kick, 300); }
     }
     /* The first rock between a point and the camera: null when the view is
        clear, else where the ray first hits. */
@@ -1835,20 +1844,23 @@ const skyWords = lang === 'nb'
       if (climber) {
         const t = climber.style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
         let aim: number[] | null = null;
-        if (t && !walking && performance.now() - stoppedAt > 380 && !climber.classList.contains('air') && climber.classList.contains('on')) {
+        /* Stopped means the finger has let go — not the camera's easing
+           finishing, which trails it by most of a second. */
+        if (t && performance.now() - lastScrollAt > 260 && Math.abs(uT - uS) < 0.04 && !climber.classList.contains('air') && climber.classList.contains('on')) {
           const cx = Number(t[1]), cy = Number(t[2]) - 22;
           let best = Infinity;
           for (const q of seenMarks) {
             if (q[2] < best) { best = q[2]; aim = [q[0] - cx, q[1] - cy]; }
           }
         }
-        climber.classList.toggle('point', !!aim);
+        pointing = !!aim;
+        climber.classList.toggle('point', pointing);
         if (aim) {
           const face = aim[0] < 0 ? -1 : 1;
           climber.style.setProperty('--face', String(face));
           climber.style.setProperty('--tilt', '0deg');
           const deg = (Math.atan2(aim[1], Math.abs(aim[0])) * 180) / Math.PI;
-          climber.style.setProperty('--aim', Math.max(-75, Math.min(35, deg)).toFixed(1) + 'deg');
+          climber.style.setProperty('--aim', Math.max(-80, Math.min(70, deg)).toFixed(1) + 'deg');
         }
       }
       /* Two names on top of each other read as neither. The summit wins, then
