@@ -583,7 +583,7 @@ const skyWords = lang === 'nb'
   uniform float fov;
   uniform vec3 sunDir, sunCol, zenCol, horCol, ambCol;
   uniform vec3 moonDir, moonCol, fillCol;
-  uniform float stars, moonVis;
+  uniform float stars, moonVis, moonPhase;
   uniform float seed;
   uniform float dpr;
 
@@ -701,26 +701,30 @@ const skyWords = lang === 'nb'
     float rs = 0.0095;
     c += sunCol * (14.0 * smoothstep(rs + pix, rs - pix, ds) + 0.35 * exp(-ds * ds / (rs * rs * 9.0)));
     if (moonVis > 0.0) {
-      /* A real moon is small, grey and not white: about one and a half times
-         its true size here, grey-gold, with its seas, its limb a little
-         darker, and the light it gives a faint ring — not a bloom. */
+      /* Lit the way the sun is: a luminous body seen through air, not a cut-out.
+         A slightly soft rim, a soft terminator (the light grazes the rough
+         surface), faint seas, and a glow round it as large as its light —
+         a full moon fills the sky with it, a half moon less. Low down, the
+         air dims it and warms it. */
       float dm = acos(clamp(dot(rd, moonDir), -1.0, 1.0));
-      float rm = 0.0075;
-      float disc = smoothstep(rm + pix * 0.7, rm - pix * 0.7, dm);
+      float rm = 0.0072;
+      float disc = smoothstep(rm + pix * 1.6, rm - pix * 1.2, dm);
+      float air = exp(-0.06 / max(moonDir.z, 0.03));
+      vec3 tint = mix(vec3(1.0, 0.72, 0.48), vec3(0.93, 0.94, 1.0), air);
       if (disc > 0.0) {
         vec3 off = (rd - moonDir * dot(rd, moonDir)) / rm;
         float z = sqrt(max(0.0, 1.0 - dot(off, off)));
         vec3 nrm = off - moonDir * z;
-        float lit = smoothstep(-0.05, 0.12, dot(nrm, sunDir));
+        float lit = smoothstep(-0.18, 0.3, dot(nrm, sunDir));
         vec3 e1 = normalize(cross(moonDir, vec3(0.0, 0.0, 1.0)));
         vec3 e2 = cross(e1, moonDir);
         vec2 m = vec2(dot(off, e1), dot(off, e2));
-        float seas = smoothstep(0.42, 0.62, fbm(m * 1.7 + vec2(3.1, 7.4)));
-        float grain = fbm(m * 7.0 + 11.0);
-        float alb = (1.0 - 0.38 * seas) * (0.9 + 0.2 * grain) * mix(0.72, 1.0, z);
-        c += vec3(0.86, 0.84, 0.78) * disc * moonVis * (lit * 0.62 * alb + 0.0018);
+        float seas = smoothstep(0.4, 0.66, fbm(m * 1.6 + vec2(3.1, 7.4)));
+        float alb = (1.0 - 0.22 * seas) * mix(0.8, 1.0, z);
+        c += tint * disc * moonVis * air * (lit * 1.25 * alb + 0.004);
       }
-      c += vec3(0.55, 0.6, 0.75) * moonVis * stars * (0.01 * exp(-dm * dm / (rm * rm * 5.0)) + 0.0025 * exp(-dm / (rm * 7.0)));
+      float g = moonVis * air * (0.25 + 0.75 * moonPhase);
+      c += tint * g * (0.06 * exp(-dm * dm / (rm * rm * 4.0)) + 0.018 * exp(-dm / (rm * 3.5)) + 0.004 * exp(-dm / (rm * 16.0)));
     }
     return c;
   }
@@ -973,7 +977,7 @@ const skyWords = lang === 'nb'
       res: U('res'), cam: U('cam'), fwd: U('fwd'), rgt: U('rgt'), up: U('up'), fov: U('fov'),
       sunDir: U('sunDir'), sunCol: U('sunCol'), zenCol: U('zenCol'), horCol: U('horCol'), ambCol: U('ambCol'),
       moonDir: U('moonDir'), moonCol: U('moonCol'), fillCol: U('fillCol'),
-      stars: U('stars'), moonVis: U('moonVis'), seed: U('seed'), dpr: U('dpr'),
+      stars: U('stars'), moonVis: U('moonVis'), moonPhase: U('moonPhase'), seed: U('seed'), dpr: U('dpr'),
     };
 
     /* ---- The routes as the menu ----------------------------------------- */
@@ -1405,6 +1409,7 @@ const skyWords = lang === 'nb'
       gl.uniform1f(u.stars, L.stars);
       night = L.stars;
       gl.uniform1f(u.moonVis, ss(-0.6, 1.5, moon.alt / rad));
+      gl.uniform1f(u.moonPhase, moon.lit);
       gl.uniform1f(u.dpr, curScale);
       gl.uniform1f(u.seed, (el * 7.3) % 100);
 
