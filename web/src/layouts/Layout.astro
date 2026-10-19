@@ -18,6 +18,9 @@ interface Props {
   /** A page that borrows a photograph owes a credit; the instrument nav
       prints it in the menu panel, where the ground is always black. */
   credit?: PhotoCredit;
+  /** false: the instrument nav keeps only the mark — for a page that is its
+      own menu (the climb). */
+  navMenu?: boolean;
   /** Keep the page out of search. Defaults to true under /lab, so a new
       variant is hidden by the address it is born at rather than by someone
       remembering to pass a flag. */
@@ -33,6 +36,7 @@ const {
   accent,
   nav = 'wispr',
   credit,
+  navMenu = true,
   noindex = Astro.url.pathname.startsWith('/lab'),
 } = Astro.props;
 
@@ -127,7 +131,7 @@ const alternates = noindex
       import { startSporing } from '../lib/sporing.js';
       startSporing({ prosjekt: 'alexmonkeybusiness', feil: true });
     </script>
-    {nav === 'inst' ? <InstNav lang={lang} credit={credit} /> : <Nav lang={lang} />}
+    {nav === 'inst' ? <InstNav lang={lang} credit={credit} menu={navMenu} /> : <Nav lang={lang} />}
     <LangHint lang={lang} />
     <main id="top">
       <div class="page"><slot /></div>

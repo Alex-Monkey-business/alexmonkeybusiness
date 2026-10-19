@@ -18,13 +18,15 @@
 import Lys from '../Lys.astro';
 import { projects } from '../../data/projects';
 import { contact } from '../../data/contact';
-import { t, path, type Lang } from '../../i18n';
+import { t, path, otherLang, type Lang } from '../../i18n';
+import { swisstopoCredit as credit } from '../../data/photoCredit';
 import '../../styles/instrument.css';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const nb = lang === 'nb';
 const s = t(lang);
+const other = otherLang(lang);
 const line = (slug: string) => (s.projects as Record<string, string>)[slug] ?? '';
 const p = Object.fromEntries(projects.map((x) => [x.slug, x]));
 
@@ -66,7 +68,7 @@ const markers = [
     <h1 class="sr-only">Alex Monkey Business</h1>
 
     <section class="wp wp-start" data-wp>
-      <span class="cue" aria-hidden="true"></span>
+      <span class="cue-wrap" aria-hidden="true"><span class="cue-pill">{nb ? 'scroll for å klatre' : 'scroll to climb'}</span><span class="cue"></span></span>
     </section>
     <section class="wp" data-wp></section>
     <section class="wp" data-wp></section>
@@ -113,6 +115,12 @@ const markers = [
           <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined} data-decode>{c.value}</a></li>
         ))}
       </ul>
+      {/* What the menu used to carry: the other language, and the credit the
+          mountain's data asks for. */}
+      <p class="who-foot">
+        <a href={path(other, '/')} hreflang={other === 'nb' ? 'nb-NO' : 'en'}>{t(other).label}</a>
+        <span>{credit.kind?.[lang]}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a> · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a></span>
+      </p>
     </section>
   </div>
 
@@ -131,9 +139,27 @@ const markers = [
   .wp-start { min-height: 100svh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 72px; }
   .wp-top { min-height: 100svh; }
   /* On a narrow screen the cue would stand beside the light switch. */
-  @media (max-width: 520px) { .wp-start { padding-bottom: 150px; } }
+  @media (max-width: 520px) { .wp-start { padding-bottom: 170px; } }
 
-  /* One hairline that keeps drawing downward: the only instruction. */
+  /* The one instruction: a pill like the points' names, and under it a
+     hairline that keeps drawing downward. Gone at the first scroll. */
+  .cue-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    transition: opacity 400ms linear;
+  }
+  .climb.moved .cue-wrap { opacity: 0; }
+  .cue-pill {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(8, 8, 10, 0.66);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--fg1);
+    white-space: nowrap;
+  }
   .cue {
     width: 1px;
     height: 56px;
@@ -319,6 +345,22 @@ const markers = [
     text-decoration: none;
   }
   .channels a:hover, .channels a:focus-visible { color: var(--signal); outline: none; }
+  .who-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin: 22px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg3);
+  }
+  .who-foot a { color: inherit; text-decoration: none; }
+  .who-foot > a { color: var(--fg1); }
+  .who-foot a:hover, .who-foot a:focus-visible { color: var(--signal); outline: none; }
 
   @media (prefers-reduced-motion: reduce) {
     .cue { animation: none; transform: none; }
@@ -448,6 +490,12 @@ const markers = [
   veil.addEventListener('click', () => close());
   addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
   addEventListener('popstate', () => close(true));
+
+  /* The hint leaves at the first scroll and does not come back. */
+  const climbEl = document.querySelector('.climb');
+  const moved = () => { if (scrollY > 30) { climbEl?.classList.add('moved'); removeEventListener('scroll', moved); } };
+  addEventListener('scroll', moved, { passive: true });
+  moved();
 
   /* The menu's «Prosjekter» and the cases' «Tilbake» still say /#projects:
      here that is the stretch of the climb where the work lights up. */
