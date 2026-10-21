@@ -26,7 +26,6 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const nb = lang === 'nb';
 const s = t(lang);
-const line = (slug: string) => (s.projects as Record<string, string>)[slug] ?? '';
 const p = Object.fromEntries(projects.map((x) => [x.slug, x]));
 
 const log = [
@@ -83,7 +82,6 @@ const markers = [
         <button class="sheet-x" type="button" aria-label={nb ? 'Lukk' : 'Close'}><span></span></button>
         <p class="sheet-n">{x.n}<span>{p[x.slug]?.year}</span></p>
         <h2 class="sheet-name" id={`h-${x.id}`} data-decode>{x.name}</h2>
-        <p class="sheet-line" data-type>{line(x.slug)}</p>
         {x.media && (
           <div class={`sheet-media rz${x.media.w > x.media.h ? ' wide' : ''}${'device' in x.media ? ' device' : ''}`} data-still={x.media.kind === 'video' ? x.media.poster : x.media.src}>
             {x.media.kind === 'video' ? (
@@ -242,13 +240,6 @@ const markers = [
     letter-spacing: 0.04em;
     text-transform: lowercase;
   }
-  .sheet-line {
-    margin: 12px 0 0;
-    font-size: 13px;
-    line-height: 1.6;
-    letter-spacing: 0.02em;
-    color: var(--fg2);
-  }
   .sheet-media {
     width: min(220px, 60%);
     margin-top: 22px;
@@ -304,7 +295,6 @@ const markers = [
     100% { top: 100%; opacity: 0; }
   }
   /* Typing and decoding text: the sheet's own fade stays, the words arrive. */
-  .sheet-line[data-type] { min-height: 1.6em; }
   .sheet-go {
     display: inline-flex;
     gap: 0.8em;
@@ -363,13 +353,13 @@ const markers = [
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 8px 16px;
-    margin: 22px 0 0;
-    padding-top: 14px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    margin: 18px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 9px;
+    letter-spacing: 0.06em;
     color: var(--fg3);
+    opacity: 0.7;
   }
   .who-foot a { color: inherit; text-decoration: none; }
   .who-foot a:hover, .who-foot a:focus-visible { color: var(--signal); outline: none; }
