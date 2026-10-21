@@ -92,9 +92,8 @@ export const strings = {
       ],
     },
     projects: {
-      'halsen-g15': 'Kamper, spilletid og trening samlet i én trenerapp.',
-      'larvik-beach': 'Påmelding, kamper og spleis for Larvik Beach Volley klubb.',
-      'simons-solfilm': 'Nettside for et solfilmfirma i Larvik.',
+      'halsen-g15': 'Trenerappen jeg bygde for gutta på G2015. Den holder styr på bytter og spilletid fra benken, så alle får spille like mye.',
+      'larvik-beach': 'Appen klubben bruker hver uke: hvem kommer, hvem spiller mot hvem, og hvem skylder for banen.',
     } as Record<string, string>,
   },
 
@@ -165,9 +164,8 @@ export const strings = {
       ],
     },
     projects: {
-      'halsen-g15': 'Fixtures, playing time and training in one coaching app.',
-      'larvik-beach': 'Sign-ups, matches and shared costs for Larvik Beach Volley club.',
-      'simons-solfilm': 'A site for a window-tint shop in Larvik.',
+      'halsen-g15': 'The coaching app I built for my club’s 2015 boys. It tracks subs and playing time from the bench, so everyone plays as much as the rest.',
+      'larvik-beach': 'The app the club runs on every week: who’s in, who plays who, and who owes for the court.',
     } as Record<string, string>,
   },
 } as const;

@@ -26,11 +26,4 @@ export const projects: Project[] = [
     titleEm: 'Beach Volley',
     year: '2026',
   },
-  {
-    slug: 'simons-solfilm',
-    title: 'Simons',
-    titleEm: 'Solfilm',
-    year: '2026',
-    url: 'https://simonssolfilm.no',
-  },
 ];

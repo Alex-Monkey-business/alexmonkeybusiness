@@ -38,7 +38,7 @@ const log = [
     route: 'hornligrat' as const,
     f: 0.72,
     href: path(lang, '/projects/halsen-g15/'),
-    cta: nb ? 'Les caset' : 'Read the case',
+    cta: nb ? 'Se hvordan den funker' : 'See how it works',
     /* The phone alone, cut from the Motion film: its five screens in a row. */
     media: { kind: 'video' as const, src: '/assets/halsen/film/telefon.mp4', alt: '/assets/halsen/film/telefon.webm', poster: '/assets/halsen/film/hjem-poster.jpg', w: 318, h: 674, device: true },
   },
@@ -50,7 +50,7 @@ const log = [
     route: 'zmuttgrat' as const,
     f: 0.64,
     href: path(lang, '/projects/larvik-beach/'),
-    cta: nb ? 'Les caset' : 'Read the case',
+    cta: nb ? 'Se hvordan den funker' : 'See how it works',
     media: { kind: 'image' as const, src: '/assets/larvik-beach/spill.jpg', w: 390, h: 844 },
   },
 ];
@@ -330,7 +330,7 @@ const markers = [
   .channels li + li { border-top: 1px solid rgba(255, 255, 255, 0.06); }
   .channels a {
     display: grid;
-    grid-template-columns: 5.6em 1fr auto;
+    grid-template-columns: 5.6em minmax(0, 1fr) auto;
     align-items: baseline;
     gap: 12px;
     padding: 10px 0;
@@ -350,8 +350,8 @@ const markers = [
   /* A short phone: the rows close up and the portrait steps back, so the
      sheet still fits without scrolling. */
   /* Too narrow for three columns: the addresses say what they are. */
-  @media (max-width: 380px) {
-    .channels a { grid-template-columns: 1fr auto; font-size: 12px; letter-spacing: 0.02em; }
+  @media (max-width: 460px) {
+    .channels a { grid-template-columns: minmax(0, 1fr) auto; font-size: 12px; letter-spacing: 0.02em; }
     .ch-k { display: none; }
   }
   @media (max-height: 640px) {
@@ -471,7 +471,7 @@ const markers = [
     const ratio = Number(media?.getAttribute('width')) / Number(media?.getAttribute('height')) || 0.46;
     const over = s.scrollHeight - s.clientHeight;
     if (over <= 0) return;
-    const h = Math.max(innerHeight < 640 ? 150 : 220, m.offsetHeight - over - 2);
+    const h = Math.max(innerHeight < 640 ? 130 : 220, m.offsetHeight - over - 2);
     m.style.height = h + 'px';
     m.style.width = h * ratio + 'px';
   };

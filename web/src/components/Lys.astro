@@ -443,6 +443,7 @@ const skyWords = lang === 'nb'
     object-fit: cover;
   }
   .lys.failed .lys-fallback { display: block; }
+  .lys.lost .lys-gl, .lys.lost .lys-route, .lys.lost .lys-climber, .lys.lost .lys-spray, .lys.lost .lys-marks { visibility: hidden; }
   .lys.failed .lys-read,
   .lys.failed .lys-dial { display: none; }
 
@@ -623,6 +624,20 @@ const skyWords = lang === 'nb'
   const canvas = root?.querySelector<HTMLCanvasElement>('.lys-gl');
   const gl = canvas?.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'high-performance' });
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* A page left open for hours can lose its GPU context — sleep, a GPU
+     switch, a phone reclaiming memory. A lost opaque canvas paints white.
+     So: hide it at once (the black and the still photograph stand in), and
+     when the browser hands the context back, load the page again where it
+     was; rebuilding every texture by hand is not worth the code. */
+  canvas?.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+    root?.classList.add('ready', 'failed', 'lost');
+  });
+  canvas?.addEventListener('webglcontextrestored', () => location.reload());
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && gl?.isContextLost()) root?.classList.add('ready', 'failed', 'lost');
+  });
 
   /* ---- The sun (SunCalc's formulae, trimmed) ----------------------------- */
 
