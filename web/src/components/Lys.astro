@@ -183,7 +183,6 @@ const skyWords = lang === 'nb'
       </button>
     ))}
   </div>
-  {mode === 'climb' && <button class="lys-stay" type="button" aria-pressed="false" data-stay={lang === 'nb' ? 'bli her litt' : 'stay a while'} data-go={lang === 'nb' ? 'gå videre' : 'keep going'} hidden>{lang === 'nb' ? 'bli her litt' : 'stay a while'}</button>}
   <button class="lys-read" type="button" aria-label={skyWords.now} tabindex={mode === 'climb' ? -1 : undefined}>
     <span class="lys-place">zermatt</span>
     <span class="lys-time">--:--</span>
@@ -464,11 +463,9 @@ const skyWords = lang === 'nb'
   .lys.failed .lys-read,
   .lys.failed .lys-dial,
   .lys.failed .lys-sky,
-  .lys.failed .lys-stay,
   :global(html:not(.js)) .lys-read,
   :global(html:not(.js)) .lys-dial,
   :global(html:not(.js)) .lys-sky,
-  :global(html:not(.js)) .lys-stay,
   :global(html:not(.js)) .lys-marks { display: none; }
 
   /* The readout. Mono, lowercase, a place and a time. Signal-coloured when
@@ -499,27 +496,6 @@ const skyWords = lang === 'nb'
      `--gap` is how much of the canvas the toolbar covers (set from script),
      plus room for the home bar, never less than a thumb's margin. */
   .lys[data-mode='climb'] { --foot: calc(var(--gap, 0px) + max(32px, calc(env(safe-area-inset-bottom, 0px) + 20px))); }
-  .lys-stay {
-    position: absolute;
-    left: clamp(20px, 4vw, 56px);
-    bottom: calc(var(--foot) + 58px);
-    min-height: 44px;
-    padding: 0 18px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 999px;
-    background: rgba(8, 8, 10, 0.66);
-    color: var(--fg2);
-    font: 11px var(--font-inst);
-    letter-spacing: 0.12em;
-    cursor: pointer;
-    pointer-events: auto;
-  }
-  .lys-stay[hidden] { display: none; }
-  .lys-stay:hover, .lys-stay:focus-visible, .lys-stay[aria-pressed='true'] { color: var(--signal); border-color: var(--signal); }
-  .lys-stay:focus-visible { outline: 1px solid var(--signal); outline-offset: 4px; }
-  @media (max-width: 600px) {
-    .lys-stay { left: 50%; bottom: calc(var(--foot) + 118px); translate: -50% 0; }
-  }
   .lys-alt { color: var(--fg1); min-width: 6ch; text-align: right; font-variant-numeric: tabular-nums; }
   /* The canvas holds the large viewport, so a phone's address bar sliding
      away does not resize it mid-scroll. */
@@ -1425,34 +1401,13 @@ const skyWords = lang === 'nb'
     // Leave a short ledge at the summit before the existing downhill run.
     const summitAt = Math.max(1, keys3.length - 1 - 1.8);
     const skiAt = summitAt + 0.32;
-    const stayBtn = root.querySelector<HTMLButtonElement>('.lys-stay');
-    let summitSeated = false, resting = false, restElapsed = 0, orbitAngle = 0;
-    const stopRest = () => {
-      resting = false;
-      if (stayBtn) {
-        stayBtn.setAttribute('aria-pressed', 'false');
-        stayBtn.textContent = stayBtn.dataset.stay!;
-      }
-      kick();
-    };
-    stayBtn?.addEventListener('click', () => {
-      if (resting) { stopRest(); return; }
-      if (!summitSeated) return;
-      resting = true;
-      restElapsed = 0;
-      stayBtn.setAttribute('aria-pressed', 'true');
-      stayBtn.textContent = stayBtn.dataset.go!;
-      kick();
-    });
-    addEventListener('keydown', (e) => { if (e.key === 'Escape' && resting) stopRest(); });
-    document.addEventListener('lys:open', stopRest);
+    let summitSeated = false;
     let pointFor: { id: string; until: number } | null = null;
     if (climb) {
       measure();
       uT = uS = uFromScroll();
       let settleKick = 0;
       addEventListener('scroll', () => {
-        if (resting) stopRest();
         uT = uFromScroll();
         lastScrollAt = performance.now();
         kick();
@@ -1615,17 +1570,7 @@ const skyWords = lang === 'nb'
         else busy = true;
         walk(uS !== uT && !still && !pointing);
         summitSeated = uS >= summitAt - 0.002 && uS <= skiAt && Math.abs(uT - uS) < 0.012;
-        if (!summitSeated && resting) stopRest();
-        if (stayBtn && stayBtn.hidden === summitSeated) {
-          stayBtn.hidden = !summitSeated;
-          if (stayBtn.hidden && document.activeElement === stayBtn) skyBtn?.focus({ preventScroll: true });
-        }
         if (summitSeated) pointing = false;
-        if (resting && !still) restElapsed += dt;
-        // A slow, bounded arc: no sudden start, no full spin behind the mountain.
-        const angle = resting && !still ? 20 * Math.sin(restElapsed / 32) : 0;
-        orbitAngle = still ? 0 : orbitAngle + (angle - orbitAngle) * (1 - Math.exp(-dt * 2));
-        if ((resting && !still) || Math.abs(orbitAngle) > 0.001) busy = true;
       }
       if (!climb) rState.forEach((s) => {
         if (s.hot) {
@@ -1647,8 +1592,7 @@ const skyWords = lang === 'nb'
       /* The drift is the only motion nobody asked for, so only a desk gets it:
          on a phone it would keep the GPU warm for nothing. Climbing, the
          scroll is the motion. */
-      const animate = !still && ((!climb && fine) || resting);
-      if (resting && !still && !wantHi && firstDrawn && now - lastDraw < 41) { kick(); return; }
+      const animate = !still && !climb && fine;
       if (Math.abs(pxT - px) > 0.002 || Math.abs(pyT - py) > 0.002) busy = true;
       if (!busy && !wantHi && firstDrawn && now - lastDraw < 41) { if (animate) kick(); return; }
       lastDraw = now;
@@ -1663,7 +1607,6 @@ const skyWords = lang === 'nb'
       let cam: number[], look: number[];
       if (climb) {
         const pc = along3((k) => k.cam, uS);
-        pc[0] += orbitAngle;
         const c: V3 = [Math.sin(pc[0] * rad) * pc[1], Math.cos(pc[0] * rad) * pc[1], pc[2]];
         look = along3((k) => k.look, uS);
         /* Parallax: a few metres sideways with the pointer, never into rock. */
