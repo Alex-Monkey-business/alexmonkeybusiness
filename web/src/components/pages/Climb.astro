@@ -84,6 +84,10 @@ const markers = [
     <section class="wp" data-wp></section>
     <section class="wp" data-wp></section>
     <section class="wp" data-wp></section>
+    <section class="wp" data-wp></section>
+    <section class="wp" data-wp></section>
+    <section class="wp" data-wp></section>
+    <section class="wp" data-wp></section>
     <section class="wp wp-top" data-wp></section>
 
     <!-- The sheets the points open. The mountain stays behind them. -->
@@ -554,7 +558,7 @@ const markers = [
   /* The menu's «Prosjekter» and the cases' «Tilbake» still say /#projects:
      here that is the stretch of the climb where the work lights up. */
   const toWork = (smooth: boolean) => {
-    const wp = document.querySelectorAll<HTMLElement>('[data-wp]')[3];
+    const wp = document.querySelectorAll<HTMLElement>('[data-wp]')[2];
     if (!wp) return;
     const r = wp.getBoundingClientRect();
     scrollTo({ top: scrollY + r.top + r.height / 2 - innerHeight / 2, behavior: smooth ? 'smooth' : 'instant' });

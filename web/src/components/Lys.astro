@@ -439,11 +439,17 @@ const skyWords = lang === 'nb'
   .mk-label, .mk-lead { transition: opacity 240ms linear; }
   /* A phone: the same names, tighter, so they fit beside their points. */
   @media (max-width: 600px) {
-    .mk { font-size: 11px; letter-spacing: 0.1em; }
+    .mk { font-size: 11px; letter-spacing: 0.1em; transition: opacity 900ms cubic-bezier(0.2, 0.7, 0.2, 1); }
     .mk-label { padding: 6px 10px; }
     .mk-lead { width: 14px; }
     .mk-n { margin-right: 0.7em; }
+    /* One name at a time: a passed point keeps its dot, still pressable. */
+    .mk.on:not(.now) .mk-label,
+    .mk.on:not(.now) .mk-lead { opacity: 0; }
+    .mk-label, .mk-lead { transition: opacity 500ms linear 200ms; }
   }
+  /* Nothing breathes while the page is moving. */
+  .lys.scrolling .mk-dot::after { animation: none !important; }
   @media (prefers-reduced-motion: reduce) {
     .mk { transition: none; }
     .mk.pulse .mk-dot::after,
@@ -1097,9 +1103,28 @@ const skyWords = lang === 'nb'
       vec3 air = horCol * 1.1 + sunCol * 0.02 * pow(mu, 4.0);
       col = mix(col, air, fog);
 
-      /* The data ends; let it end in the dark. */
+      /* The data ends; let it end in the dark. Seen from the side it ends in
+         the haze; from high above, looking down, it is an island, round,
+         dissolving into the sky's own colour behind it. */
       vec2 w = abs((p.xy + vec2(ORIGIN.x, -ORIGIN.y)) - vec2(4000.0, -4000.0)) / 4000.0;
-      col = mix(air, col, 1.0 - smoothstep(0.55, 0.95, max(w.x, w.y)));
+      float down = smoothstep(-0.2, -0.5, rd.z);
+      float rim = mix(smoothstep(0.55, 0.95, max(w.x, w.y)), smoothstep(0.42, 0.88, length(w)), down);
+      /* swissALTI3D stops at the border: Italy is a flat floor at 2300 m and
+         a wall up to Switzerland. From above that wall would be the island's
+         coast, so it is cut away, softly, wherever the floor is near. */
+      if (down > 0.0) {
+        float ita = step(abs(base(p.xy) - 2300.0), 0.6);
+        for (int k = 0; k < 3; k++) {
+          float r = k == 0 ? 40.0 : k == 1 ? 140.0 : 320.0;
+          float wt = k == 0 ? 1.0 : k == 1 ? 0.6 : 0.3;
+          for (int j = 0; j < 4; j++) {
+            vec2 o = r * vec2(j == 0 ? 1.0 : j == 1 ? -1.0 : 0.0, j == 2 ? 1.0 : j == 3 ? -1.0 : 0.0);
+            ita = max(ita, wt * step(abs(base(p.xy + o) - 2300.0), 0.6));
+          }
+        }
+        rim = max(rim, ita * down);
+      }
+      col = mix(mix(air, sky, down), col, 1.0 - rim);
 
     }
 
@@ -1356,12 +1381,20 @@ const skyWords = lang === 'nb'
        * which keeps the path on a circle round the top instead of cutting a
        * chord through it.
        */
+      /* Up the east and north faces to the top, then round the mountain the
+         way he skis it: the north-west side for the Zmuttgrat, the west in
+         profile for the big drop, and last a crane up and back round to the
+         north: the whole map from high above, both lines on it. */
       const shots: [number, number, number, V3][] = [
         [52, 5300, 2900, [0, 0, 3880]],
         [74, 3600, 3450, [500, 250, 3800]],
         [18, 3000, 3850, [0, 0, 4050]],
-        [2, 3300, 4000, [-350, 120, 3950]],
-        [32, 3300, 4600, [0, 0, 4230]],
+        [-4, 3000, 4500, [0, 0, 4250]],
+        [-38, 3300, 4800, [-250, 250, 4050]],
+        [-82, 3500, 4800, [-600, 650, 3650]],
+        [-118, 3700, 4700, [-850, 950, 3300]],
+        [-100, 4800, 7800, [-500, 650, 3150]],
+        [-25, 5600, 13500, [-150, 350, 3100]],
       ];
       const n = Math.max(1, wps.length - 1);
       for (let i = 0; i <= n; i++) {
@@ -1397,10 +1430,24 @@ const skyWords = lang === 'nb'
       }
       return anchors.length - 1;
     };
-    let uT = 0, uS = 0, lastScrollAt = 0, pointing = false;
-    // Leave a short ledge at the summit before the existing downhill run.
-    const summitAt = Math.max(1, keys3.length - 1 - 1.8);
+    let uT = 0, uS = 0, lastScrollAt = 0, pointing = false, shakeAt = -1e9, hold = 0;
+    /* The drop's lip and landing, as fractions of the run down. */
+    const DLIP = 0.64, DLAND = 0.9;
+    /* The run's scroll, stretched where he is in the drop's air: there it
+       takes nearly twice the scroll. */
+    const RUN_S = [0, 0.44, 0.82, 1], RUN_P = [0, DLIP, DLAND, 1];
+    const runOf = (s: number) => {
+      s = clamp01(s);
+      let i = 1;
+      while (i < RUN_S.length - 1 && RUN_S[i] < s) i++;
+      return RUN_P[i - 1] + ((s - RUN_S[i - 1]) / (RUN_S[i] - RUN_S[i - 1])) * (RUN_P[i] - RUN_P[i - 1]);
+    };
+    /* The top is the fourth keyframe: a short ledge there, then the run down,
+       which is done before the last stretch so the pull-out sees him stood
+       at the foot of it. */
+    const summitAt = Math.min(3, Math.max(1, keys3.length - 1 - 1.8));
     const skiAt = summitAt + 0.32;
+    const runEnd = Math.max(skiAt + 1, keys3.length - 1 - 1.5);
     let summitSeated = false;
     let pointFor: { id: string; until: number } | null = null;
     if (climb) {
@@ -1413,8 +1460,9 @@ const skyWords = lang === 'nb'
         kick();
         /* A phone's scroll glides on after the finger lifts; look once more
            when it has come to rest, so he can turn and point. */
+        root.classList.add('scrolling');
         clearTimeout(settleKick);
-        settleKick = window.setTimeout(kick, 300);
+        settleKick = window.setTimeout(() => { root.classList.remove('scrolling'); kick(); }, 300);
       }, { passive: true });
       new ResizeObserver(() => { measure(); uT = uFromScroll(); kick(); }).observe(document.body);
     }
@@ -1593,7 +1641,7 @@ const skyWords = lang === 'nb'
          on a phone it would keep the GPU warm for nothing. Climbing, the
          scroll is the motion. */
       const animate = !still && !climb && fine;
-      if (Math.abs(pxT - px) > 0.002 || Math.abs(pyT - py) > 0.002) busy = true;
+      if (Math.abs(pxT - px) > 0.002 || Math.abs(pyT - py) > 0.002 || now - shakeAt < 700) busy = true;
       if (!busy && !wantHi && firstDrawn && now - lastDraw < 41) { if (animate) kick(); return; }
       lastDraw = now;
       if (busy || animate) wantHi = false;
@@ -1609,21 +1657,40 @@ const skyWords = lang === 'nb'
         const pc = along3((k) => k.cam, uS);
         const c: V3 = [Math.sin(pc[0] * rad) * pc[1], Math.cos(pc[0] * rad) * pc[1], pc[2]];
         look = along3((k) => k.look, uS);
+        /* On the way down the lens follows him, so the run and the drop are
+           always in the picture; it lets go again for the pull-out. */
+        const run = runOf((uS - skiAt) / (runEnd - skiAt));
+        const w = 0.6 * ss(0, 0.06, run) * (1 - ss(runEnd, keys3.length - 1, uS));
+        /* Over the drop it stops following and holds on the cliff, closer
+           in, so he falls through the picture instead of the picture
+           falling with him. */
+        hold = ss(DLIP - 0.08, DLIP - 0.01, run) * (1 - ss(DLAND + 0.01, DLAND + 0.08, run));
+        if (w > 0) {
+          const P = pointOn('zmuttgrat', 1 - run);
+          const M = pointOn('zmuttgrat', 1 - (DLIP + (DLAND - DLIP) * 0.6));
+          look = look.map((v, i) => v + (P[i] + (M[i] - P[i]) * hold - v) * w);
+        }
         /* Parallax: a few metres sideways with the pointer, never into rock. */
         c[0] += side[0] * px * 40; c[1] += side[1] * px * 40; c[2] -= py * 20;
         if (portrait) { const back = 1.25; c[0] = look[0] + (c[0] - look[0]) * back; c[1] = look[1] + (c[1] - look[1]) * back; }
+        if (hold > 0) for (let i = 0; i < 3; i++) c[i] = look[i] + (c[i] - look[i]) * (1 - 0.35 * hold);
         c[2] = Math.max(c[2], groundAt(c[0], c[1]) + 90);
         cam = c;
         /* The line runs ahead of the camera, up to where it is looking: drawn
            only behind it, nobody would ever see it. */
         /* Paced so the first point lights early (Alex: «litt treg»): the line
            is at the top a little past halfway. */
-        const last = keys3.length - 1;
-        rState[0].prog = Math.max(0.004, Math.min(1, uS / Math.max(1, last - 1.8)));
+        rState[0].prog = Math.max(0.004, Math.min(1, uS / summitAt));
         rState[0].k = 0.95;
         /* Then down the other side: from the top, he skis the Zmuttgrat and
            its line is drawn behind him, from the summit down. */
-        rState[1].prog = clamp01((uS - skiAt) / (last - skiAt));
+        rState[1].prog = run;
+        /* The landing shakes the lens: a few pixels, gone in half a second. */
+        const sh = now - shakeAt;
+        if (sh >= 0 && sh < 700 && !still) {
+          const a = Math.exp(-sh / 150) * 32;
+          look = look.map((v, i) => v + Math.sin(now * 0.11 + i * 2.1) * a * (i === 2 ? 1 : 0.6));
+        }
         rState[1].k = rState[1].prog > 0 ? 0.95 : 0;
         if (altEl) {
           // The arrival and the altimeter must agree: 4478 m on the ledge,
@@ -1661,7 +1728,7 @@ const skyWords = lang === 'nb'
       /* Climbing, the first screen is the wide one — the whole valley's sky —
          and the lens closes to the climb's as the first stretch is scrolled. */
       const wide = climb ? 1 - ss(0, 1, uS) : 0;
-      const fovDeg = (portrait ? 46 : climb ? 38 : 33) + wide * (portrait ? 12 : 16);
+      const fovDeg = ((portrait ? 46 : climb ? 38 : 33) + wide * (portrait ? 12 : 16)) * (1 - 0.25 * hold);
       gl.uniform1f(u.fov, fovDeg * rad);
       gl.uniform3fv(u.sunDir, sun.dir);
       gl.uniform3fv(u.sunCol, L.sun);
@@ -1728,7 +1795,7 @@ const skyWords = lang === 'nb'
     const climberSvg = climber?.querySelector<SVGSVGElement>('.c-up');
     climberSvg?.pauseAnimations();
     let walking = false;
-    let prevHead: number[] | null = null, prevT = 0, prevTilt = 0, wasAir = false, landAt = -1e9;
+    let prevHead: number[] | null = null, prevT = 0, prevTilt = 0, wasAir = false, wasDrop = false, landAt = -1e9, landFor = 340;
     let prevGoing = false, prevBefore: number[] | null = null, slashAt = -1e9, press = 0, travel = 1, pivoted = false;
     /* Where the switch, the slider and the read-out sit, measured on resize. */
     let instruments: DOMRect[] = [];
@@ -1946,7 +2013,24 @@ const skyWords = lang === 'nb'
         const fl = sk ? clamp01((rState[1].prog - LIP) / (LAND - LIP)) : 0;
         const air = fl > 0 && fl < 1;
         const rkAir = clamp01((fl - 0.14) / 0.56);
+        /* THE DROP, low on the Zmutt: off the last band of rock onto the
+           glacier, a couple of hundred metres down. A small pop, then a fall
+           that keeps speeding up, held in a grab; the scroll is stretched
+           here (see `runOf`) so the air lasts. */
+        const dl =sk ? clamp01((rState[1].prog - DLIP) / (DLAND - DLIP)) : 0;
+        const drop = dl > 0 && dl < 1;
         let flight: number[] | null = null;
+        if (drop) {
+          const A = proj(pointOn('zmuttgrat', 1 - DLIP)), B = proj(pointOn('zmuttgrat', 1 - DLAND));
+          if (A && B) {
+            const hi = Math.min(16 + Math.abs(B[0] - A[0]) * 0.12, 44);
+            /* Out at the speed he left with, down ever faster. */
+            flight = [A[0] + (B[0] - A[0]) * dl, A[1] + (B[1] - A[1]) * dl * dl - hi * 4 * dl * (1 - dl) * (1 - dl)];
+            travel = B[0] < A[0] ? -1 : 1;
+            climber.style.setProperty('--face', String(travel));
+            climber.style.setProperty('--tilt', '0deg');
+          }
+        }
         if (air) {
           /* A thrown body: steady across, a parabola up and down, landing
              where the line already runs on the way he is going — so there
@@ -1961,7 +2045,8 @@ const skyWords = lang === 'nb'
           }
         }
         const at = flight ?? h?.last;
-        if (at) climber.style.transform = `translate(${at[0].toFixed(1)}px, ${at[1].toFixed(1)}px)`;
+        /* The lens closes in on the drop; he grows with it. */
+        if (at) climber.style.transform = `translate(${at[0].toFixed(1)}px, ${at[1].toFixed(1)}px)` + (hold > 0.01 ? ` scale(${(1 + 0.4 * hold).toFixed(3)})` : '');
         /* He lands the flip switch — the half-turn made while upside down —
            rides backwards for a stretch, looking over his shoulder, and
            pivots round to forwards in a spray. */
@@ -1989,9 +2074,12 @@ const skyWords = lang === 'nb'
         const rk = clamp01((fl - 0.14) / 0.56);
         const fk = rk * rk * (3 - 2 * rk);
         const pop = air ? 10 * Math.sin(Math.PI * clamp01(fl / 0.14)) * (fl < 0.14 ? 1 : 0) - 8 * Math.sin(Math.PI * clamp01((fl - 0.72) / 0.28)) : 0;
-        climber.style.setProperty('--flip', (-360 * fk - pop).toFixed(1) + 'deg');
+        /* In the drop: tweaked back off the lip, the tips dropped to meet
+           the slope as he comes down. */
+        const tweak = -22 * Math.sin(Math.PI * clamp01(dl / 0.7)) + 14 * ss(0.65, 1, dl);
+        climber.style.setProperty('--flip', (drop ? tweak : -360 * fk - pop).toFixed(1) + 'deg');
         climber.style.setProperty('--lift', '0px');
-        climber.classList.toggle('air', air && fl > 0.1 && fl < 0.82);
+        climber.classList.toggle('air', (air && fl > 0.1 && fl < 0.82) || (drop && dl > 0.05 && dl < 0.95));
         climber.classList.toggle('hint', uS < 0.02 && !still);
         const t = performance.now();
         /* How fast he goes, and how fast the line under him bends. */
@@ -2006,11 +2094,15 @@ const skyWords = lang === 'nb'
         prevHead = h?.last ?? null;
         prevT = t;
         if (sk) {
-          const going = walking && !air && speed > 4;
-          if (wasAir && fl >= 1 && h?.last) { burst(h.last); landAt = t; setTimeout(kick, 380); }
+          const going = walking && !air && !drop && speed > 4;
+          if (wasAir && fl >= 1 && h?.last) { burst(h.last); landAt = t; landFor = 340; setTimeout(kick, 380); }
           if (!wasAir && air && fl < 0.2) { const A = proj(pointOn('zmuttgrat', 1 - LIP)); if (A) burst(A, 0.5); }
           wasAir = air;
-          const landing = t - landAt < 340;
+          /* The drop lands hard: a wall of snow, a deep crouch, the camera shaken. */
+          if (wasDrop && dl >= 1 && h?.last) { burst(h.last, 2.6); slash(h.last, h.before ?? h.last, 1.2); landAt = t; landFor = 650; shakeAt = t; kick(); setTimeout(kick, 700); }
+          if (!wasDrop && drop && dl < 0.2) { const A = proj(pointOn('zmuttgrat', 1 - DLIP)); if (A) burst(A, 0.6); }
+          wasDrop = drop;
+          const landing = t - landAt < landFor;
           /* Stopping is a slash, never a halt; a hard bend in the line is one too. */
           if (prevGoing && !going && !air && !landing && t - slashAt > 600 && h?.last && prevBefore) { slash(h.last, prevBefore); slashAt = t; setTimeout(kick, 480); }
           else if (going && Math.abs(turn) > 140 && t - slashAt > 600 && h?.last && h.before) { slash(h.last, h.before, 0.45); slashAt = t; }
@@ -2057,12 +2149,18 @@ const skyWords = lang === 'nb'
              edge — hangs on the other side of its point instead. */
           /* Too narrow for either side: it stands over its point, like the
              summit's, held inside the screen. */
+          /* A name stays where it is while it fits: back to its own side
+             only with room to spare, so it does not flick to and fro as the
+             camera moves. */
           let side = m.side;
           if (side !== 'up') {
             m.w ||= m.el.offsetWidth;
-            const room = side === 'left' ? s2[0] - 12 : W - 12 - s2[0];
-            const other = side === 'left' ? W - 12 - s2[0] : s2[0] - 12;
-            if (m.w > room) side = m.w <= other ? (side === 'left' ? 'right' : 'left') : 'up';
+            const room = (sd: string) => (sd === 'left' ? s2[0] - 12 : sd === 'right' ? W - 12 - s2[0] : Infinity);
+            const cur = m.el.dataset.side!;
+            if (m.w + (cur === side ? 0 : 28) > room(side)) {
+              const other = side === 'left' ? 'right' : 'left';
+              side = cur !== side && m.w <= room(cur) ? cur : m.w <= room(other) ? other : 'up';
+            }
           }
           m.el.dataset.side = side;
           if (side === 'up') {
@@ -2089,7 +2187,8 @@ const skyWords = lang === 'nb'
         const t = climber.style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
         let aim: number[] | null = null;
         /* Not mid-trick: in the air or just down, the showing waits for him. */
-        const busy = climber.classList.contains('air') || climber.classList.contains('ski') && (rState[1].prog > 0.04 && rState[1].prog < 0.46 || performance.now() - landAt < 600);
+        const zq = rState[1].prog;
+        const busy = climber.classList.contains('air') || climber.classList.contains('ski') && (zq > 0.04 && zq < 0.46 || zq > DLIP && zq < DLAND || performance.now() - landAt < 600);
         if (pointFor && busy) { pointFor.until = Math.max(pointFor.until, performance.now() + 2000); setTimeout(kick, 2050); }
         const q = pointFor && !busy && performance.now() < pointFor.until ? seenMarks.find((x) => x.id === pointFor!.id) : null;
         if (t && q && !climber.classList.contains('air') && climber.classList.contains('on')) {
@@ -2109,7 +2208,10 @@ const skyWords = lang === 'nb'
       /* Two names on top of each other read as neither. The summit wins, then
          the newest point; the other keeps its dot and drops its name. */
       const rank = (m: (typeof marks)[number]) => (m.route === 'top' ? 2 : m.el === newest ? 1 : 0);
-      const shown = marks.filter((m) => m.el.classList.contains('on')).sort((a, b) => rank(b) - rank(a));
+      /* A phone holds two names at most, the top's and the newest; the
+         passed points keep their dots (see the CSS). */
+      const narrow = W < 600;
+      const shown = marks.filter((m) => m.el.classList.contains('on') && (!narrow || rank(m) > 0)).sort((a, b) => rank(b) - rank(a));
       const kept: DOMRect[] = [];
       for (const m of shown) {
         let b = m.label.getBoundingClientRect();
