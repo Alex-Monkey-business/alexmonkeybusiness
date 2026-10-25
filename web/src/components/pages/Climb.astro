@@ -65,6 +65,17 @@ const markers = [
 
     <h1 class="sr-only">Alex Monkey Business</h1>
 
+    <section class="climb-fallback" aria-label={s.work.label}>
+      <div class="fallback-content">
+        <p class="inst-label">alex monkey business · {s.work.label}</p>
+        <ul>
+          {log.map((x) => <li><a href={x.href}><span>{x.n}</span>{x.name}<span aria-hidden="true">→</span></a></li>)}
+          <li><a href={path(lang, '/about/')}><span>003</span>{s.nav.cta}<span aria-hidden="true">→</span></a></li>
+        </ul>
+        <p class="fallback-credit">{credit.kind?.[lang]}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a> · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a></p>
+      </div>
+    </section>
+
     <section class="wp wp-start" data-wp>
       {/* The instruction is the climber on the mountain (see Lys); this
           hairline drawing downward only says which way. */}
@@ -130,6 +141,21 @@ const markers = [
     color: var(--fg1);
   }
   .climb :global(.footer), :global(body:has(.climb) footer) { display: none; }
+
+  .climb-fallback { display: none; position: relative; z-index: 1; min-height: 100svh; padding: 120px 20px 48px; align-items: center; justify-content: center; }
+  :global(html:not(.js)) .climb-fallback,
+  :global(.climb:has(.lys.failed)) .climb-fallback { display: flex; }
+  :global(html:not(.js)) .wp,
+  :global(.climb:has(.lys.failed)) .wp { display: none; }
+  .fallback-content { width: min(100%, 520px); padding: clamp(20px, 4vw, 36px); background: rgba(11, 11, 13, 0.94); border: 1px solid var(--border-hair); border-radius: 24px; }
+  .fallback-content ul { list-style: none; padding: 0; margin: 28px 0; }
+  .fallback-content li { border-top: 1px solid var(--border-hair); }
+  .fallback-content li:last-child { border-bottom: 1px solid var(--border-hair); }
+  .fallback-content li a { display: grid; grid-template-columns: 3ch 1fr auto; align-items: center; gap: 12px; padding: 22px 0; color: var(--fg1); text-decoration: none; font-size: clamp(13px, 2vw, 17px); }
+  .fallback-content li a span { color: var(--signal); font-size: 11px; }
+  .fallback-content li a:hover, .fallback-content li a:focus-visible { color: var(--signal); }
+  .fallback-credit { font-size: 10px; line-height: 1.8; color: var(--fg3); margin: 0; }
+  .fallback-credit a { color: inherit; }
 
   /* Length only, and see-through to the pointer: the points underneath are
      the buttons. */
@@ -441,9 +467,13 @@ const markers = [
     const s = current;
     current = null;
     s.classList.remove('open');
+    s.inert = true;
     veil.classList.remove('open');
     s.querySelector('video')?.pause();
-    window.setTimeout(() => { s.hidden = true; veil.hidden = true; }, 420);
+    window.setTimeout(() => {
+      if (current !== s) s.hidden = true;
+      if (!current) veil.hidden = true;
+    }, still() ? 0 : 420);
     from?.focus({ preventScroll: true });
     if (!viaHistory && history.state?.sheet) history.back();
   };
@@ -467,21 +497,27 @@ const markers = [
   };
   addEventListener('resize', () => { if (current) fit(current); });
 
-  const open = (id: string, el: HTMLElement | null) => {
+  const open = (id: string, el: HTMLElement | null, viaHistory = false) => {
     const s = document.getElementById('sheet-' + id);
-    if (!s) return;
-    if (current && current !== s) close();
+    if (!s || current === s) return;
+    const switching = !!current;
+    if (current) close(true);
     current = s;
     from = el;
     veil.hidden = false;
     s.hidden = false;
-    requestAnimationFrame(() => { s.classList.add('open'); veil.classList.add('open'); });
+    s.inert = false;
+    requestAnimationFrame(() => { if (current === s) { s.classList.add('open'); veil.classList.add('open'); } });
     fit(s);
     words(s);
     s.querySelectorAll<HTMLElement>('.rz').forEach((b) => resolve(b));
-    s.querySelector<HTMLVideoElement>('video')?.play().catch(() => {});
+    if (!still()) s.querySelector<HTMLVideoElement>('video')?.play().catch(() => {});
     s.querySelector<HTMLElement>('.sheet-x')?.focus({ preventScroll: true });
-    history.pushState({ ...(history.state ?? {}), sheet: id }, '');
+    if (!viaHistory) {
+      const state = { ...(history.state ?? {}), sheet: id };
+      if (switching) history.replaceState(state, '');
+      else history.pushState(state, '');
+    }
   };
 
   document.addEventListener('lys:open', (e) => {
@@ -500,7 +536,14 @@ const markers = [
     e.preventDefault();
     f[next]?.focus();
   });
-  addEventListener('popstate', () => close(true));
+  const restoreSheet = () => {
+    const id = history.state?.sheet;
+    if (typeof id === 'string' && document.getElementById('sheet-' + id)) {
+      open(id, document.querySelector<HTMLElement>(`.mk[data-id="${CSS.escape(id)}"]`), true);
+    } else close(true);
+  };
+  addEventListener('popstate', restoreSheet);
+  restoreSheet();
 
   /* The hint leaves at the first scroll and does not come back. */
   const climbEl = document.querySelector('.climb');

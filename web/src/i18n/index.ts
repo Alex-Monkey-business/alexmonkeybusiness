@@ -33,3 +33,8 @@ export function stripLang(pathname: string): string {
   const p = pathname.replace(/^\/en(?=\/|$)/, '');
   return p === '' ? '/' : p;
 }
+
+/** Experiments only exist in Norwegian; never offer an invented /en/lab route. */
+export function hasTranslation(pathname: string): boolean {
+  return !/^\/lab(?:\/|$)/.test(stripLang(pathname));
+}

@@ -15,7 +15,7 @@
  * would be a control that does nothing.
  */
 import AmbMark from './brand/AmbMark.astro';
-import { t, path, otherLang, stripLang, type Lang } from '../i18n';
+import { t, path, otherLang, stripLang, hasTranslation, type Lang } from '../i18n';
 import type { PhotoCredit } from '../data/photoCredit';
 
 interface Props { lang: Lang; credit?: PhotoCredit; menu?: boolean }
@@ -26,11 +26,12 @@ const creditWords = lang === 'nb' ? { photo: 'Foto', edited: 'bearbeidet' } : { 
 const s = t(lang);
 const other = otherLang(lang);
 const bare = stripLang(Astro.url.pathname);
+const translated = hasTranslation(Astro.url.pathname);
 
 const rows = [
   { n: '01', label: s.work.label, href: path(lang, '/#projects') },
   { n: '02', label: `${s.aboutCard.title} ${s.aboutCard.titleEm}`, href: path(lang, '/about') },
-  { n: '03', label: t(other).label, href: path(other, bare), hreflang: other === 'nb' ? 'nb-NO' : 'en' },
+  ...(translated ? [{ n: '03', label: t(other).label, href: path(other, bare), hreflang: other === 'nb' ? 'nb-NO' : 'en' }] : []),
 ];
 const year = new Date().getFullYear();
 ---
@@ -50,7 +51,7 @@ const year = new Date().getFullYear();
   </button>}
   {/* Without the menu, the one thing left on the right is the language:
       both names, the one you are reading lit. */}
-  {!menu && (
+  {!menu && translated && (
     <a class="inav-lang" href={path(other, bare)} hreflang={other === 'nb' ? 'nb-NO' : 'en'} aria-label={t(other).label}>
       <span class={lang === 'nb' ? 'on' : ''}>no</span><span class="sep">/</span><span class={lang === 'en' ? 'on' : ''}>en</span>
     </a>
@@ -274,6 +275,8 @@ const year = new Date().getFullYear();
   if (btn && panel) {
     let open = false;
     const rows = Array.from(panel.querySelectorAll<HTMLElement>('[data-decode]'));
+    const background = [document.querySelector<HTMLElement>('main'), document.querySelector<HTMLElement>('.lang-hint'), nav?.querySelector<HTMLElement>('.inav-home')].filter((el): el is HTMLElement => !!el);
+    const previousInert = new Map<HTMLElement, boolean>();
 
     const show = () => {
       open = true;
@@ -281,9 +284,11 @@ const year = new Date().getFullYear();
       to(0);
       btn.setAttribute('aria-expanded', 'true');
       panel.hidden = false;
+      panel.inert = false;
       void panel.offsetWidth;
       panel.classList.add('open');
       document.documentElement.style.overflow = 'hidden';
+      background.forEach((el) => { previousInert.set(el, el.inert); el.inert = true; });
       /* The rows land one after the other, once the shutter is mostly down. */
       rows.forEach((r, i) => { r.classList.remove('ready'); delete r.dataset.decoded; decode(r, { delay: 300 + i * 160, perChar: 26 }); });
       panel.querySelector<HTMLElement>('a')?.focus({ preventScroll: true });
@@ -293,6 +298,9 @@ const year = new Date().getFullYear();
       btn.setAttribute('aria-expanded', 'false');
       panel.classList.remove('open');
       document.documentElement.style.overflow = '';
+      previousInert.forEach((inert, el) => { el.inert = inert; });
+      previousInert.clear();
+      panel.inert = true;
       const done = () => { if (!open) panel.hidden = true; };
       if (still()) done(); else setTimeout(done, 540);
       btn.focus({ preventScroll: true });
@@ -301,7 +309,16 @@ const year = new Date().getFullYear();
     btn.addEventListener('click', () => (open ? hide() : show()));
     btn.addEventListener('pointerenter', () => { if (!open) to(1); });
     btn.addEventListener('pointerleave', () => to(0));
-    addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) hide(); });
+    addEventListener('keydown', (e) => {
+      if (!open) return;
+      if (e.key === 'Escape') hide();
+      if (e.key !== 'Tab') return;
+      const items = [btn, ...panel.querySelectorAll<HTMLElement>('a[href], button')];
+      const i = items.indexOf(document.activeElement as HTMLElement);
+      const next = e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : (i + 1) % items.length;
+      e.preventDefault();
+      items[next].focus();
+    });
     /* A row that only changes the hash stays on this page — close over it. */
     panel.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('a')) hide(); });
   }

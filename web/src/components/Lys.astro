@@ -82,6 +82,24 @@ const skyWords = lang === 'nb'
       <g class="pt" style="transform-origin: 12.6px 9.5px"><path d="M12.6 9.5L21.4 9.5" stroke="#a68c5e" stroke-width="2.8"/><path d="M21.8 9.5l0.01 0" stroke="#1b1c20" stroke-width="2.6"/><path d="M22.8 9.5l2 0" stroke="#e6c3a5" stroke-width="1.1"/></g>
       </g>
     </svg>
+    <svg class="c-rest" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      {/* Same helmet and jacket, sitting with the skis laid beside him. */}
+      <ellipse cx="12" cy="31" rx="10" ry="1.2" fill="#000" opacity="0.3"/>
+      <path d="M-3 29.5L24 29.5Q27 29.5 28 27" stroke="#2b2b2b" stroke-width="2.8"/>
+      <path d="M-1 29.2L24 29.2" stroke="#e2b84a" stroke-width="0.7"/>
+      <path d="M10 23L17 23L20 29M9 24L14 26L15 30" stroke="#4a4e45" stroke-width="3.6"/>
+      <path d="M18.8 29.5L22 29.5M13.8 30L17 30" stroke="#151614" stroke-width="2.2"/>
+      <path d="M7 16L5 23L8 24L10 17" fill="#2a2f39"/>
+      <path d="M9 23L11 15" stroke="#b39a6b" stroke-width="6"/>
+      <path d="M10.8 22L12.4 15.6" stroke="#d6c08f" stroke-width="1.4"/>
+      <path d="M12 16L15 20L18 22" stroke="#a68c5e" stroke-width="2.5"/>
+      <path d="M18 22L18.5 22" stroke="#1b1c20" stroke-width="2.5"/>
+      <circle cx="12" cy="11.3" r="2.8" fill="#2e3233"/>
+      <path d="M9.8 10a2.8 2.8 0 0 1 4 -1.3" stroke="#50575a" stroke-width="0.7"/>
+      <path d="M12.2 13L14.6 13.2L14.6 14.4L12.5 14.4" fill="#e6c3a5"/>
+      <path d="M10 11.8L13.8 11.6" stroke="#151617" stroke-width="0.9"/>
+      <rect x="13" y="10.6" width="2.8" height="1.8" rx="0.7" fill="#d9902a" stroke="#141414" stroke-width="0.45"/>
+    </svg>
 <svg class="c-ski" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       {/* Freeride stance: low, hands forward, the weight over the front of
           wide skis. Legs and upper body are separate so the legs can take
@@ -165,6 +183,7 @@ const skyWords = lang === 'nb'
       </button>
     ))}
   </div>
+  {mode === 'climb' && <button class="lys-stay" type="button" aria-pressed="false" data-stay={lang === 'nb' ? 'bli her litt' : 'stay a while'} data-go={lang === 'nb' ? 'gå videre' : 'keep going'} hidden>{lang === 'nb' ? 'bli her litt' : 'stay a while'}</button>}
   <button class="lys-read" type="button" aria-label={skyWords.now} tabindex={mode === 'climb' ? -1 : undefined}>
     <span class="lys-place">zermatt</span>
     <span class="lys-time">--:--</span>
@@ -229,6 +248,9 @@ const skyWords = lang === 'nb'
   }
   .lys-climber svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; transform-origin: 50% 92%; }
   .lys-climber .c-up { transform: scaleX(var(--face, 1)); }
+  .lys-climber .c-rest { display: none; transform: scaleX(var(--face, 1)); }
+  .lys-climber.rest .c-rest { display: block; }
+  .lys-climber.rest .c-up { display: none; }
   /* Past the top he skis: the downhill figure, tilted with the slope. */
   .lys-climber .c-ski {
     display: none;
@@ -425,7 +447,8 @@ const skyWords = lang === 'nb'
   }
   @media (prefers-reduced-motion: reduce) {
     .mk { transition: none; }
-    .mk.pulse .mk-dot::after { animation: none; }
+    .mk.pulse .mk-dot::after,
+    .lys:not(.opened) .mk.on.now .mk-dot::after { animation: none; }
   }
   .lys-fallback {
     display: none;
@@ -435,10 +458,18 @@ const skyWords = lang === 'nb'
     height: 100%;
     object-fit: cover;
   }
-  .lys.failed .lys-fallback { display: block; }
-  .lys.lost .lys-gl, .lys.lost .lys-route, .lys.lost .lys-climber, .lys.lost .lys-spray, .lys.lost .lys-marks { visibility: hidden; }
+  .lys.failed .lys-fallback,
+  :global(html:not(.js)) .lys-fallback { display: block; }
+  .lys.failed .lys-gl, .lys.failed .lys-route, .lys.failed .lys-climber, .lys.failed .lys-spray, .lys.failed .lys-marks { visibility: hidden; }
   .lys.failed .lys-read,
-  .lys.failed .lys-dial { display: none; }
+  .lys.failed .lys-dial,
+  .lys.failed .lys-sky,
+  .lys.failed .lys-stay,
+  :global(html:not(.js)) .lys-read,
+  :global(html:not(.js)) .lys-dial,
+  :global(html:not(.js)) .lys-sky,
+  :global(html:not(.js)) .lys-stay,
+  :global(html:not(.js)) .lys-marks { display: none; }
 
   /* The readout. Mono, lowercase, a place and a time. Signal-coloured when
      the shown time is not now — the only moment it is worth clicking. */
@@ -468,6 +499,27 @@ const skyWords = lang === 'nb'
      `--gap` is how much of the canvas the toolbar covers (set from script),
      plus room for the home bar, never less than a thumb's margin. */
   .lys[data-mode='climb'] { --foot: calc(var(--gap, 0px) + max(32px, calc(env(safe-area-inset-bottom, 0px) + 20px))); }
+  .lys-stay {
+    position: absolute;
+    left: clamp(20px, 4vw, 56px);
+    bottom: calc(var(--foot) + 58px);
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    background: rgba(8, 8, 10, 0.66);
+    color: var(--fg2);
+    font: 11px var(--font-inst);
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  .lys-stay[hidden] { display: none; }
+  .lys-stay:hover, .lys-stay:focus-visible, .lys-stay[aria-pressed='true'] { color: var(--signal); border-color: var(--signal); }
+  .lys-stay:focus-visible { outline: 1px solid var(--signal); outline-offset: 4px; }
+  @media (max-width: 600px) {
+    .lys-stay { left: 50%; bottom: calc(var(--foot) + 118px); translate: -50% 0; }
+  }
   .lys-alt { color: var(--fg1); min-width: 6ch; text-align: right; font-variant-numeric: tabular-nums; }
   /* The canvas holds the large viewport, so a phone's address bar sliding
      away does not resize it mid-scroll. */
@@ -1316,7 +1368,7 @@ const skyWords = lang === 'nb'
     const along: V3 = [foot[0] / dl, foot[1] / dl, 0];
     const side: V3 = [along[1], -along[0], 0];
     const top = ridgeAt(1);
-    type Key = { cam: V3; look: V3; alt: number };
+    type Key = { cam: V3; look: V3 };
     const keys3: Key[] = [];
     if (climb) {
       /*
@@ -1338,8 +1390,7 @@ const skyWords = lang === 'nb'
       const n = Math.max(1, wps.length - 1);
       for (let i = 0; i <= n; i++) {
         const sh = shots[Math.min(shots.length - 1, i)];
-        const f = i === 0 ? 0 : n === 1 ? 1 : (i - 1) / (n - 1);
-        keys3.push({ cam: [sh[0], sh[1], sh[2]], look: sh[3], alt: i === 0 ? 1608 : ridgeAt(f)[2] });
+        keys3.push({ cam: [sh[0], sh[1], sh[2]], look: sh[3] });
       }
     }
     const cr = (p0: number, p1: number, p2: number, p3: number, t: number) =>
@@ -1371,12 +1422,37 @@ const skyWords = lang === 'nb'
       return anchors.length - 1;
     };
     let uT = 0, uS = 0, lastScrollAt = 0, pointing = false;
+    // Leave a short ledge at the summit before the existing downhill run.
+    const summitAt = Math.max(1, keys3.length - 1 - 1.8);
+    const skiAt = summitAt + 0.32;
+    const stayBtn = root.querySelector<HTMLButtonElement>('.lys-stay');
+    let summitSeated = false, resting = false, restElapsed = 0, orbitAngle = 0;
+    const stopRest = () => {
+      resting = false;
+      if (stayBtn) {
+        stayBtn.setAttribute('aria-pressed', 'false');
+        stayBtn.textContent = stayBtn.dataset.stay!;
+      }
+      kick();
+    };
+    stayBtn?.addEventListener('click', () => {
+      if (resting) { stopRest(); return; }
+      if (!summitSeated) return;
+      resting = true;
+      restElapsed = 0;
+      stayBtn.setAttribute('aria-pressed', 'true');
+      stayBtn.textContent = stayBtn.dataset.go!;
+      kick();
+    });
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && resting) stopRest(); });
+    document.addEventListener('lys:open', stopRest);
     let pointFor: { id: string; until: number } | null = null;
     if (climb) {
       measure();
       uT = uS = uFromScroll();
       let settleKick = 0;
       addEventListener('scroll', () => {
+        if (resting) stopRest();
         uT = uFromScroll();
         lastScrollAt = performance.now();
         kick();
@@ -1538,6 +1614,18 @@ const skyWords = lang === 'nb'
         if (Math.abs(uT - uS) < 0.002) uS = uT;
         else busy = true;
         walk(uS !== uT && !still && !pointing);
+        summitSeated = uS >= summitAt - 0.002 && uS <= skiAt && Math.abs(uT - uS) < 0.012;
+        if (!summitSeated && resting) stopRest();
+        if (stayBtn && stayBtn.hidden === summitSeated) {
+          stayBtn.hidden = !summitSeated;
+          if (stayBtn.hidden && document.activeElement === stayBtn) skyBtn?.focus({ preventScroll: true });
+        }
+        if (summitSeated) pointing = false;
+        if (resting && !still) restElapsed += dt;
+        // A slow, bounded arc: no sudden start, no full spin behind the mountain.
+        const angle = resting && !still ? 20 * Math.sin(restElapsed / 32) : 0;
+        orbitAngle = still ? 0 : orbitAngle + (angle - orbitAngle) * (1 - Math.exp(-dt * 2));
+        if ((resting && !still) || Math.abs(orbitAngle) > 0.001) busy = true;
       }
       if (!climb) rState.forEach((s) => {
         if (s.hot) {
@@ -1559,7 +1647,8 @@ const skyWords = lang === 'nb'
       /* The drift is the only motion nobody asked for, so only a desk gets it:
          on a phone it would keep the GPU warm for nothing. Climbing, the
          scroll is the motion. */
-      const animate = !still && !climb && fine;
+      const animate = !still && ((!climb && fine) || resting);
+      if (resting && !still && !wantHi && firstDrawn && now - lastDraw < 41) { kick(); return; }
       if (Math.abs(pxT - px) > 0.002 || Math.abs(pyT - py) > 0.002) busy = true;
       if (!busy && !wantHi && firstDrawn && now - lastDraw < 41) { if (animate) kick(); return; }
       lastDraw = now;
@@ -1574,6 +1663,7 @@ const skyWords = lang === 'nb'
       let cam: number[], look: number[];
       if (climb) {
         const pc = along3((k) => k.cam, uS);
+        pc[0] += orbitAngle;
         const c: V3 = [Math.sin(pc[0] * rad) * pc[1], Math.cos(pc[0] * rad) * pc[1], pc[2]];
         look = along3((k) => k.look, uS);
         /* Parallax: a few metres sideways with the pointer, never into rock. */
@@ -1590,12 +1680,14 @@ const skyWords = lang === 'nb'
         rState[0].k = 0.95;
         /* Then down the other side: from the top, he skis the Zmuttgrat and
            its line is drawn behind him, from the summit down. */
-        rState[1].prog = clamp01((uS - (last - 1.8)) / 1.8);
+        rState[1].prog = clamp01((uS - skiAt) / (last - skiAt));
         rState[1].k = rState[1].prog > 0 ? 0.95 : 0;
         if (altEl) {
-          const i = Math.min(keys3.length - 2, Math.floor(uS));
-          const t = clamp01(uS - i);
-          const alt = keys3[i].alt + (keys3[i + 1].alt - keys3[i].alt) * t;
+          // The arrival and the altimeter must agree: 4478 m on the ledge,
+          // then the height of the skier's point along the downhill route.
+          const alt = rState[1].prog > 0
+            ? pointOn('zmuttgrat', 1 - rState[1].prog)[2] - 3
+            : 1608 + (4478 - 1608) * clamp01(uS / summitAt);
           altEl.textContent = `${Math.round(alt).toLocaleString('nb-NO')} m`;
         }
       } else {
@@ -1657,6 +1749,7 @@ const skyWords = lang === 'nb'
       if (mark) mark.style.setProperty('--x', (((zermattMinutes(date) % 1440) + 1440) % 1440 / 1440).toFixed(4));
       if (nowDot) nowDot.style.setProperty('--x', (zermattMinutes(new Date()) / 1440).toFixed(4));
       root.classList.toggle('away', Math.abs(target) > 1);
+      if (climb) root.querySelector<HTMLButtonElement>('.lys-read')!.tabIndex = Math.abs(target) > 1 ? 0 : -1;
       if (slide && document.activeElement !== slide) slide.value = String(minOf(target + nowMin));
 
       if (!firstDrawn) {
@@ -1881,7 +1974,18 @@ const skyWords = lang === 'nb'
 
       /* The figure: climbing at the head of the Hörnli line, standing on the
          top between the two, skiing at the head of the Zmutt line. */
-      if (climber) {
+      climber?.classList.toggle('rest', summitSeated);
+      if (climber && summitSeated) {
+        const P = [top[0], top[1], top[2] + 3];
+        const at = seen(P, cam) ? proj(P) : null;
+        climber.classList.toggle('on', !!at);
+        climber.classList.remove('ski', 'air', 'switch', 'point', 'hint', 'under');
+        climber.style.setProperty('--face', '1');
+        if (at) climber.style.transform = `translate(${at[0].toFixed(1)}px, ${at[1].toFixed(1)}px)`;
+        prevHead = null;
+        prevGoing = false;
+        wasAir = false;
+      } else if (climber) {
         /* Once he has started down he stays on skis, to the foot of the line. */
         const descending = rState[1].prog > 0;
         const sk = !!heads[1]?.last, up = heads[0];
@@ -2038,7 +2142,7 @@ const skyWords = lang === 'nb'
       for (const m of marks) m.el.classList.toggle('now', m.el === newest || (m.route === 'top' && m.el.classList.contains('on')));
       /* When a point lights, he turns to it and points — once, for a couple
          of seconds, however far up the screen the camera has put it. */
-      if (climber) {
+      if (climber && !summitSeated) {
         const t = climber.style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
         let aim: number[] | null = null;
         /* Not mid-trick: in the air or just down, the showing waits for him. */

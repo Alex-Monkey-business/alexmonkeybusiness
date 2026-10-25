@@ -1,6 +1,6 @@
 ---
 import AmbMark from './brand/AmbMark.astro';
-import { t, path, otherLang, stripLang, type Lang } from '../i18n';
+import { t, path, otherLang, stripLang, hasTranslation, type Lang } from '../i18n';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -10,6 +10,7 @@ const other = otherLang(lang);
 const bare = stripLang(Astro.url.pathname);
 // Land on the same page in the other language, not back at the front page.
 const switchHref = path(other, bare);
+const translated = hasTranslation(Astro.url.pathname);
 const otherCode = other === 'nb' ? 'NO' : 'EN';
 const otherHreflang = other === 'nb' ? 'nb-NO' : 'en';
 /* The pill used to open mail. It goes to the contact page now, where mail is
@@ -39,9 +40,9 @@ const contactHref = path(lang, '/about');
         </svg>
       </button>
     </li>
-    <li>
+    {translated && <li>
       <a class="nav-lang" href={switchHref} hreflang={otherHreflang} data-lang-switch>{otherCode}</a>
-    </li>
+    </li>}
     <li>
       <a class="nav-cta" href={contactHref}>{s.nav.cta}</a>
     </li>
@@ -88,7 +89,7 @@ const contactHref = path(lang, '/about');
           <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
         </svg>
       </button>
-      <a class="nav-lang" href={switchHref} hreflang={otherHreflang} data-lang-switch>{otherCode}</a>
+      {translated && <a class="nav-lang" href={switchHref} hreflang={otherHreflang} data-lang-switch>{otherCode}</a>}
     </div>
   </div>
 </div>
