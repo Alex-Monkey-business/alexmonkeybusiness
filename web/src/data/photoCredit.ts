@@ -33,3 +33,10 @@ export const swisstopoCredit: PhotoCredit = {
   licence: 'OGD',
   licenceUrl: 'https://www.geo.admin.ch/en/general-terms-of-use-fsdi',
 };
+
+/** Where swissALTI3D has no tiles, on the Italian side, the heights are the
+ *  Copernicus GLO-30 DSM, whose licence asks for this line. */
+export const copernicusCredit = {
+  text: 'Copernicus WorldDEM-30 © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018, provided under COPERNICUS by the European Union and ESA',
+  source: 'https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM',
+};

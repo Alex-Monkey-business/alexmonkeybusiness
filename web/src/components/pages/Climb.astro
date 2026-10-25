@@ -19,7 +19,7 @@ import Lys from '../Lys.astro';
 import { projects } from '../../data/projects';
 import { contact } from '../../data/contact';
 import { t, path, type Lang } from '../../i18n';
-import { swisstopoCredit as credit } from '../../data/photoCredit';
+import { swisstopoCredit as credit, copernicusCredit as cop } from '../../data/photoCredit';
 import '../../styles/instrument.css';
 
 interface Props { lang: Lang }
@@ -72,7 +72,7 @@ const markers = [
           {log.map((x) => <li><a href={x.href}><span>{x.n}</span>{x.name}<span aria-hidden="true">→</span></a></li>)}
           <li><a href={path(lang, '/about/')}><span>003</span>{s.nav.cta}<span aria-hidden="true">→</span></a></li>
         </ul>
-        <p class="fallback-credit">{credit.kind?.[lang]}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a> · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a></p>
+        <p class="fallback-credit">{credit.kind?.[lang]}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a> · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a> · <a href={cop.source} target="_blank" rel="noopener noreferrer">{cop.text}</a></p>
       </div>
     </section>
 
@@ -133,6 +133,7 @@ const markers = [
           for. The language sits top right. */}
       <p class="who-foot">
         <span>{credit.kind?.[lang]}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a> · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a></span>
+        <span><a href={cop.source} target="_blank" rel="noopener noreferrer">{cop.text}</a></span>
       </p>
     </section>
   </div>
