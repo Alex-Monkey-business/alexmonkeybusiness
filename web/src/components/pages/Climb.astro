@@ -4,19 +4,17 @@
  * since 18 Oct 2026 (the one before is kept at /lab/forside-natt).
  *
  * Not a portfolio, and no cards: the mountain carries the page. As you scroll
- * the camera flies the Hörnligrat and the route draws itself up the rock;
- * where it passes a piece of work a point lights on the ridge — a dot, a
- * hairline, a name. The other side, the Zmuttgrat, is drawn on the last
- * stretch and carries the second piece. The name sits on the summit from the
- * first frame and opens the person. Pressing a point opens a sheet over the
- * mountain; the climb never leaves the screen. The only running voice is an altimeter.
+ * the camera flies the Hörnligrat and the route draws itself up the rock, and
+ * he skis the Zmuttgrat down. One point only (1 Nov 2026: the project points
+ * are gone): the name on the summit from the first frame, which opens the
+ * person in a sheet over the mountain; the climb never leaves the screen.
+ * The only running voice is an altimeter.
  * See `Lys.astro` for the points and the routes.
  *
  * Every section carries `data-wp`: it is a keyframe of the flight, reached
  * when it is centred on screen. The sections hold nothing; they are length.
  */
 import Lys from '../Lys.astro';
-import { projects } from '../../data/projects';
 import { contact } from '../../data/contact';
 import { t, path, type Lang } from '../../i18n';
 import { swisstopoCredit as credit, copernicusCredit as cop } from '../../data/photoCredit';
@@ -26,37 +24,9 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const nb = lang === 'nb';
 const s = t(lang);
-const p = Object.fromEntries(projects.map((x) => [x.slug, x]));
-
-const log = [
-  {
-    id: 'benchboss',
-    n: '001',
-    slug: 'halsen-g15',
-    name: 'benchboss',
-    route: 'hornligrat' as const,
-    f: 0.72,
-    href: path(lang, '/projects/halsen-g15/'),
-    cta: nb ? 'Se hvordan den funker' : 'See how it works',
-    /* The phone alone, cut from the Motion film: its five screens in a row. */
-    media: { kind: 'video' as const, src: '/assets/halsen/film/telefon.mp4', alt: '/assets/halsen/film/telefon.webm', poster: '/assets/halsen/film/hjem-poster.jpg', w: 318, h: 674, device: true },
-  },
-  {
-    id: 'larvik',
-    n: '002',
-    slug: 'larvik-beach',
-    name: 'larvik beach volley',
-    route: 'zmuttgrat' as const,
-    f: 0.64,
-    href: path(lang, '/projects/larvik-beach/'),
-    cta: nb ? 'Se hvordan den funker' : 'See how it works',
-    media: { kind: 'image' as const, src: '/assets/larvik-beach/spill.jpg', w: 390, h: 844 },
-  },
-];
 
 const markers = [
   { id: 'alex', route: 'top' as const, f: 1, label: 'alex monkey business' },
-  ...log.map((x) => ({ id: x.id, route: x.route, f: x.f, n: x.n, label: x.name })),
 ];
 ---
 
@@ -69,8 +39,7 @@ const markers = [
       <div class="fallback-content">
         <p class="inst-label">alex monkey business · {s.work.label}</p>
         <ul>
-          {log.map((x) => <li><a href={x.href}><span>{x.n}</span>{x.name}<span aria-hidden="true">→</span></a></li>)}
-          <li><a href={path(lang, '/about/')}><span>003</span>{s.nav.cta}<span aria-hidden="true">→</span></a></li>
+          <li><a href={path(lang, '/about/')}><span>001</span>{s.nav.cta}<span aria-hidden="true">→</span></a></li>
         </ul>
         <p class="fallback-credit">{credit.kind?.[lang]}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a> · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a> · <a href={cop.source} target="_blank" rel="noopener noreferrer">{cop.text}</a></p>
       </div>
@@ -90,30 +59,8 @@ const markers = [
     <section class="wp" data-wp></section>
     <section class="wp wp-top" data-wp></section>
 
-    <!-- The sheets the points open. The mountain stays behind them. -->
+    <!-- The sheet the summit opens. The mountain stays behind it. -->
     <div class="veil" hidden></div>
-    {log.map((x) => (
-      <section class="sheet" id={`sheet-${x.id}`} role="dialog" aria-modal="true" aria-labelledby={`h-${x.id}`} hidden>
-        <button class="sheet-x" type="button" aria-label={nb ? 'Lukk' : 'Close'}><span></span></button>
-        <p class="sheet-n">{x.n}<span>{p[x.slug]?.year}</span></p>
-        <h2 class="sheet-name" id={`h-${x.id}`} data-decode>{x.name}</h2>
-        {x.media && (
-          <div class={`sheet-media rz${x.media.w > x.media.h ? ' wide' : ''}${'device' in x.media ? ' device' : ''}`} data-still={x.media.kind === 'video' ? x.media.poster : x.media.src}>
-            {x.media.kind === 'video' ? (
-              <video poster={x.media.poster} width={x.media.w} height={x.media.h} muted loop playsinline preload="none" aria-hidden="true">
-                <source src={x.media.src} type={x.media.src.endsWith('.mp4') ? 'video/mp4' : 'video/webm'} />
-                {x.media.alt && <source src={x.media.alt} type="video/webm" />}
-              </video>
-            ) : (
-              <img src={x.media.src} width={x.media.w} height={x.media.h} alt="" loading="lazy" decoding="async" />
-            )}
-            <canvas class="rz-px" width={x.media.w} height={x.media.h} aria-hidden="true"></canvas>
-            <span class="rz-scan" aria-hidden="true"></span>
-          </div>
-        )}
-        <a class="sheet-go" href={x.href}>{x.cta}<span aria-hidden="true">→</span></a>
-      </section>
-    ))}
     <section class="sheet sheet-who" id="sheet-alex" role="dialog" aria-modal="true" aria-labelledby="h-alex" hidden>
       <button class="sheet-x" type="button" aria-label={nb ? 'Lukk' : 'Close'}><span></span></button>
       <!-- The portrait keeps its shadow side and has no frame: the grade is
