@@ -1094,6 +1094,19 @@ const skyWords = lang === 'nb'
     for (int i = 0; i < 4; i++) { s += a * vnoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
     return s;
   }
+  /* Rock blocks: a Voronoi cell for each block. x is the distance to the
+     nearest border (the crack), y a random tone for the block. */
+  vec2 blocks(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    float d1 = 9.0, d2 = 9.0, id = 0.0;
+    for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+      vec2 g = vec2(x, y), c = i + g;
+      vec2 o = vec2(hash(c), hash(c + 7.3)) * 0.8 + 0.1;
+      float d = length(g + o - f);
+      if (d < d1) { d2 = d1; d1 = d; id = hash(c + 3.7); } else if (d < d2) d2 = d;
+    }
+    return vec2(d2 - d1, id);
+  }
   /* The same, filtered: fw is how much of p one pixel covers. An octave
      finer than the pixel cannot be drawn, only aliased — it glitters as the
      camera moves — so it fades to its mean before it gets there. */
@@ -1105,6 +1118,30 @@ const skyWords = lang === 'nb'
       p = p * 2.03 + 17.1; a *= 0.5; w /= 2.03;
     }
     return s;
+  }
+
+  /* The rock's own pattern at plan or face coordinates c: x and y two
+     noise fields for tone and the snow's edge, z the wall rock — blocks,
+     each a flat tone, cut by thin dark cracks, stretched a little up the
+     face the way the rock is jointed, each scale fading to its mean before
+     it is finer than a pixel can hold. */
+  vec3 rockAt(vec2 c, float fp) {
+    float f1 = fbmF(c / 9.0, fp / 9.0);
+    float f2 = fbmF(c / 60.0 + 3.0, fp / 60.0);
+    float fw = fbmF(c / 18.0, fp / 18.0);
+    /* Warped and stretched so no block is a tidy polygon; tone and cracks
+       held low, so it reads as rock in light, not as paving. Only where
+       the coarse field says the rock is broken do the small cracks show. */
+    float k1 = 1.0 - smoothstep(0.06, 0.2, fp / 26.0), k2 = 1.0 - smoothstep(0.08, 0.25, fp / 8.0);
+    /* Past where the blocks can be seen, they are not worked out at all. */
+    if (k1 <= 0.0) return vec3(f1, f2, 0.75 + 0.5 * fw);
+    vec2 bq = (c + (vec2(f1, fw) - 0.5) * 14.0) * vec2(1.0, 0.55);
+    vec2 b1 = blocks(bq / 26.0), b2 = k2 > 0.0 ? blocks(bq / 8.0 + 13.0) : vec2(1.0, 0.5);
+    float tone = mix(1.0, 0.84 + 0.32 * b1.y, k1) * mix(1.0, 0.92 + 0.16 * b2.y, k2);
+    float broken = smoothstep(0.5, 0.65, fw);
+    float crack = max((1.0 - smoothstep(0.0, 0.04 + fp / 26.0 * 1.5, b1.x)) * k1 * (0.4 + 0.6 * broken),
+                      (1.0 - smoothstep(0.0, 0.05 + fp / 8.0 * 1.5, b2.x)) * 0.6 * k2 * broken);
+    return vec3(f1, f2, (0.75 + 0.5 * fw) * tone * (1.0 - 0.45 * crack));
   }
 
   /* foot: how many metres one pixel covers there. Far off, the shadow ray
@@ -1277,22 +1314,38 @@ const skyWords = lang === 'nb'
          wood grain. There the normal is taken over a wider span. */
       vec3 nw = nrm(p.xy, e * 4.0);
       float wall = smoothstep(0.25, 0.7, 1.0 - nw.z);
-      n = normalize(mix(n, nw, wall * 0.85));
+      /* On the steepest walls even that is columns: wider still. */
+      vec3 nw2 = wall > 0.5 ? nrm(p.xy, e * 9.0) : nw;
+      n = normalize(mix(n, mix(nw, nw2, smoothstep(0.5, 0.9, wall)), wall * 0.95));
 
       /* Rock and snow. Noise breaks every threshold so nothing reads as a
          contour; it fades out with distance so far slopes do not shimmer. */
       float near = 1.0 - smoothstep(1500.0, 7000.0, t);
-      /* On a wall, plan coordinates smear noise into vertical streaks; there
-         it is sampled along the face and up it instead. */
-      vec2 th = normalize(vec2(-n.y, n.x) + 1e-5);
-      vec2 nc = mix(p.xy, vec2(dot(p.xy, th), p.z * 1.4), smoothstep(0.25, 0.6, 1.0 - n.z));
       /* Metres of ground one pixel covers here, more at a grazing angle. */
       float fp = t * pix / max(abs(dot(nw, rd)), 0.3);
-      float f1 = fbmF(nc / 9.0, fp / 9.0);
-      /* Also along the face: from plan coordinates it runs down every wall
-         as vertical streaks, in the rock's tone and in the snow line. */
-      float f2 = fbmF(nc / 60.0 + 3.0, fp / 60.0);
-      float strata = mix(0.5, vnoise(vec2(p.z / 7.0, (p.x + p.y) / 400.0)), 1.0 - smoothstep(2.0, 5.0, fp));
+      /* The rock's pattern, projected three ways and blended by which way the
+         ground faces: from above on open slopes, from east-west and from
+         north-south on walls. A single projection along the face was tried:
+         its coordinate is a distance from the map's origin, kilometres away,
+         so a wall that turns a little slid it by hundreds of metres and the
+         rock swirled like wood grain. */
+      float kf = smoothstep(0.25, 0.6, 1.0 - nw.z);
+      float ax = pow(abs(nw.x), 4.0), ay = pow(abs(nw.y), 4.0);
+      float aw = ax / (ax + ay + 1e-6);
+      float wP = 1.0 - kf, wA = kf * aw, wB = kf * (1.0 - aw);
+      vec3 R = vec3(0.0); float wS = 0.0;
+      /* A projection with little weight is skipped and the rest renormalised:
+         the blend zones stay soft, and most pixels pay for one or two. */
+      if (wP > 0.12) { R += wP * rockAt(p.xy, fp); wS += wP; }
+      if (wA > 0.12) { R += wA * rockAt(vec2(p.y, p.z * 1.4) + 71.0, fp); wS += wA; }
+      if (wB > 0.12) { R += wB * rockAt(vec2(p.x, p.z * 1.4) + 37.0, fp); wS += wB; }
+      R /= max(wS, 1e-4);
+      vec2 th = normalize(vec2(-nw.y, nw.x) + 1e-5);
+      vec2 nc = kf < 0.5 ? p.xy : aw > 0.5 ? vec2(p.y, p.z * 1.4) + 71.0 : vec2(p.x, p.z * 1.4) + 37.0;
+      float f1 = R.x, f2 = R.y;
+      /* Banded by height on open slopes only: on a curved wall a band at a
+         height is a contour line. */
+      float strata = mix(0.5, vnoise(vec2(p.z / 7.0, (p.x + p.y) / 400.0)), (1.0 - smoothstep(2.0, 5.0, fp)) * (1.0 - wall));
       /* Gneiss: dark and cool. Lighter and warmer, the low sun turned it to
          sandstone on every lit wall. */
       vec3 rock = vec3(0.066, 0.067, 0.07) * (0.62 + 0.5 * f2 + 0.25 * (strata - 0.5) * near + 0.35 * (f1 - 0.5) * near);
@@ -1302,12 +1355,15 @@ const skyWords = lang === 'nb'
       float lip = (f1 - 0.5) * 0.07 * near + (f2 - 0.5) * 0.06;
       /* A deep winter: snow holds on steeper ground than the rock would
          let it in summer, and comes lower down. */
-      float snow = smoothstep(0.48, 0.64, nw.z + lip) * smoothstep(2150.0, 2650.0, p.z + (f2 - 0.5) * 200.0);
+      /* The edge is kept hard — snow ends, it does not fade — but never
+         harder than a pixel can hold, so it does not crawl. */
+      float sw = 0.025 + min(0.06, fp * 0.004);
+      float snow = smoothstep(0.56 - sw, 0.56 + sw, nw.z + lip) * smoothstep(2150.0, 2650.0, p.z + (f2 - 0.5) * 200.0);
       /* Rock micro-relief: bend the normal by the noise's slope, near only. */
       if (near > 0.0) {
         float g0 = fbmF(nc / 5.0, fp / 5.0), gx = fbmF((nc + vec2(0.7, 0.0)) / 5.0, fp / 5.0), gy = fbmF((nc + vec2(0.0, 0.7)) / 5.0, fp / 5.0);
         vec3 tu = normalize(vec3(th, 0.0)), tv = normalize(cross(n, tu));
-        n = normalize(n + (tu * (g0 - gx) + tv * (g0 - gy)) * 1.4 * near * (1.0 - snow));
+        n = normalize(n + (tu * (g0 - gx) + tv * (g0 - gy)) * 1.4 * near * (1.0 - snow) * (1.0 - 0.8 * wall));
       }
       /* Inside the 2 m box, the orthophoto (swisstopo SWISSIMAGE, summer
          2023) brings the real rock: its cracks, gullies and bedding, as
@@ -1328,15 +1384,19 @@ const skyWords = lang === 'nb'
            wall either, whatever the photo says. */
         float flat_ = 1.0 - wall;
         rock *= mix(1.0, clamp(hp, 0.35, 1.6), inBox * flat_ * (0.4 + 0.5 * near));
-        snow = mix(snow, max(og.g * smoothstep(0.32, 0.58, nw.z), snow * 0.85), inBox);
+        float ogs = smoothstep(0.3, 0.6, og.g);
+        snow = mix(snow, max(ogs * smoothstep(0.32, 0.58, nw.z), snow * 0.85), inBox);
       }
-      /* Wall rock: broken in the face's own plane, coarse and fine. */
-      float fw = (near > 0.0 ? fbmF(nc / 3.5, fp / 3.5) : 0.5) * 0.6 + fbmF(nc / 18.0, fp / 18.0) * 0.4;
-      rock *= mix(1.0, (0.3 + 2.2 * fw * fw) * 0.75, wall * (0.5 + 0.5 * near));
+      /* Wall rock, the way gneiss breaks (see rockAt). */
+      rock *= mix(1.0, R.z, wall * (0.45 + 0.55 * near));
+
       vec3 alb = mix(rock, vec3(0.86, 0.89, 0.93), snow);
 
       float dif = max(dot(n, sunDir), 0.0);
-      float sh = dif > 0.0 ? shadow(p + n * 1.5, sunDir, t * pix) : 0.0;
+      /* The shadow ray leaves from the smooth surface and, on a wall, a few
+         metres out: from the fine one each column of the height file shades
+         its neighbour, and the wall comes out in vertical stripes. */
+      float sh = dif > 0.0 ? shadow(p + nw * (1.5 + 5.0 * wall), sunDir, t * pix) : 0.0;
       float ao = occl(p.xy, p.z, t * pix > 8.0);
       vec3 amb = ambCol * (0.55 + 0.45 * n.z) * ao;
       /* Snow in shade is lit by blue sky; light off the snowfields fills the
