@@ -470,6 +470,8 @@ const skyWords = lang === 'nb'
     width: 14px;
     height: 14px;
     margin: -7px 0 0 -7px;
+    background: color-mix(in srgb, #f4f6fb, rgb(var(--lc, 255 255 255)) calc(var(--gw, 0) * 50%));
+    box-shadow: 0 0 calc(var(--gw, 0) * 10px) rgb(var(--lc, 255 255 255) / calc(var(--gw, 0) * 0.5));
     filter: brightness(var(--pow, var(--lit, 1))) blur(1.2px);
   }
   /* Powder: crisp round lumps that rise and hang behind him, the jibbers
@@ -479,7 +481,14 @@ const skyWords = lang === 'nb'
     width: 12px;
     height: 12px;
     margin: -6px 0 0 -6px;
-    box-shadow: inset -1.2px -2px 0 rgba(140, 156, 190, 0.38);
+    /* Lit by the light that is up (see the script): shade on the side away
+       from it, a rim of its colour toward it, and when the light is behind
+       the snow, a glow of light coming through. */
+    background: color-mix(in srgb, #f4f6fb, rgb(var(--lc, 255 255 255)) calc(var(--gw, 0) * 35%));
+    box-shadow:
+      inset calc(var(--lx, -0.6) * 2.2px) calc(var(--ly, -0.8) * 2.2px) 0 rgba(130, 148, 186, 0.4),
+      inset calc(var(--lx, -0.6) * -1.3px) calc(var(--ly, -0.8) * -1.3px) 0 rgb(var(--lc, 255 255 255) / calc(0.2 + var(--gw, 0) * 0.6)),
+      0 0 calc(var(--gw, 0) * 8px) rgb(var(--lc, 255 255 255) / calc(var(--gw, 0) * 0.55));
     filter: brightness(var(--pow, var(--lit, 1)));
   }
   /* In the air: knees up, the skis a little apart — freeride, not gymnastics. */
@@ -2073,7 +2082,35 @@ const skyWords = lang === 'nb'
       /* Powder catches the lamp: in the dark it glows while he stays black. */
       const pow = (sun.alt / rad < -4 ? Math.max(+lit, 0.92) : +lit).toFixed(3);
       climber?.style.setProperty('--pow', pow);
-      root.querySelector<HTMLElement>('.lys-spray')?.style.setProperty('--pow', pow);
+      const sprayLayer = root.querySelector<HTMLElement>('.lys-spray');
+      if (sprayLayer) {
+        sprayLayer.style.setProperty('--pow', pow);
+        /* The powder lit by the light that is up: the sun, or after dusk the
+           moon. Each lump is shaded away from it on the screen, rimmed toward
+           it, and glows with light through it when the camera looks into
+           the light. At night the lamp lights it from inside, warm. */
+        const sa = sun.alt / rad;
+        const byMoon = sa < -2 && moon.alt > 0;
+        const ld = byMoon ? moon.dir : sun.dir;
+        let lx = ld[0] * rgt[0] + ld[1] * rgt[1] + ld[2] * rgt[2];
+        let ly = -(ld[0] * up[0] + ld[1] * up[1] + ld[2] * up[2]);
+        const ll = Math.hypot(lx, ly) || 1;
+        lx /= ll; ly /= ll;
+        const facing = ld[0] * fwd[0] + ld[1] * fwd[1] + ld[2] * fwd[2];
+        const golden = 1 - ss(4, 22, sa);
+        const lampOn = sa < -4;
+        /* No moon: the sun under the horizon would light it from below. The
+           lamp is the light then, from him, a little above. */
+        if (lampOn && !byMoon) { lx = 0; ly = -0.5; }
+        const sc = L.sun, m = Math.max(sc[0], sc[1], sc[2], 1e-3);
+        const lc = lampOn ? [255, 240, 214] : byMoon ? [196, 210, 240] : sc.map((v) => Math.round(150 + 105 * Math.min(1, v / m)));
+        const back = ss(0.05, 0.75, facing);
+        const gw = lampOn ? 0.75 : Math.min(1, back * (0.45 + 0.55 * golden) + golden * 0.55);
+        sprayLayer.style.setProperty('--lx', lx.toFixed(2));
+        sprayLayer.style.setProperty('--ly', ly.toFixed(2));
+        sprayLayer.style.setProperty('--lc', lc.join(' '));
+        sprayLayer.style.setProperty('--gw', gw.toFixed(2));
+      }
       gl.uniform1f(u.moonVis, ss(-0.6, 1.5, moon.alt / rad));
       gl.uniform1f(u.moonPhase, moon.lit);
       gl.uniform1f(u.dpr, curScale);
@@ -2222,7 +2259,7 @@ const skyWords = lang === 'nb'
       const k = Math.min(1.6, 0.5 + speed / 400);
       const x0 = at[0] + bx * 7, y0 = at[1] + by * 7 - 1;
       /* Deep snow: the plume off his shins and tails, up and hanging behind. */
-      plume(at[0] + bx * 4, at[1] - 3, bx, by, Math.round(2 + 1.5 * k), 18 * k, 14 + 10 * k);
+      plume(at[0] + bx * 4, at[1] - 3, bx, by, Math.round(3 + 2 * k), 20 * k, 16 + 12 * k, 1.2);
       for (let n = 0, N = Math.round(2 + 2 * k); n < N; n++) {
         const d = (8 + Math.random() * 26) * k, up = (6 + Math.random() * 18) * k;
         puff(x0 + Math.random() * 4 - 2, y0 + Math.random() * 2, bx * d, by * d - up, 0.12 + Math.random() * 0.22, 300 + Math.random() * 320);
