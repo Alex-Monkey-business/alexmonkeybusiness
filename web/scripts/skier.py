@@ -146,7 +146,7 @@ def build_rider(c_legs, c_up, P, c_arm=None):
             for k in range(6):
                 t = k / 5
                 x = a[0] + (b[0] - a[0]) * t; y = a[1] + (b[1] - a[1]) * t
-                balls.append((V(x, y, d), 2.9 - 0.5 * (pts.index(a) + t) / max(1, len(pts) - 1)))
+                balls.append((V(x, y, d), 3.4 - 0.55 * (pts.index(a) + t) / max(1, len(pts) - 1)))
         blob(f'leg{i}', balls, M['violet'] if d < 0 else M['violetd'], c_legs)
         bx, by = pts[-1]
         ball(f'boot{i}', V(bx + 0.6, by - 0.4, d), 1.25, M['edge'], c_legs, (1.35, 1, 0.8))
@@ -156,7 +156,7 @@ def build_rider(c_legs, c_up, P, c_arm=None):
     for k in range(9):
         t = k / 8
         x = hx + (sx - hx) * t; y = hy + (sy - hy) * t
-        balls.append((V(x, y, 0), 4.4 + 0.6 * math.sin(t * math.pi)))
+        balls.append((V(x, y, 0), 5.0 + 0.9 * math.sin(t * math.pi)))
     jacket = blob('jacket', balls, M['pink'], c_up, res=0.2)
     # arms
     for i, (pts, d) in enumerate(P['arms']):
@@ -167,10 +167,10 @@ def build_rider(c_legs, c_up, P, c_arm=None):
         for k in range(10):
             t = k / 9
             q = a * (1 - t) ** 2 + c * 2 * (1 - t) * t + b * t * t
-            balls.append((V(q.x, q.y, d), 2.2 - 0.5 * t))
+            balls.append((V(q.x, q.y, d), 2.65 - 0.55 * t))
         blob(f'arm{i}', balls, M['pink'], cA)
         ex, ey = pts[-1]
-        ball(f'glove{i}', V(ex, ey, d), 1.35, M['glove'], cA)
+        ball(f'glove{i}', V(ex, ey, d), 1.45, M['glove'], cA)
     # poles
     for i, (pts, d) in enumerate(P['poles']):
         cA = c_arm if (c_arm and i == 1) else c_up
@@ -180,20 +180,20 @@ def build_rider(c_legs, c_up, P, c_arm=None):
     # head: helmet in the hood, goggles forward
     (cx, cy), face = P['head']
     # the hood lies behind and under the helmet, a collar of the jacket
-    ball('hoodball', V(cx - 1.6 * face, cy + 1.6, 1.2), 2.9, M['pink'], c_up)
-    ball('helmet', V(cx, cy, 0), 3.15, M['hood'], c_up)
-    ball('goggles', V(cx + 2.2 * face, cy + 0.5, -0.4), 1.5, M['gog'], c_up, (0.6, 1.9, 0.85))
+    ball('hoodball', V(cx - 1.7 * face, cy + 1.8, 1.2), 3.3, M['pink'], c_up)
+    ball('helmet', V(cx, cy, 0), 3.55, M['hood'], c_up)
+    ball('goggles', V(cx + 2.55 * face, cy + 0.5, -0.4), 1.75, M['gog'], c_up, (0.6, 1.9, 0.85))
     return M
 
 # --- the poses, in the SVG's own coordinates --------------------------------
 RIDE = dict(
     skis=[([(-0.4, 26.6), (1.0, 28.2), (3.4, 28.6), (20.6, 28.4), (23.2, 28.2), (24.6, 25.6)], -1.3),
           ([(0.6, 26.9), (2.0, 28.5), (4.4, 28.9), (21.6, 28.7), (24.2, 28.5), (25.6, 25.9)], 1.3)],
-    legs=[([(9.6, 19.5), (7.2, 23.6), (9.0, 27.6)], -1.6), ([(14.8, 19.5), (16.8, 23.4), (17.2, 27.4)], 1.6)],
-    torso=((11.2, 18.4), (14.0, 11.6)),
-    arms=[([(9.4, 12.4), (6.2, 14.6), (4.4, 17.2)], 2.2), ([(15.2, 11.6), (19.0, 13.2), (21.4, 15.8)], -2.2)],
-    poles=[([(4.6, 17.0), (-6.4, 19.8)], 2.4), ([(21.4, 15.8), (31.4, 18.8)], -2.4)],
-    head=((17.0, 7.3), 1),
+    legs=[([(9.6, 20.6), (6.4, 24.0), (9.0, 27.6)], -1.7), ([(14.8, 20.6), (17.8, 23.6), (17.2, 27.4)], 1.7)],
+    torso=((11.2, 19.6), (14.2, 13.2)),
+    arms=[([(9.4, 13.9), (6.0, 16.2), (4.2, 18.8)], 2.4), ([(15.2, 13.1), (19.0, 14.7), (21.4, 17.3)], -2.4)],
+    poles=[([(4.4, 18.6), (-6.6, 21.4)], 2.6), ([(21.4, 17.3), (31.4, 20.3)], -2.6)],
+    head=((17.4, 8.9), 1),
 )
 AIR = dict(
     skis=[([(3.4, 16.3), (4.6, 17.6), (23.0, 24.4), (25.2, 25.2), (26.1, 23.2)], -1.2),
@@ -222,9 +222,9 @@ def render(pose, name, split=False):
     sc = bpy.context.scene
     if split:
         # the pointing arm, straight out from the shoulder (rotated in CSS)
-        balls = [(V(15 + 8.8 * k / 9, 12, -2.2), 2.1 - 0.4 * k / 9) for k in range(10)]
+        balls = [(V(15 + 8.8 * k / 9, 13.4, -2.2), 2.55 - 0.45 * k / 9) for k in range(10)]
         blob('ptarm', balls, M['pink'], point)
-        ball('ptglove', V(24.2, 12, -2.2), 1.35, M['glove'], point)
+        ball('ptglove', V(24.2, 13.4, -2.2), 1.45, M['glove'], point)
         layers = dict(legs=legs, up=up, arm=arm, point=point)
         for tag, c in layers.items():
             for c2 in layers.values(): c2.hide_render = c2 is not c

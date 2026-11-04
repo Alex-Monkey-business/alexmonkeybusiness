@@ -146,8 +146,8 @@ const skyWords = lang === 'nb'
       <g class="sk-up" style="transform-origin: 11px 19.6px">
         <image href="/hero/skier/ride-up.webp" x="-8" y="-4" width="41" height="36" />
         <image class="hand" href="/hero/skier/ride-arm.webp" x="-8" y="-4" width="41" height="36" />
-        <g class="hd" style="transform-origin: 17.2px 7.6px" opacity="0"><circle class="hc" cx="17" cy="7.3" r="2.9" /><rect class="gg" x="18.4" y="7.1" width="1.6" height="1.4" /></g>
-        <g class="pt" style="transform-origin: 15px 12px"><image href="/hero/skier/ride-point.webp" x="-8" y="-4" width="41" height="36" /></g>
+        <g class="hd" style="transform-origin: 17.6px 9.2px" opacity="0"><circle class="hc" cx="17.4" cy="8.9" r="3.2" /><rect class="gg" x="19.2" y="8.7" width="1.6" height="1.4" /></g>
+        <g class="pt" style="transform-origin: 15px 13.4px"><image href="/hero/skier/ride-point.webp" x="-8" y="-4" width="41" height="36" /></g>
       </g>
     </svg>
     {/* The powder he is in: a bank at his shins, boiling while he moves.
@@ -457,6 +457,11 @@ const skyWords = lang === 'nb'
   .lys-climber.ski.air .c-ski { display: none; }
   .lys-climber.ski .c-up { display: none; }
   @media (min-width: 900px) { .lys-climber { width: 27px; height: 40px; margin: -37px 0 0 -13.5px; } }
+  /* On the way down he is the show: 40% larger, grown on as he drops in.
+     The feet stay on the line (the same share of the height above them). */
+  .lys-climber { transition: opacity 400ms linear, width 500ms cubic-bezier(0.16, 1, 0.3, 1), height 500ms cubic-bezier(0.16, 1, 0.3, 1), margin 500ms cubic-bezier(0.16, 1, 0.3, 1); }
+  .lys-climber.ski { width: 31px; height: 46px; margin: -42px 0 0 -15.5px; }
+  @media (min-width: 900px) { .lys-climber.ski { width: 38px; height: 56px; margin: -52px 0 0 -19px; } }
   .lys.ready .lys-climber.on { opacity: 1; }
   /* Before the first scroll, a ring breathes at its feet: this is the thing
      that moves. */
