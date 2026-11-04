@@ -136,39 +136,18 @@ const skyWords = lang === 'nb'
       <path d="M9.6 10.1a3 3 0 0 1 4.2 -1.5" stroke="#7c6c9c" stroke-width="0.8"/>
       <rect class="gg" x="13.8" y="10.7" width="1.7" height="1.3" rx="0.6" fill="#2f2839"/>
     </svg>
-<svg class="c-ski" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      {/* Deep snow, the jibber way: clothes too big for him in flat, matte
-          colour (dusty pink jacket, violet trousers, mint skis with a dark
-          edge so they read on snow and rock), a hood over the helmet, arms
-          and poles held out wide and low, and the legs gone in the powder to
-          the knee. No face. Legs and upper body are separate
-          so the legs can take the terrain and the body can lean into the line. */}
-      <path d="M20.6 28.4Q23.2 28.2 24.6 25.6M3.4 28.6Q1 28.6 -0.4 26.6" stroke="#2a3330" stroke-width="2.6"/><path class="tip" d="M20.6 28.3Q23 28.1 24.3 25.9M3.4 28.5Q1.2 28.5 0 26.8" stroke="#8fc8b6" stroke-width="1.5"/>
-      <g class="sk-legs" style="transform-origin: 12px 29.6px">
-        <path d="M7.4 18.6Q6.2 23.4 7 28.6L12.6 28.6L13.6 23.4L15.4 28.4L19 28.4Q18.6 22.4 16 18.4Z" fill="#6c5b8c"/>
-        <path d="M13.4 21.6L14.6 26.6" stroke="#463b5f" stroke-width="0.7"/>
-      </g>
+<svg class="c-ski" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" aria-hidden="true">
+      {/* Deep snow, the jibber way, as a figure built in Blender (see
+          scripts/skier.py) from this pose and rendered in layers that keep
+          its moves: the legs take the terrain, the body leans into the line,
+          the front arm gives way to the pointing one. The head's two marks
+          are invisible: the lamp is placed from them. */}
+      <g class="sk-legs" style="transform-origin: 12px 29.6px"><image href="/hero/skier/ride-legs.webp" x="-8" y="-4" width="41" height="36" /></g>
       <g class="sk-up" style="transform-origin: 11px 19.6px">
-        {/* The back arm, behind the body: out and down, the pole trailing. */}
-        <path class="hand" d="M9.4 12.4Q6.2 14.6 4.4 17.2" stroke="#a5718a" stroke-width="3.3"/>
-        <path class="hand pole" d="M4.6 17L-6.4 19.8" stroke="#6b717b" stroke-width="0.85"/>
-        <path class="hand pole" d="M-6.4 19.8l-0.4 -1M-6.4 19.8l0.3 1" stroke="#6b717b" stroke-width="0.6"/>
-        {/* The jacket: one big soft shape, hem hanging past the hips. */}
-        <path d="M6 20.6Q4.4 14.6 7.6 10.6Q11 7.6 15.6 9.4Q19 11 18.8 15Q18.6 19 16.6 20.8Q11.2 22.2 6 20.6Z" fill="#c48aa2"/>
-        <path d="M7.6 11.2Q10.8 8.6 14.6 9.8" stroke="#dcaabd" stroke-width="1.1"/>
-        <path d="M6.6 19.4Q11 20.8 16 19.6" stroke="#a5718a" stroke-width="0.8"/>
-        {/* The front arm, held out ahead, the pole low and wide. */}
-        <path class="hand" d="M15.2 11.6Q19 13.2 21.4 15.8" stroke="#c48aa2" stroke-width="3.3"/>
-        <path class="hand pole" d="M21.4 15.8L31.4 18.8" stroke="#8a909a" stroke-width="0.9"/>
-        <path class="hand pole" d="M31.4 18.8l0.3 -1M31.4 18.8l-0.3 1" stroke="#8a909a" stroke-width="0.6"/>
-        <path class="hand" d="M21.6 15.9l0.01 0" stroke="#2f2839" stroke-width="2.8"/>
-        <g class="hd" style="transform-origin: 17.2px 7.6px">
-          <circle cx="15.6" cy="7.9" r="3.2" fill="#a5718a"/>
-          <circle class="hc" cx="17" cy="7.3" r="2.9" fill="#463b5f"/>
-          <path d="M14.2 6.2a3 3 0 0 1 4.2 -1.6" stroke="#7c6c9c" stroke-width="0.8"/>
-          <rect class="gg" x="18.7" y="6.6" width="1.7" height="1.3" rx="0.6" fill="#2f2839"/>
-        </g>
-        <g class="pt" style="transform-origin: 15px 12px"><path d="M15 12L23.8 12" stroke="#c48aa2" stroke-width="3.1"/><path d="M24.4 12l0.01 0" stroke="#2f2839" stroke-width="2.8"/></g>
+        <image href="/hero/skier/ride-up.webp" x="-8" y="-4" width="41" height="36" />
+        <image class="hand" href="/hero/skier/ride-arm.webp" x="-8" y="-4" width="41" height="36" />
+        <g class="hd" style="transform-origin: 17.2px 7.6px" opacity="0"><circle class="hc" cx="17" cy="7.3" r="2.9" /><rect class="gg" x="18.4" y="7.1" width="1.6" height="1.4" /></g>
+        <g class="pt" style="transform-origin: 15px 12px"><image href="/hero/skier/ride-point.webp" x="-8" y="-4" width="41" height="36" /></g>
       </g>
     </svg>
     {/* The powder he is in: a bank at his shins, boiling while he moves.
@@ -186,47 +165,14 @@ const skyWords = lang === 'nb'
         <circle cx="9" cy="29.8" r="1.8" opacity="0.5"/>
       </g>
     </svg>
-    <svg class="c-air" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      {/* Out of the powder the legs show: the same baggy figure, the skis
-          crossed under him and the far pole thrown out wide. */}
-      <path d="M3.4 16.3Q3.8 17.4 4.6 17.6L23 24.4Q25.2 25.2 26.1 23.2" stroke="#2a3330" stroke-width="3"/><path d="M4.6 17.4L23 24.2Q25 24.9 25.8 23.2" stroke="#8fc8b6" stroke-width="1.7"/>
-      <path d="M11.6 16.8Q17.4 14.2 17.2 17.4L16 22" stroke="#574975" stroke-width="4.4"/>
-      <path d="M12.4 10Q8.8 7.4 5.4 5" stroke="#a5718a" stroke-width="3.1"/>
-      <path class="pole" d="M5.6 5.2L-4.6 7.4" stroke="#6b717b" stroke-width="0.85"/>
-      <path d="M9.4 19.6Q8.4 13.6 10.6 9.8Q13.4 7.8 16.4 9.4Q18.4 12.6 17.4 17.4Q14.4 20.4 9.4 19.6Z" fill="#c48aa2"/>
-      <path d="M10.8 10.4Q13 8.6 15.6 9.4" stroke="#dcaabd" stroke-width="1"/>
-      <path d="M12 18.8Q19 16.8 18.8 19.4L15.8 24" stroke="#6c5b8c" stroke-width="4.4"/>
-      <path d="M1.2 27.8Q1.8 29 2.6 28.6L24 20.2Q26.2 19.4 26.3 17.2" stroke="#2a3330" stroke-width="3"/><path d="M2.6 28.4L24 20Q25.9 19.3 26 17.5" stroke="#8fc8b6" stroke-width="1.7"/>
-      <path d="M15.4 11Q19 14.6 19.4 20.8" stroke="#c48aa2" stroke-width="3.1"/>
-      <path d="M19.4 21.4l0.01 0" stroke="#2f2839" stroke-width="2.8"/>
-      <g class="hd" style="transform-origin: 15.6px 6.4px">
-        <circle cx="14" cy="6.6" r="3.2" fill="#a5718a"/>
-        <circle class="hc" cx="15.4" cy="6" r="2.9" fill="#463b5f"/>
-        <path d="M12.6 4.9a3 3 0 0 1 4.2 -1.6" stroke="#7c6c9c" stroke-width="0.8"/>
-        <rect class="gg" x="17.1" y="5.3" width="1.7" height="1.3" rx="0.6" fill="#2f2839"/>
-      </g>
+<svg class="c-air" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" aria-hidden="true">
+      {/* Out of the powder: knees up, skis crossed, a hand on one. */}
+      <image href="/hero/skier/air.webp" x="-8" y="-4" width="41" height="36" />
     </svg>
-    <svg class="c-flip" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      {/* The backflip, jibber style: not a trick shape but a loose body —
-          knees bent and wide apart, the skis parallel under him, arms low
-          and easy, the poles hanging. */}
-      <path d="M3 25.4Q3.4 26.6 4.6 26.6L22.4 26.6Q24 26.6 24.6 24.8" stroke="#2a3330" stroke-width="2.8"/><path d="M3.4 25.6Q3.8 26.4 4.8 26.4L22.2 26.4Q23.6 26.4 24.2 25" stroke="#8fc8b6" stroke-width="1.5"/>
-      <path d="M10.4 18.6Q6.4 20.6 7.2 25.6" stroke="#574975" stroke-width="4.6"/>
-      <path d="M10.6 11.4Q7.4 13.6 6.4 16.6" stroke="#a5718a" stroke-width="3.1"/>
-      <path class="pole" d="M6.4 16.6L-1.6 23" stroke="#6b717b" stroke-width="0.85"/>
-      <path d="M8 20Q7 14 9.6 10.2Q12.6 8.2 15.8 9.8Q17.8 13 17 17.8Q13.4 21 8 20Z" fill="#c48aa2"/>
-      <path d="M9.8 10.8Q12.2 9 15 9.8" stroke="#dcaabd" stroke-width="1"/>
-      <path d="M13.2 18.8Q18.8 19.4 17.4 26" stroke="#6c5b8c" stroke-width="4.6"/>
-      <path d="M1.4 28.4Q1.8 29.6 3 29.6L20.8 29.6Q22.4 29.6 23 27.8" stroke="#2a3330" stroke-width="2.8"/><path d="M1.8 28.6Q2.2 29.4 3.2 29.4L20.6 29.4Q22 29.4 22.6 28" stroke="#8fc8b6" stroke-width="1.5"/>
-      <path d="M15.4 11.6Q19 13 20.6 16.4" stroke="#c48aa2" stroke-width="3.1"/>
-      <path class="pole" d="M20.6 16.4L27.6 23" stroke="#8a909a" stroke-width="0.85"/>
-      <path d="M20.7 16.6l0.01 0" stroke="#2f2839" stroke-width="2.8"/>
-      <g class="hd">
-        <circle cx="12.2" cy="6.6" r="3.2" fill="#a5718a"/>
-        <circle class="hc" cx="13.6" cy="6" r="2.9" fill="#463b5f"/>
-        <path d="M10.8 4.9a3 3 0 0 1 4.2 -1.6" stroke="#7c6c9c" stroke-width="0.8"/>
-        <rect class="gg" x="15.3" y="5.3" width="1.7" height="1.3" rx="0.6" fill="#2f2839"/>
-      </g>
+<svg class="c-flip" viewBox="0 -4 24 36" overflow="visible" width="22" height="33" aria-hidden="true">
+      {/* The backflip: a loose body, knees wide, skis parallel. */}
+      <image href="/hero/skier/flip.webp" x="-8" y="-4" width="41" height="36" />
+      <g class="hd" opacity="0"><circle class="hc" cx="13.6" cy="6" r="2.9" /><rect class="gg" x="15" y="5.8" width="1.6" height="1.4" /></g>
     </svg>
     </div>
   )}
