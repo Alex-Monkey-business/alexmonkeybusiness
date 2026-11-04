@@ -64,9 +64,17 @@ const skyWords = lang === 'nb'
           <stop offset="0" stop-color="#fff6dc" stop-opacity="0.42" />
           <stop offset="1" stop-color="#fff6dc" stop-opacity="0" />
         </linearGradient>
+        <radialGradient id="lamp-pool">
+          <stop offset="0" stop-color="#fff6dc" stop-opacity="0.34" />
+          <stop offset="0.6" stop-color="#fff6dc" stop-opacity="0.14" />
+          <stop offset="1" stop-color="#fff6dc" stop-opacity="0" />
+        </radialGradient>
       </defs>
       <path d="M0 0L58 -9L58 9Z" fill="url(#lamp-fade)" />
-      <circle cx="0" cy="0" r="1.1" fill="#fffaf0" />
+      {/* Where the beam meets the snow: a pool of light ahead of him. */}
+      <ellipse cx="40" cy="1" rx="13" ry="7.5" fill="url(#lamp-pool)" />
+      <circle cx="0" cy="0" r="2.6" fill="#fffaf0" opacity="0.28" />
+      <circle cx="0" cy="0" r="1.2" fill="#ffffff" />
     </svg>
   )}
   {mode === 'climb' && (
@@ -419,7 +427,7 @@ const skyWords = lang === 'nb'
     margin: -4px 0 0 -4px;
     border-radius: 50%;
     background: #f4f6fb;
-    filter: brightness(var(--lit, 1)) blur(0.6px);
+    filter: brightness(var(--pow, var(--lit, 1)));
   }
   .lys-climber.ski .c-ski { display: block; }
   /* The powder bank at his shins: on the slope with him, lit by the lamp at
@@ -428,14 +436,16 @@ const skyWords = lang === 'nb'
     display: none;
     transform-origin: 50% 62%;
     transform: scaleX(var(--face, 1)) rotate(var(--tilt, 0deg));
-    filter: brightness(var(--pow, var(--lit, 1))) blur(0.6px);
+    filter: brightness(var(--pow, var(--lit, 1)));
   }
   /* At night a silhouette on dark rock is gone: a thin rim of moonlight,
      the way the jibbers read against the snow. Not dimmed with the figure. */
+  /* After dark he is what the jibbers are at night: near black, the clothes
+     only a hint of colour, the lamp the brightest thing on him. */
   .lys-climber.lamp svg:not(.c-pow) {
-    filter: brightness(var(--lit, 1)) drop-shadow(0 0 0.6px rgba(196, 210, 240, 0.85)) drop-shadow(0 0 2.5px rgba(150, 170, 220, 0.35));
+    filter: brightness(calc(var(--lit, 1) * 0.42)) saturate(0.55) drop-shadow(0 0 0.5px rgba(206, 218, 244, 0.95)) drop-shadow(0 0 2px rgba(150, 170, 220, 0.3));
   }
-  .lys-climber.lamp .pole { stroke: #c9d0dc; }
+  .lys-climber.lamp .pole { stroke: #dfe5ee; }
   .lys-climber.ski .c-pow { display: block; }
   .lys-climber.ski.air .c-pow { display: none; }
   .c-pow circle { transform-box: fill-box; transform-origin: 50% 90%; }
@@ -460,15 +470,17 @@ const skyWords = lang === 'nb'
     width: 14px;
     height: 14px;
     margin: -7px 0 0 -7px;
-    filter: brightness(var(--pow, var(--lit, 1))) blur(2.4px);
+    filter: brightness(var(--pow, var(--lit, 1))) blur(1.2px);
   }
-  /* Powder: lumps of snow that rise and hang behind him, soft enough to
-     merge into one plume, firm enough to keep their lumps. */
+  /* Powder: crisp round lumps that rise and hang behind him, the jibbers
+     way — each a ball with a hard edge and a shaded underside, so the plume
+     reads as snow with volume, not as fog. */
   .lys-spray :global(i.p) {
     width: 12px;
     height: 12px;
     margin: -6px 0 0 -6px;
-    filter: brightness(var(--pow, var(--lit, 1))) blur(0.9px);
+    box-shadow: inset -1.2px -2px 0 rgba(140, 156, 190, 0.38);
+    filter: brightness(var(--pow, var(--lit, 1)));
   }
   /* In the air: knees up, the skis a little apart — freeride, not gymnastics. */
   .lys-climber .c-air {
@@ -1227,7 +1239,15 @@ const skyWords = lang === 'nb'
       col = sky + discs(rd, pix, q);
     } else {
       vec3 p = ro + rd * t;
-      float e = max(2.0, t * pix * 1.5);
+      /* Never finer than the data under it: a normal taken across less than
+         a texel sees one flat facet per texel, and the far peaks turn to
+         blocks. 2 m in the detail box, 7.8 m on the map, 78 m past it. */
+      vec2 mt = vec2((p.x + ORIGIN.x) / PX, (ORIGIN.y - p.y) / PX);
+      float me = min(min(mt.x, mt.y), min(${N}.0 - mt.x, ${N}.0 - mt.y)) * PX;
+      vec2 dt = vec2(p.x + DORG.x, DORG.y - p.y);
+      float de = min(min(dt.x, dt.y), min(3100.0 - dt.x, 3100.0 - dt.y));
+      float texel = mix(mix(70.0, PX * 0.9, smoothstep(0.0, 300.0, me)), DP * 0.9, smoothstep(0.0, 80.0, de));
+      float e = max(max(2.0, t * pix * 1.5), texel);
       vec3 n = nrm(p.xy, e);
       /* On walls the height file is a stack of steps one texel apart, and a
          fine normal turns each step into a vertical stripe: rock that reads as
@@ -1244,7 +1264,9 @@ const skyWords = lang === 'nb'
       vec2 th = normalize(vec2(-n.y, n.x) + 1e-5);
       vec2 nc = mix(p.xy, vec2(dot(p.xy, th), p.z * 1.4), smoothstep(0.25, 0.6, 1.0 - n.z));
       float f1 = fbm(nc / 9.0);
-      float f2 = fbm(p.xy / 60.0 + 3.0);
+      /* Also along the face: from plan coordinates it runs down every wall
+         as vertical streaks, in the rock's tone and in the snow line. */
+      float f2 = fbm(nc / 60.0 + 3.0);
       float strata = vnoise(vec2(p.z / 7.0, (p.x + p.y) / 400.0));
       /* Gneiss: dark and cool. Lighter and warmer, the low sun turned it to
          sandstone on every lit wall. */
@@ -1253,7 +1275,9 @@ const skyWords = lang === 'nb'
       /* Snow lies where the rock lets it: on ledges and shelves, not in
          blotches. The shape comes from the slope; noise only frays the edge. */
       float lip = (f1 - 0.5) * 0.07 * near + (f2 - 0.5) * 0.06;
-      float snow = smoothstep(0.6, 0.74, nw.z + lip) * smoothstep(2450.0, 2950.0, p.z + (f2 - 0.5) * 200.0);
+      /* A deep winter: snow holds on steeper ground than the rock would
+         let it in summer, and comes lower down. */
+      float snow = smoothstep(0.48, 0.64, nw.z + lip) * smoothstep(2150.0, 2650.0, p.z + (f2 - 0.5) * 200.0);
       /* Rock micro-relief: bend the normal by the noise's slope, near only. */
       if (near > 0.0) {
         float g0 = fbm(nc / 5.0), gx = fbm((nc + vec2(0.7, 0.0)) / 5.0), gy = fbm((nc + vec2(0.0, 0.7)) / 5.0);
@@ -1277,7 +1301,7 @@ const skyWords = lang === 'nb'
            wall either, whatever the photo says. */
         float flat_ = 1.0 - wall;
         rock *= mix(1.0, clamp(hp, 0.35, 1.6), inBox * flat_ * (0.4 + 0.5 * near));
-        snow = mix(snow, max(og.g * smoothstep(0.32, 0.58, nw.z), snow * 0.5), inBox);
+        snow = mix(snow, max(og.g * smoothstep(0.32, 0.58, nw.z), snow * 0.85), inBox);
       }
       /* Wall rock: broken in the face's own plane, coarse and fine. */
       float fw = (near > 0.0 ? fbm(nc / 3.5) : 0.5) * 0.6 + fbm(nc / 18.0) * 0.4;
@@ -1724,14 +1748,15 @@ const skyWords = lang === 'nb'
 
     /*
      * TWO RESOLUTIONS. While anything moves, frames render at `scale` pixels
-     * per CSS pixel (1.25 at most; slow frames step it down, quick ones back up). The moment the
+     * per CSS pixel: it starts at 1.25 and climbs to the screen's own density
+     * (2 at most) on a GPU that keeps up; slow frames step it down. The moment the
      * picture comes to rest, one more frame renders at the screen's full
      * density, so what you stop and look at is sharp, and what you scroll
      * through is smooth. The step-down never touches the still.
      */
-    const topScale = Math.min(devicePixelRatio || 1, 1.25);
-    let scale = topScale;
     const hiScale = Math.min(devicePixelRatio || 1, 2);
+    const topScale = hiScale;
+    let scale = Math.min(hiScale, 1.25);
     let wantHi = false, curScale = 0, settleT = 0;
     const resize = () => {
       const s = wantHi ? hiScale : scale;
@@ -2043,7 +2068,7 @@ const skyWords = lang === 'nb'
       if (!wantHi && gap > 0 && gap < 150) {
         if (gap > 28) { slow++; fast = 0; } else { slow = Math.max(0, slow - 1); if (gap < 19) fast++; }
         if (slow > 4 && scale > 0.6) { scale = Math.max(0.6, scale * 0.85); slow = 0; resize(); }
-        else if (fast > 90 && scale < topScale) { scale = Math.min(topScale, scale * 1.1); fast = 0; resize(); }
+        else if (fast > 45 && scale < topScale) { scale = Math.min(topScale, scale * 1.15); fast = 0; resize(); }
       }
 
       if (animate || busy) {
@@ -2090,6 +2115,7 @@ const skyWords = lang === 'nb'
        the screen, a cloud floated off into the sky when the lens swung). */
     const sprayShift = [0, 0];
     let sprayAnchor: { P: number[]; q: number[] } | null = null;
+    let sprayCull = 0;
     /* Snow off the tails: grains thrown back and up that fall again, and
        now and then a soft cloud of powder that hangs and spreads. More of
        both the faster he goes. */
@@ -2444,6 +2470,18 @@ const skyWords = lang === 'nb'
           const P3 = pointOn('zmuttgrat', 1 - rState[1].prog), q3 = proj(P3);
           sprayAnchor = q3 ? { P: P3, q: q3 } : null;
           sprayEl.style.transform = `translate(${sprayShift[0].toFixed(1)}px, ${sprayShift[1].toFixed(1)}px)`;
+          /* The layer is carried by the ground under him only, so when the
+             lens swings, snow thrown far back drifts off the mountain into
+             the sky. What has drifted far from him goes. */
+          const tc = performance.now();
+          if (q3 && tc - sprayCull > 160 && sprayEl.childElementCount) {
+            sprayCull = tc;
+            const box = root.getBoundingClientRect(), reach = 150 + 0.12 * box.width;
+            for (const el of Array.from(sprayEl.children) as HTMLElement[]) {
+              const r = el.getBoundingClientRect();
+              if (Math.hypot(r.x + r.width / 2 - box.x - q3[0], r.y + r.height / 2 - box.y - q3[1]) > reach) el.getAnimations().forEach((a) => a.finish());
+            }
+          }
         } else sprayAnchor = null;
         /* Once he has started down he stays on skis, to the foot of the line. */
         const descending = rState[1].prog > 0;
