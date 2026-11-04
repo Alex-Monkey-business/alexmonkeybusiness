@@ -1027,6 +1027,8 @@ const skyWords = lang === 'nb'
   uniform float stars, moonVis, moonPhase;
   uniform float seed;
   uniform float dpr;
+  uniform float orthoN;
+  uniform vec2 jit;
 
   const float PX = ${(8000 / N).toFixed(6)};
   const vec2 ORIGIN = vec2(4048.0, 4326.0);
@@ -1081,6 +1083,18 @@ const skyWords = lang === 'nb'
   float fbm(vec2 p) {
     float s = 0.0, a = 0.5;
     for (int i = 0; i < 4; i++) { s += a * vnoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
+    return s;
+  }
+  /* The same, filtered: fw is how much of p one pixel covers. An octave
+     finer than the pixel cannot be drawn, only aliased — it glitters as the
+     camera moves — so it fades to its mean before it gets there. */
+  float fbmF(vec2 p, float fw) {
+    float s = 0.0, a = 0.5, w = 1.0;
+    for (int i = 0; i < 4; i++) {
+      float k = 1.0 - smoothstep(0.3, 0.8, fw / w);
+      s += a * mix(0.5, vnoise(p), k);
+      p = p * 2.03 + 17.1; a *= 0.5; w /= 2.03;
+    }
     return s;
   }
 
@@ -1200,7 +1214,7 @@ const skyWords = lang === 'nb'
 
   void main() {
     float tf = tan(fov * 0.5);
-    vec2 q = (uv - 0.5) * vec2(res.x / res.y, 1.0) * 2.0 * tf;
+    vec2 q = (uv + jit / res - 0.5) * vec2(res.x / res.y, 1.0) * 2.0 * tf;
     vec3 rd = normalize(fwd + q.x * rgt + q.y * up);
     vec3 ro = cam;
     float pix = 2.0 * tf / res.y;   /* radians per pixel */
@@ -1263,11 +1277,13 @@ const skyWords = lang === 'nb'
          it is sampled along the face and up it instead. */
       vec2 th = normalize(vec2(-n.y, n.x) + 1e-5);
       vec2 nc = mix(p.xy, vec2(dot(p.xy, th), p.z * 1.4), smoothstep(0.25, 0.6, 1.0 - n.z));
-      float f1 = fbm(nc / 9.0);
+      /* Metres of ground one pixel covers here, more at a grazing angle. */
+      float fp = t * pix / max(abs(dot(nw, rd)), 0.3);
+      float f1 = fbmF(nc / 9.0, fp / 9.0);
       /* Also along the face: from plan coordinates it runs down every wall
          as vertical streaks, in the rock's tone and in the snow line. */
-      float f2 = fbm(nc / 60.0 + 3.0);
-      float strata = vnoise(vec2(p.z / 7.0, (p.x + p.y) / 400.0));
+      float f2 = fbmF(nc / 60.0 + 3.0, fp / 60.0);
+      float strata = mix(0.5, vnoise(vec2(p.z / 7.0, (p.x + p.y) / 400.0)), 1.0 - smoothstep(2.0, 5.0, fp));
       /* Gneiss: dark and cool. Lighter and warmer, the low sun turned it to
          sandstone on every lit wall. */
       vec3 rock = vec3(0.066, 0.067, 0.07) * (0.62 + 0.5 * f2 + 0.25 * (strata - 0.5) * near + 0.35 * (f1 - 0.5) * near);
@@ -1280,7 +1296,7 @@ const skyWords = lang === 'nb'
       float snow = smoothstep(0.48, 0.64, nw.z + lip) * smoothstep(2150.0, 2650.0, p.z + (f2 - 0.5) * 200.0);
       /* Rock micro-relief: bend the normal by the noise's slope, near only. */
       if (near > 0.0) {
-        float g0 = fbm(nc / 5.0), gx = fbm((nc + vec2(0.7, 0.0)) / 5.0), gy = fbm((nc + vec2(0.0, 0.7)) / 5.0);
+        float g0 = fbmF(nc / 5.0, fp / 5.0), gx = fbmF((nc + vec2(0.7, 0.0)) / 5.0, fp / 5.0), gy = fbmF((nc + vec2(0.0, 0.7)) / 5.0, fp / 5.0);
         vec3 tu = normalize(vec3(th, 0.0)), tv = normalize(cross(n, tu));
         n = normalize(n + (tu * (g0 - gx) + tv * (g0 - gy)) * 1.4 * near * (1.0 - snow));
       }
@@ -1294,7 +1310,9 @@ const skyWords = lang === 'nb'
       float oe = min(min(ot.x, ot.y), min(3100.0 - ot.x, 3100.0 - ot.y));
       float inBox = smoothstep(0.0, 120.0, oe);
       if (inBox > 0.0) {
-        vec2 og = texture(O, ot / 3100.0).rg;
+        /* The level from the ground one pixel covers here, as texels. */
+        float olod = orthoN > 1.0 ? max(0.0, log2(t * pix / (3100.0 / orthoN))) : 0.0;
+        vec2 og = textureLod(O, ot / 3100.0, olod).rg;
         float hp = 1.0 + (og.r * 255.0 - 128.0) / 160.0;
         /* Taken from straight above, the photo smears down a wall: there it
            fades out, and the wall keeps its own rock. Snow does not hold on a
@@ -1304,7 +1322,7 @@ const skyWords = lang === 'nb'
         snow = mix(snow, max(og.g * smoothstep(0.32, 0.58, nw.z), snow * 0.85), inBox);
       }
       /* Wall rock: broken in the face's own plane, coarse and fine. */
-      float fw = (near > 0.0 ? fbm(nc / 3.5) : 0.5) * 0.6 + fbm(nc / 18.0) * 0.4;
+      float fw = (near > 0.0 ? fbmF(nc / 3.5, fp / 3.5) : 0.5) * 0.6 + fbmF(nc / 18.0, fp / 18.0) * 0.4;
       rock *= mix(1.0, (0.3 + 2.2 * fw * fw) * 0.75, wall * (0.5 + 0.5 * near));
       vec3 alb = mix(rock, vec3(0.86, 0.89, 0.93), snow);
 
@@ -1476,6 +1494,12 @@ const skyWords = lang === 'nb'
       gl.activeTexture(gl.TEXTURE3);
       gl.bindTexture(gl.TEXTURE_2D, texO);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bmp);
+      /* Mip levels, picked in the shader by how much ground a pixel covers:
+         without them a far slope samples single texels that change from
+         frame to frame, and the snow line shimmers. */
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.uniform1f(u.orthoN, bmp.width);
       kick();
     };
 
@@ -1507,7 +1531,7 @@ const skyWords = lang === 'nb'
     gl.uniform1i(U('O'), 3);
     gl.uniform1i(U('F'), 4);
     const u = {
-      res: U('res'), cam: U('cam'), fwd: U('fwd'), rgt: U('rgt'), up: U('up'), fov: U('fov'),
+      res: U('res'), orthoN: U('orthoN'), jit: U('jit'), cam: U('cam'), fwd: U('fwd'), rgt: U('rgt'), up: U('up'), fov: U('fov'),
       sunDir: U('sunDir'), sunCol: U('sunCol'), zenCol: U('zenCol'), horCol: U('horCol'), ambCol: U('ambCol'),
       moonDir: U('moonDir'), moonCol: U('moonCol'), fillCol: U('fillCol'),
       stars: U('stars'), moonVis: U('moonVis'), moonPhase: U('moonPhase'), seed: U('seed'), dpr: U('dpr'),
@@ -1747,25 +1771,41 @@ const skyWords = lang === 'nb'
     }, { passive: true });
 
     /*
-     * TWO RESOLUTIONS. While anything moves, frames render at `scale` pixels
-     * per CSS pixel: it starts at 1.25 and climbs to the screen's own density
-     * (2 at most) on a GPU that keeps up; slow frames step it down. The moment the
-     * picture comes to rest, one more frame renders at the screen's full
-     * density, so what you stop and look at is sharp, and what you scroll
-     * through is smooth. The step-down never touches the still.
+     * ONE RESOLUTION, REFINED AT REST. Frames render at `scale` pixels per
+     * CSS pixel: it starts at 1.25 and climbs to the screen's own density
+     * (2 at most) on a GPU that keeps up; slow frames step it down. A sharper
+     * still at another resolution was tried: the jump in and out of it read
+     * as a blink every time the scroll stopped. Instead, once the picture is
+     * at rest (wantHi), it keeps drawing into an accumulation buffer, each
+     * frame shifted by a fraction of a pixel and blended in at 1/n. Edges and
+     * fine rock settle into an anti-aliased picture over ACC frames, a
+     * gradual clearing rather than a switch.
      */
     const hiScale = Math.min(devicePixelRatio || 1, 2);
     const topScale = hiScale;
     let scale = Math.min(hiScale, 1.25);
     let wantHi = false, curScale = 0, settleT = 0;
+    const ACC = 8;
+    let acc = 0;
+    const accTex = gl.createTexture()!, accFb = gl.createFramebuffer()!;
     const resize = () => {
-      const s = wantHi ? hiScale : scale;
-      curScale = s;
-      canvas.width = Math.max(2, Math.round(canvas.clientWidth * s));
-      canvas.height = Math.max(2, Math.round(canvas.clientHeight * s));
+      curScale = scale;
+      canvas.width = Math.max(2, Math.round(canvas.clientWidth * scale));
+      canvas.height = Math.max(2, Math.round(canvas.clientHeight * scale));
       gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.activeTexture(gl.TEXTURE5);
+      gl.bindTexture(gl.TEXTURE_2D, accTex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, accFb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, accTex, 0);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      acc = 0;
     };
     resize();
+    /* Sub-pixel offsets that spread evenly: Halton, bases 2 and 3. */
+    const halton = (i: number, b: number) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
     let lastW = innerWidth;
     /* How much of the (large-viewport) canvas the browser's toolbar hides. */
     const gap = () => root.style.setProperty('--gap', Math.max(0, root.clientHeight - innerHeight).toFixed(0) + 'px');
@@ -1922,7 +1962,7 @@ const skyWords = lang === 'nb'
       if (!busy && !wantHi && firstDrawn && now - lastDraw < 41) { if (animate) kick(); return; }
       lastDraw = now;
       if (busy || animate) wantHi = false;
-      if (curScale !== (wantHi ? hiScale : scale)) resize();
+      if (curScale !== scale) resize();
 
       const el = (now - t0) / 1000;
       const portrait = canvas.clientHeight > canvas.clientWidth;
@@ -2039,7 +2079,24 @@ const skyWords = lang === 'nb'
       gl.uniform1f(u.dpr, curScale);
       gl.uniform1f(u.seed, (el * 7.3) % 100);
 
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      /* At rest, blend the next jittered sample in; moving, start over. Once
+         ACC samples are in, the GPU rests too. */
+      const refine = wantHi && acc > 0;
+      if (!(refine && acc >= ACC)) {
+        gl.uniform2f(u.jit, refine ? halton(acc, 2) - 0.5 : 0, refine ? halton(acc, 3) - 0.5 : 0);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, accFb);
+        if (refine) {
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA);
+          gl.blendColor(0, 0, 0, 1 / (acc + 1));
+        }
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.disable(gl.BLEND);
+        acc = refine ? acc + 1 : 1;        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, accFb);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        gl.blitFramebuffer(0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      }
       drawRoutes(cam, fwd, rgt, up, fovDeg * rad);
 
       timeEl.textContent = zermattClock(date);
@@ -2064,18 +2121,21 @@ const skyWords = lang === 'nb'
       /* Moving frames hold ~36 fps or better: below it the moving resolution
          steps down, and after a long run of quick frames it steps back up.
          Only back-to-back frames count; the first after a rest is no
-         measure. The still frame is always drawn sharp (see wantHi). */
+         measure. Frames refining a still picture (wantHi) do not count. */
       if (!wantHi && gap > 0 && gap < 150) {
         if (gap > 28) { slow++; fast = 0; } else { slow = Math.max(0, slow - 1); if (gap < 19) fast++; }
-        if (slow > 4 && scale > 0.6) { scale = Math.max(0.6, scale * 0.85); slow = 0; resize(); }
-        else if (fast > 45 && scale < topScale) { scale = Math.min(topScale, scale * 1.15); fast = 0; resize(); }
+        /* Only the scale changes here; the canvas is resized at the top of
+           the next frame. Resizing now, after the draw, clears the canvas
+           and the browser shows that empty frame: the whole picture blinks. */
+        if (slow > 4 && scale > 0.6) { scale = Math.max(0.6, scale * 0.85); slow = 0; }
+        else if (fast > 45 && scale < topScale) { scale = Math.min(topScale, scale * 1.15); fast = 0; }
       }
 
       if (animate || busy) {
         kick();
         clearTimeout(settleT);
         settleT = window.setTimeout(() => { wantHi = true; kick(); }, 180);
-      }
+      } else if (wantHi && acc < ACC) kick();
     };
     /*
      * THE ROUTES, as vector lines over the picture. Each crest point is
