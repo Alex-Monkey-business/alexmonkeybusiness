@@ -142,10 +142,11 @@ const skyWords = lang === 'nb'
           its moves: the legs take the terrain, the body leans into the line,
           the front arm gives way to the pointing one. The head's two marks
           are invisible: the lamp is placed from them. */}
-      <g class="sk-legs" style="transform-origin: 12px 29.6px"><image href="/hero/skier/ride-legs.webp" x="-8" y="-4" width="41" height="36" /></g>
+      <g class="sk-legs" style="transform-origin: 12px 29.6px"><image class="sd" href="/hero/skier/ride-legs.webp" x="-8" y="-4" width="41" height="36" /><image class="bk" href="/hero/skier/back-legs.webp" x="-8.5" y="-2.06" width="41" height="36" /></g>
       <g class="sk-up" style="transform-origin: 11px 19.6px">
-        <image href="/hero/skier/ride-up.webp" x="-8" y="-4" width="41" height="36" />
-        <image class="hand" href="/hero/skier/ride-arm.webp" x="-8" y="-4" width="41" height="36" />
+        <image class="sd" href="/hero/skier/ride-up.webp" x="-8" y="-4" width="41" height="36" />
+        <image class="bk" href="/hero/skier/back-up.webp" x="-8.5" y="-2.06" width="41" height="36" />
+        <image class="hand sd" href="/hero/skier/ride-arm.webp" x="-8" y="-4" width="41" height="36" />
         <g class="hd" style="transform-origin: 17.6px 9.2px" opacity="0"><circle class="hc" cx="17.4" cy="8.9" r="3.2" /><rect class="gg" x="19.2" y="8.7" width="1.6" height="1.4" /></g>
         <g class="pt" style="transform-origin: 15px 13.4px"><image href="/hero/skier/ride-point.webp" x="-8" y="-4" width="41" height="36" /></g>
       </g>
@@ -268,6 +269,8 @@ const skyWords = lang === 'nb'
     opacity: 0;
     pointer-events: none;
     transition: opacity 400ms linear;
+    /* Grown from his feet, so a bigger figure still stands on the line. */
+    transform-origin: 50% 91%;
   }
   .lys-climber svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; transform-origin: 50% 92%; }
   /* Lit like the mountain: dim at night, full by day. He is a dark
@@ -411,6 +414,13 @@ const skyWords = lang === 'nb'
   .lys-climber.under { opacity: 0 !important; }
   /* Riding switch he looks over his shoulder, down the way he is going. */
   .c-ski .hd { transition: transform 200ms ease-out; }
+  /* Chased from behind, he is seen from behind (the camera's own angle). */
+  .c-ski .bk { display: none; }
+  .lys-climber.back .c-ski .bk { display: inline; }
+  .lys-climber.back .c-ski .sd, .lys-climber.back .c-ski .pt { display: none; }
+  /* From behind the slope's tilt on the screen means nothing: he stands up
+     straight and only leans into his turns. */
+  .lys-climber.back .c-ski { transform: scaleX(var(--face, 1)) translateY(var(--lift, 0px)) rotate(calc(var(--lean, 0deg) * 0.8)); }
   .lys-climber.switch .c-ski .hd { transform: scaleX(-1); }
   .lys-spray :global(i.c) {
     width: 14px;
@@ -989,6 +999,8 @@ const skyWords = lang === 'nb'
   uniform float dpr;
   uniform float orthoN;
   uniform vec2 jit;
+  uniform vec3 lampP, lampD;
+  uniform float lampOn, tm, chase;
 
   const float PX = ${(8000 / N).toFixed(6)};
   const vec2 ORIGIN = vec2(4048.0, 4326.0);
@@ -1367,6 +1379,16 @@ const skyWords = lang === 'nb'
         float fd = max(dot(n, normalize(vec3(0.85, 0.25, 0.62))) * 0.7 + 0.3, 0.0);
         col += alb * (moonCol * md * ms + fillCol * fd * ao);
       }
+      /* His headlamp, as light: a warm cone the way he looks that lights the
+         snow in front of him. Outside it, the night stays night. */
+      if (lampOn > 0.0) {
+        vec3 lv = lampP - p;
+        float ld = length(lv);
+        vec3 l = lv / max(ld, 1e-3);
+        float cone = smoothstep(0.9, 0.975, dot(-l, lampD));
+        float att = 1.0 / (1.0 + ld * ld / 900.0);
+        col += alb * vec3(1.0, 0.93, 0.8) * 3.0 * cone * att * max(dot(n, l), 0.0) * lampOn;
+      }
 
       /* Aerial perspective: thicker low down, warmed toward the sun. */
       float dens = exp(-(0.5 * (ro.z + p.z) - 1600.0) / 2600.0);
@@ -1385,6 +1407,38 @@ const skyWords = lang === 'nb'
 
     }
 
+    /* The beam in the air: light caught by falling snow, marched along the
+       stretch of this ray that passes the lamp. And the snow itself, in three
+       layers, faint in the dark and bright where the beam takes it. */
+    if (lampOn > 0.0) {
+      float tl = dot(lampP - ro, rd);
+      float a0 = max(0.5, tl - 140.0), a1 = hit ? min(t, tl + 140.0) : tl + 140.0;
+      float beam = 0.0;
+      if (a1 > a0) {
+        float jt = hash(gl_FragCoord.xy * 0.37);
+        for (int i = 0; i < 10; i++) {
+          float sx = a0 + (a1 - a0) * (float(i) + jt) / 10.0;
+          vec3 bv = ro + rd * sx - lampP;
+          float bd = length(bv);
+          beam += smoothstep(0.92, 0.985, dot(bv / max(bd, 1e-3), lampD)) / (1.0 + bd * bd / 900.0);
+        }
+        beam *= (a1 - a0) / 10.0 * 0.0045;
+      }
+      col += vec3(1.0, 0.94, 0.82) * beam * lampOn;
+      float sn = 0.0;
+      vec2 sp = vec2(uv.x * res.x / res.y, uv.y);
+      for (int k = 0; k < 3; k++) {
+        float fk = float(k);
+        float sc = 9.0 + fk * 7.0;
+        vec2 g = sp * sc + vec2(sin(tm * 0.4 + fk * 2.0) * 0.6 + tm * 0.15, tm * (0.5 + 0.35 * fk));
+        vec2 cell = floor(g);
+        vec2 off = vec2(hash(cell + fk * 3.1), hash(cell + fk * 7.7 + 1.3)) - 0.5;
+        float r = length(fract(g) - 0.5 - off * 0.6) * res.y / sc;
+        float px = 1.0 + 0.9 * (2.0 - fk);
+        sn += (1.0 - smoothstep(px * 0.5, px * 1.4, r)) * step(0.45, hash(cell + 11.0 + fk)) * (0.45 + 0.25 * fk);
+      }
+      col += vec3(0.86, 0.9, 1.0) * sn * lampOn * (0.05 + 0.04 * chase + 9.0 * beam);
+    }
     col = aces(col * 2.2);
     col = pow(col, vec3(1.0 / 2.2));
     col += (hash(gl_FragCoord.xy + seed) - 0.5) / 255.0;
@@ -1551,7 +1605,7 @@ const skyWords = lang === 'nb'
     gl.uniform1i(U('O'), 3);
     gl.uniform1i(U('F'), 4);
     const u = {
-      res: U('res'), orthoN: U('orthoN'), jit: U('jit'), cam: U('cam'), fwd: U('fwd'), rgt: U('rgt'), up: U('up'), fov: U('fov'),
+      res: U('res'), orthoN: U('orthoN'), jit: U('jit'), lampP: U('lampP'), lampD: U('lampD'), lampOn: U('lampOn'), tm: U('tm'), chase: U('chase'), cam: U('cam'), fwd: U('fwd'), rgt: U('rgt'), up: U('up'), fov: U('fov'),
       sunDir: U('sunDir'), sunCol: U('sunCol'), zenCol: U('zenCol'), horCol: U('horCol'), ambCol: U('ambCol'),
       moonDir: U('moonDir'), moonCol: U('moonCol'), fillCol: U('fillCol'),
       stars: U('stars'), moonVis: U('moonVis'), moonPhase: U('moonPhase'), seed: U('seed'), dpr: U('dpr'),
@@ -1739,6 +1793,10 @@ const skyWords = lang === 'nb'
       return anchors.length - 1;
     };
     let uT = 0, uS = 0, lastScrollAt = 0, pointing = false, shakeAt = -1e9, hold = 0;
+    /* The chase (see the camera), where he is in the world and which way he
+       looks: the lamp in the shader is placed from these. */
+    let chaseW = 0, rider: number[] | null = null, riderDir = [0, 0, -1], lastCam = [0, 0, 5000], lastSunAlt = 0;
+    const routeLayer = root.querySelector<SVGElement>('.lys-route');
     /* The sun as last drawn, for his shadow and his lamp. */
     let sunNow = { alt: 0, dir: [0, 0, 1] as number[] };
     /* The jumps, as fractions of the run down (see the terrain profile in
@@ -1750,7 +1808,9 @@ const skyWords = lang === 'nb'
     /* The run's scroll, stretched where he is in the drop's air (there it
        takes over twice the scroll), and after the landing, so the camera has
        room to come back from the side before the pull-out. */
-    const RUN_S = [0, 0.5, 0.68, 1], RUN_P = [0, DLIP, DLAND, 1];
+    /* And the long freeride stretch between the backflip and the drop gets
+       a third of it: that is where the camera chases him. */
+    const RUN_S = [0, 0.07, 0.4, 0.52, 0.68, 1], RUN_P = [0, 0.2, 0.62, DLIP, DLAND, 1];
     const runOf = (s: number) => {
       s = clamp01(s);
       let i = 1;
@@ -2004,7 +2064,7 @@ const skyWords = lang === 'nb'
            falls through the picture instead of the picture falling with him. */
         /* Eased in and out over a long stretch of scroll: done in a few
            per cent of it, the 1.5 km swing read as a cut (1 Nov 2026). */
-        hold = ss(DLIP - 0.3, DLIP - 0.01, run) * (1 - ss(DLAND + 0.01, 1, run));
+        hold = ss(0.62, DLIP - 0.01, run) * (1 - ss(DLAND + 0.01, 1, run));
         const M = pointOn('zmuttgrat', 1 - (DLIP + DLAND) / 2);
         if (w > 0) {
           const P = pointOn('zmuttgrat', 1 - run);
@@ -2018,7 +2078,36 @@ const skyWords = lang === 'nb'
           const D = [M[0] - 1500 * Math.sin(79 * rad), M[1] + 1500 * Math.cos(79 * rad), M[2] + 140];
           for (let i = 0; i < 3; i++) c[i] += (D[i] - c[i]) * hold;
         }
-        c[2] = Math.max(c[2], groundAt(c[0], c[1]) + 90);
+        /*
+         * THE CHASE. On the long freeride stretch between the backflip and the
+         * drop, the lens comes down behind him: 75 m back along the line and
+         * 34 m up, looking just past him down the slope, so he rides into the
+         * picture the way a game's camera follows its rider. It lets go before
+         * the drop, where the swing to the cliff's side takes over.
+         */
+        /* A night run only: by day, close up, the height data shows its facets;
+           at night the lamp shows what it lights and the dark keeps the rest. */
+        const chase = still ? 0 : ss(0.2, 0.26, run) * (1 - ss(0.58, 0.66, run)) * ss(-1, -5, lastSunAlt);
+        chaseW = chase;
+        rider = null;
+        if (run > 0 && run < 1) {
+          const Pc = pointOn('zmuttgrat', 1 - run), Pa = pointOn('zmuttgrat', 1 - Math.min(1, run + 0.02));
+          let dx = Pa[0] - Pc[0], dy = Pa[1] - Pc[1];
+          const hl = Math.hypot(dx, dy) || 1;
+          dx /= hl; dy /= hl;
+          const slope = (Pa[2] - Pc[2]) / hl;
+          const R = lineAt(run, lastCam);
+          rider = R;
+          const dz = slope - 0.35, dl = Math.hypot(dx, dy, dz) || 1;
+          riderDir = [dx / dl, dy / dl, dz / dl];
+          if (chase > 0) {
+            const C = [Pc[0] - dx * 75, Pc[1] - dy * 75, Pc[2] + 34];
+            C[2] = Math.max(C[2], groundAt(C[0], C[1]) + 16);
+            const Lk = [R[0] + dx * 25, R[1] + dy * 25, R[2] - 6];
+            for (let i = 0; i < 3; i++) { c[i] += (C[i] - c[i]) * chase; look[i] += (Lk[i] - look[i]) * chase; }
+          }
+        }
+        c[2] = Math.max(c[2], groundAt(c[0], c[1]) + 90 * (1 - chaseW) + 12 * chaseW);
         cam = c;
         /* The line runs ahead of the camera, up to where it is looking: drawn
            only behind it, nobody would ever see it. */
@@ -2126,6 +2215,19 @@ const skyWords = lang === 'nb'
       gl.uniform1f(u.moonPhase, moon.lit);
       gl.uniform1f(u.dpr, curScale);
       gl.uniform1f(u.seed, (el * 7.3) % 100);
+      lastCam = cam;
+      lastSunAlt = sun.alt / rad;
+      const lampLit = climb && rider && sun.alt / rad < -4 ? 1 : 0;
+      gl.uniform1f(u.lampOn, lampLit);
+      if (rider) {
+        gl.uniform3fv(u.lampP, [rider[0], rider[1], rider[2] + 2.5]);
+        gl.uniform3fv(u.lampD, riderDir);
+      }
+      gl.uniform1f(u.tm, el);
+      gl.uniform1f(u.chase, chaseW);
+      /* Close behind him the drawn lines would cut through the snow at his
+         feet: they make way while the camera chases. */
+      routeLayer && (routeLayer.style.opacity = (1 - 0.92 * chaseW).toFixed(2));
 
       /* At rest, blend the next jittered sample in; moving, start over. Once
          ACC samples are in, the GPU rests too. */
@@ -2645,7 +2747,8 @@ const skyWords = lang === 'nb'
         }
         const at = flight ?? h?.last;
         /* The lens closes in on the drop; he grows with it. */
-        if (at) climber.style.transform = `translate(${at[0].toFixed(1)}px, ${at[1].toFixed(1)}px)` + (hold > 0.01 ? ` scale(${(1 + 0.4 * hold).toFixed(3)})` : '');
+        if (at) climber.style.transform = `translate(${at[0].toFixed(1)}px, ${at[1].toFixed(1)}px)` + (hold + chaseW > 0.01 ? ` scale(${(1 + 0.4 * hold + 2.2 * chaseW).toFixed(3)})` : '');
+        climber.classList.toggle('back', chaseW > 0.5);
         climber.classList.remove('switch');
         if (h?.last && !flight) {
           if (sk) {
@@ -2786,6 +2889,8 @@ const skyWords = lang === 'nb'
           }
         }
         lampEl.classList.toggle('on', on);
+        /* Chased, the lamp is real light in the picture: the drawn one goes. */
+        lampEl.style.opacity = on && chaseW > 0.01 ? (1 - chaseW).toFixed(2) : '';
       }
 
       /* The points, with the same camera and the same line of sight. */
