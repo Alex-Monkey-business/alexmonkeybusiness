@@ -172,9 +172,6 @@ def build_rider(c_legs, c_up, P, c_arm=None):
         ex, ey = pts[-1]
         ball(f'glove{i}', V(ex, ey, d), 1.45, M['glove'], cA)
     # poles
-    for i, pts3 in enumerate(P.get('poles3', [])):
-        tube(f'pole3{i}', [V(*q) for q in pts3], 0.32, M['pole'], c_up, caps=False)
-        ball(f'basket3{i}', V(*pts3[-1]), 0.75, M['edge'], c_up, (1, 1, 0.35))
     for i, (pts, d) in enumerate(P['poles']):
         cA = c_arm if (c_arm and i == 1) else c_up
         tube(f'pole{i}', [V(x, y, d) for x, y in pts], 0.32, M['pole'], cA, caps=False)
@@ -238,35 +235,6 @@ def render(pose, name, split=False):
     bpy.ops.render.render(write_still=True)
 
 render(RIDE, 'ride', split=True)
-
-# From behind, the arms and poles held out wide to the sides, the jibber way.
-BACK = dict(RIDE)
-BACK['arms'] = [([(9.4, 13.9), (8.0, 16.4), (7.0, 18.6)], 6.2), ([(15.2, 13.1), (14.6, 15.6), (13.8, 18.2)], -6.2)]
-BACK['poles'] = []
-BACK['poles3'] = [[(7.0, 18.6, 6.2), (4.0, 24.0, 15.0)], [(13.8, 18.2, -6.2), (10.8, 23.6, -15.0)]]
-BACK['legs'] = [([(9.6, 20.6), (6.4, 24.0), (9.0, 27.6)], -3.0), ([(14.8, 20.6), (17.8, 23.6), (17.2, 27.4)], 3.0)]
-BACK['skis'] = [([(-0.4, 26.6), (1.0, 28.2), (3.4, 28.6), (20.6, 28.4), (23.2, 28.2), (24.6, 25.6)], -3.4),
-                ([(0.6, 26.9), (2.0, 28.5), (4.4, 28.9), (21.6, 28.7), (24.2, 28.5), (25.6, 25.9)], 3.4)]
-
-def render_back():
-    reset(); setup_scene()
-    # behind him and 30 degrees above, the way the chase camera sees him;
-    # centred on SVG (12, 14), so in the viewBox the sprite sits at
-    # x = 12 - 20.5 and, for the feet to land on the line, y = -4 + 1.94.
-    co = bpy.context.scene.camera
-    d = Vector((math.cos(math.radians(30)), 0, -math.sin(math.radians(30))))
-    target = V(12, 14, 0)
-    co.location = target - d * 60
-    co.rotation_euler = d.to_track_quat('-Z', 'Y').to_euler()
-    legs, up = coll_new('legs'), coll_new('up')
-    build_rider(legs, up, BACK)
-    sc = bpy.context.scene
-    for c, other, tag in ((legs, up, 'legs'), (up, legs, 'up')):
-        other.hide_render = True; c.hide_render = False
-        sc.render.filepath = f'{OUT}/back-{tag}.webp'
-        bpy.ops.render.render(write_still=True)
-
-render_back()
 render(AIR, 'air')
 render(FLIP, 'flip')
 print('DONE', OUT)
