@@ -1369,7 +1369,10 @@ const words = lang === 'nb'
       gl.uniform1f(u.moonPhase, moon.lit);
       gl.uniform1f(u.dpr, curScale);
       gl.uniform1f(u.seed, ((now - t0) * 0.0073) % 100);
-      gl.uniform1f(v.expo, (0.15 + 0.85 * expoK) * EXPO);
+      /* A photographer's exposure: opened up for dusk and night, stopped
+         down as the sun climbs, so the lit snow is never paper white. */
+      const meter = 1 - 0.78 * ss(-2, 14, sun.alt / rad);
+      gl.uniform1f(v.expo, (0.15 + 0.85 * expoK) * EXPO * meter);
       gl.uniform1f(v.sat, SAT);
       gl.uniform1f(v.contour, mapK);
       gl.uniform1f(v.relief, mapK);
