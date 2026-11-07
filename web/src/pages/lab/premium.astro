@@ -1,0 +1,11 @@
+---
+/* The climb as a print: a calmer, sparer take on the front page. See
+   `components/pages/Premium.astro` and `components/Relieff.astro`. */
+import Layout from '../../layouts/Layout.astro';
+import { swisstopoCredit } from '../../data/photoCredit';
+import Premium from '../../components/pages/Premium.astro';
+---
+
+<Layout title="Variant — Premium" nav="inst" credit={swisstopoCredit} navMenu={false}>
+  <Premium lang="nb" />
+</Layout>

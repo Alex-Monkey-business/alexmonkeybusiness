@@ -1,0 +1,1404 @@
+---
+/**
+ * RELIEFF — the climb as a print. A lab variant of `Lys` (7 Nov 2026).
+ *
+ * Same mountain, same data, same real sun; a different eye. `Lys` grew into
+ * a game: a figure, powder, tricks, pills and switches. This one keeps what
+ * held — the mountain lit as it is, the camera on the ridge — and takes the
+ * rest away:
+ *   - a long lens from far off, the way the mountain is photographed;
+ *   - the picture graded as a toned silver print, almost no colour;
+ *   - no figure: the climb is a point of light on the ridge, a headlamp
+ *     going up in the dark, with the line it leaves;
+ *   - at the top the camera cranes up until the mountain lies flat and turns
+ *     into its own map, contours and all.
+ * The shader's terrain is `Lys`'s, line for line; what changed is the end of
+ * it (the print, the contours, the map's light) and everything around it.
+ */
+import routes from '../data/routes.json';
+
+interface Props { lang?: 'nb' | 'en' }
+const { lang = 'nb' } = Astro.props;
+const words = lang === 'nb'
+  ? { morning: 'morgen', day: 'dag', evening: 'kveld', dusk: 'skumring', night: 'natt', next: 'Neste lys' }
+  : { morning: 'morning', day: 'day', evening: 'evening', dusk: 'dusk', night: 'night', next: 'Next light' };
+---
+
+<div class="relieff" data-words={JSON.stringify(words)} data-src="/hero/matterhorn-dem.webp" data-detail="/hero/matterhorn-detail.webp" data-ortho="/hero/matterhorn-ortho.webp" data-far="/hero/matterhorn-far.webp" data-routes={JSON.stringify(routes)}>
+  <canvas class="rl-gl" aria-hidden="true"></canvas>
+  <svg class="rl-route" aria-hidden="true">
+    <path class="rl-other" />
+    <path class="rl-trail" />
+    <path class="rl-fresh" />
+  </svg>
+  <span class="rl-head" aria-hidden="true"><i></i></span>
+  <span class="rl-tag" data-at="hornligrat" data-f="0.42" aria-hidden="true">hörnligrat</span>
+  <span class="rl-tag" data-at="zmuttgrat" data-f="0.45" aria-hidden="true">zmuttgrat</span>
+  <span class="rl-tag rl-tag-top" data-at="top" aria-hidden="true">4478</span>
+  <img class="rl-fallback" src="/hero/matterhorn-still.webp" alt="" width="2400" height="1350" decoding="async" loading="lazy" />
+
+  <div class="rl-read">
+    <p class="rl-alt"><span class="rl-alt-n">1 608</span><span class="rl-alt-u">m</span></p>
+    <button class="rl-clock" type="button" aria-label={words.next}>
+      <span>zermatt</span><span class="rl-time">--:--</span><span class="rl-light"></span>
+    </button>
+  </div>
+  <div class="rl-scale" aria-hidden="true">
+    <span style="--k: 0.1667"><b>2000</b></span>
+    <span style="--k: 0.5"><b>3000</b></span>
+    <span style="--k: 0.8333"><b>4000</b></span>
+    <span class="rl-scale-mark"></span>
+  </div>
+</div>
+
+<style>
+  .relieff {
+    position: fixed;
+    inset: 0;
+    height: 100lvh;
+    z-index: 0;
+    background: #0b0b0c;
+    overflow: hidden;
+    --ink: #f2efe8;
+    --ink2: rgba(242, 239, 232, 0.62);
+    --ink3: rgba(242, 239, 232, 0.38);
+    --lamp: #ffe8c2;
+  }
+  .rl-gl {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    opacity: 0;
+    transition: opacity 1200ms linear;
+  }
+  .relieff.ready .rl-gl { opacity: 1; }
+  .rl-fallback { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(0.85) contrast(1.05) brightness(0.8); }
+  .relieff.failed .rl-fallback { display: block; }
+  .relieff.failed .rl-gl, .relieff.failed .rl-route, .relieff.failed .rl-head { display: none; }
+
+  .rl-route {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .rl-trail { stroke: var(--ink); stroke-width: 1; opacity: 0.32; }
+  .rl-fresh { stroke: var(--lamp); stroke-width: 1.25; opacity: 0.9; }
+  .rl-other { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 4; }
+
+  /* The light: a hard white core, a small warm bloom, and a slow breath at
+     the top where it has arrived. */
+  .rl-head {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 500ms linear;
+  }
+  .rl-head.on { opacity: 1; }
+  .rl-head::before {
+    content: '';
+    position: absolute;
+    left: -14px;
+    top: -14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 232, 194, 0.55) 0%, rgba(255, 232, 194, 0.16) 35%, rgba(255, 232, 194, 0) 70%);
+  }
+  .rl-head i {
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 6px 1px rgba(255, 240, 214, 0.9);
+  }
+  .rl-head.top::after {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: -10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 232, 194, 0.7);
+    animation: rl-breath 3.2s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+  }
+  @keyframes rl-breath {
+    0% { transform: scale(0.4); opacity: 0.9; }
+    100% { transform: scale(2.6); opacity: 0; }
+  }
+
+  .rl-tag {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0 0 0 12px;
+    font-family: var(--font-inst);
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.16em;
+    color: var(--ink2);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    translate: 0 -50%;
+  }
+  .rl-tag-top { padding: 0 0 0 16px; color: var(--ink); }
+
+  /* The instrument: the height in large thin figures, and under it where
+     and when. Bottom right, out of the picture's way. */
+  .rl-read {
+    position: absolute;
+    right: clamp(20px, 4vw, 56px);
+    bottom: clamp(20px, 5vh, 48px);
+    text-align: right;
+    font-family: var(--font-inst);
+    color: var(--ink);
+    opacity: 0;
+    transition: opacity 1400ms linear 600ms;
+  }
+  .relieff.ready .rl-read { opacity: 1; }
+  .rl-alt {
+    margin: 0;
+    font-size: clamp(30px, 3.4vw, 46px);
+    font-weight: 200;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .rl-alt-u { font-size: 0.36em; margin-left: 0.5em; letter-spacing: 0.1em; color: var(--ink2); }
+  .rl-clock {
+    display: inline-flex;
+    gap: 1.1em;
+    margin-top: 12px;
+    padding: 6px 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.16em;
+    color: var(--ink3);
+    cursor: pointer;
+    transition: color 200ms linear;
+  }
+  .rl-clock:hover, .rl-clock:focus-visible { color: var(--ink); outline: none; }
+  .rl-light:empty { display: none; }
+
+  /* A hairline scale up the right edge: 2000, 3000, 4000, and where the
+     light is on it. */
+  .rl-scale {
+    position: absolute;
+    right: clamp(20px, 4vw, 56px);
+    top: 22vh;
+    height: 44vh;
+    width: 1px;
+    background: rgba(242, 239, 232, 0.14);
+    opacity: 0;
+    transition: opacity 1400ms linear 900ms;
+  }
+  .relieff.ready .rl-scale { opacity: 1; }
+  .rl-scale span {
+    position: absolute;
+    right: 0;
+    bottom: calc(var(--k) * 100%);
+    width: 7px;
+    height: 1px;
+    background: rgba(242, 239, 232, 0.35);
+  }
+  .rl-scale b {
+    position: absolute;
+    right: 14px;
+    top: -6px;
+    font-family: var(--font-inst);
+    font-size: 9px;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    color: var(--ink3);
+  }
+  .rl-scale .rl-scale-mark {
+    width: 15px;
+    right: -7px;
+    background: var(--lamp);
+    box-shadow: 0 0 6px rgba(255, 232, 194, 0.7);
+  }
+  @media (max-width: 720px) {
+    .rl-scale { display: none; }
+    /* On a phone the person takes the bottom of the screen at the top. */
+    .rl-read { opacity: calc(1 - var(--rl-top, 0)) !important; transition: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rl-head.top::after { animation: none; }
+  }
+</style>
+
+<script>
+  const LAT = 45.9763;
+  const LNG = 7.6586;
+  /* Coarse file: 8000 m square; its top-left texel is 4048 m west and 4326 m
+     north of the summit (LV95 2617048 / 1091674). x east, y north. */
+  const N = 1024;
+  /* Detail file: x −1400…1700, y −1300…1800. */
+  const ND = 1536;
+
+  const root = document.querySelector<HTMLElement>('.relieff');
+  const canvas = root?.querySelector<HTMLCanvasElement>('.rl-gl');
+  const gl = canvas?.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'high-performance' });
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* A page left open for hours can lose its GPU context — sleep, a GPU
+     switch, a phone reclaiming memory. A lost opaque canvas paints white.
+     So: hide it at once (the black and the still photograph stand in), and
+     when the browser hands the context back, load the page again where it
+     was; rebuilding every texture by hand is not worth the code. */
+  canvas?.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+    root?.classList.add('ready', 'failed', 'lost');
+  });
+  canvas?.addEventListener('webglcontextrestored', () => location.reload());
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && gl?.isContextLost()) root?.classList.add('ready', 'failed', 'lost');
+  });
+
+  /* ---- The sun (SunCalc's formulae, trimmed) ----------------------------- */
+
+  const rad = Math.PI / 180;
+  const OBL = rad * 23.4397;
+  const days = (date: Date) => date.valueOf() / 86400000 - 0.5 + 2440588 - 2451545;
+  /** Right ascension and declination to height and a direction in x east, y north. */
+  function horizon(d: number, ra: number, dec: number) {
+    const H = rad * (280.16 + 360.9856235 * d) + rad * LNG - ra;
+    const phi = rad * LAT;
+    const alt = Math.asin(Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H));
+    const az = Math.atan2(Math.sin(H), Math.cos(H) * Math.sin(phi) - Math.tan(dec) * Math.cos(phi));
+    const bearing = az + Math.PI;
+    return {
+      alt,
+      dir: [Math.sin(bearing) * Math.cos(alt), Math.cos(bearing) * Math.cos(alt), Math.sin(alt)] as [number, number, number],
+    };
+  }
+  function sunEq(d: number) {
+    const M = rad * (357.5291 + 0.98560028 * d);
+    const C = rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M));
+    const L = M + C + rad * 102.9372 + Math.PI;
+    return { dec: Math.asin(Math.sin(L) * Math.sin(OBL)), ra: Math.atan2(Math.sin(L) * Math.cos(OBL), Math.cos(L)) };
+  }
+  function sunAt(date: Date) {
+    const d = days(date);
+    const s = sunEq(d);
+    return horizon(d, s.ra, s.dec);
+  }
+  /** The moon: where it stands and how much of it is lit (0 new, 1 full). */
+  function moonAt(date: Date) {
+    const d = days(date);
+    const L = rad * (218.316 + 13.176396 * d);
+    const M = rad * (134.963 + 13.064993 * d);
+    const F = rad * (93.272 + 13.22935 * d);
+    const l = L + rad * 6.289 * Math.sin(M);
+    const b = rad * 5.128 * Math.sin(F);
+    const dist = 385001 - 20905 * Math.cos(M);
+    const ra = Math.atan2(Math.sin(l) * Math.cos(OBL) - Math.tan(b) * Math.sin(OBL), Math.cos(l));
+    const dec = Math.asin(Math.sin(b) * Math.cos(OBL) + Math.cos(b) * Math.sin(OBL) * Math.sin(l));
+    const s = sunEq(d);
+    const phi = Math.acos(Math.sin(s.dec) * Math.sin(dec) + Math.cos(s.dec) * Math.cos(dec) * Math.cos(s.ra - ra));
+    const inc = Math.atan2(149598000 * Math.sin(phi), dist - 149598000 * Math.cos(phi));
+    return { ...horizon(d, ra, dec), lit: (1 + Math.cos(inc)) / 2 };
+  }
+
+  const fmt = new Intl.DateTimeFormat('nb-NO', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit', hour12: false });
+  const zermattClock = (date: Date) => fmt.format(date);
+  const zermattMinutes = (date: Date) => {
+    const [h, m] = zermattClock(date).split(/\D/).map(Number);
+    return h * 60 + m;
+  };
+
+  function riseSet(date: Date) {
+    const midnight = date.valueOf() - zermattMinutes(date) * 60000;
+    let rise = -1, set = -1, prev = sunAt(new Date(midnight)).alt;
+    for (let m = 4; m <= 1440; m += 4) {
+      const a = sunAt(new Date(midnight + m * 60000)).alt;
+      if (prev < -0.0145 && a >= -0.0145 && rise < 0) rise = m / 1440;
+      if (prev >= -0.0145 && a < -0.0145) set = m / 1440;
+      prev = a;
+    }
+    return { rise, set };
+  }
+
+  /* ---- Light from the sun's height --------------------------------------- */
+
+  type V3 = [number, number, number];
+  const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+  const mix = (a: V3, b: V3, t: number) => a.map((v, i) => v + (b[i] - v) * clamp01(t)) as V3;
+  const ss = (a: number, b: number, x: number) => {
+    const t = clamp01((x - a) / (b - a));
+    return t * t * (3 - 2 * t);
+  };
+  /** Piecewise through (elevation, colour) stops. */
+  const ramp = (stops: [number, V3][], x: number): V3 => {
+    if (x <= stops[0][0]) return stops[0][1];
+    for (let i = 1; i < stops.length; i++) {
+      if (x <= stops[i][0]) return mix(stops[i - 1][1], stops[i][1], (x - stops[i - 1][0]) / (stops[i][0] - stops[i - 1][0]));
+    }
+    return stops[stops.length - 1][1];
+  };
+  /*
+   * Exposure is a photographer's, not a webpage's: the sky is kept low, the
+   * way a camera metered for sunlit snow renders it, so the type always has a
+   * dark ground. Colours are linear.
+   */
+  function lightFor(altDeg: number) {
+    /* Sun: strong red at the horizon (through the most air), gold low, near
+       white high. It keeps a little strength just below the horizon on purpose:
+       the summit is still lit there while the valley is not. */
+    const sunC = ramp([
+      [-4, [0.9, 0.18, 0.06]],
+      [0, [1.0, 0.3, 0.1]],
+      [3, [1.0, 0.52, 0.28]],
+      [8, [1.0, 0.76, 0.56]],
+      [20, [1.0, 0.91, 0.82]],
+      [45, [1.0, 0.96, 0.9]],
+    ], altDeg);
+    const k = ss(-3.5, 1.0, altDeg) * (3.2 + 1.4 * ss(0, 30, altDeg));
+    const sun = sunC.map((v) => v * k) as V3;
+    const zen = ramp([
+      [-18, [0.0002, 0.0002, 0.0005]],
+      [-8, [0.001, 0.0013, 0.004]],
+      [-2, [0.003, 0.0045, 0.012]],
+      [6, [0.005, 0.011, 0.03]],
+      [30, [0.006, 0.015, 0.045]],
+    ], altDeg);
+    const hor = ramp([
+      [-18, [0.0004, 0.0004, 0.0008]],
+      [-8, [0.0025, 0.0025, 0.006]],
+      [-2, [0.012, 0.009, 0.016]],
+      [2, [0.026, 0.02, 0.024]],
+      [8, [0.022, 0.03, 0.045]],
+      [30, [0.03, 0.045, 0.07]],
+    ], altDeg);
+    const stars = 1 - ss(-12, -5, altDeg);
+    /* The hemisphere the snow sees: the sky, plus starlight at night so the
+       mountain is a pale shape rather than a hole. */
+    const amb = zen.map((v, i) => v * 3.2 + hor[i] * 1.2 + 0.0012 + stars * [0.018, 0.02, 0.038][i]) as V3;
+    return { sun, zen, hor, amb, stars };
+  }
+
+  /* Moonlight, once the sun's light is gone: cool, as the eye sees it at
+     night, and much weaker at half than at full. Under it, always, a fill from
+     a fixed high east, so on a moonless night the mountain still reads as a
+     shape: the floor Alex asked for, not the truth. */
+  const MOON: V3 = [0.5, 0.58, 0.82];
+  function moonFor(sunAltDeg: number, moon: { alt: number; lit: number }) {
+    const night = 1 - ss(-6, -1, sunAltDeg);
+    const k = moon.lit * moon.lit * ss(-1, 8, moon.alt / rad) * night;
+    return {
+      moon: MOON.map((v) => v * 0.3 * k) as V3,
+      fill: MOON.map((v) => v * 0.08 * night) as V3,
+    };
+  }
+
+  /* ---- GL ---------------------------------------------------------------- */
+
+  const VS = `#version 300 es
+  in vec2 p; out vec2 uv;
+  void main() { uv = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }`;
+
+  const fs = (floatLinear: boolean) => `#version 300 es
+  precision highp float;
+  precision highp sampler2D;
+  in vec2 uv; out vec4 o;
+  uniform sampler2D H, D, O, F;
+  uniform vec2 res;
+  uniform vec3 cam, fwd, rgt, up;
+  uniform float fov;
+  uniform vec3 sunDir, sunCol, zenCol, horCol, ambCol;
+  uniform vec3 moonDir, moonCol, fillCol;
+  uniform float stars, moonVis, moonPhase;
+  uniform float seed;
+  uniform float dpr;
+  uniform float orthoN;
+  uniform vec2 jit;
+  uniform float expo, sat, contour, relief, grain, vig;
+  uniform float ROCK, SNOW, DRIFT, WINTER;
+
+  const float PX = ${(8000 / N).toFixed(6)};
+  const vec2 ORIGIN = vec2(4048.0, 4326.0);
+  const float DP = ${(3100 / ND).toFixed(6)};
+  const vec2 DORG = vec2(1400.0, 1800.0);
+
+  /* The Alps around the map: 40 km square at 78 m, half floats, centred on
+     the summit. Past its own edge it falls away into the dark. */
+  float far(vec2 w) {
+    float e = max(abs(w.x), abs(w.y));
+    return texture(F, vec2(w.x + 20000.0, 20000.0 - w.y) / 40000.0).r - max(0.0, e - 19900.0) * 2.5;
+  }
+
+  float base(vec2 w) {
+    vec2 t = vec2((w.x + ORIGIN.x) / PX, (ORIGIN.y - w.y) / PX);
+    /* Inside the map by how far; over its outer 300 m it hands over to the
+       far heights, and outside it is only them. */
+    float edge = min(min(t.x, t.y), min(${N}.0 - t.x, ${N}.0 - t.y)) * PX;
+    if (edge <= 0.0) return far(w);
+    vec2 c = clamp(t, vec2(0.5), vec2(${N}.0 - 0.5));
+    ${floatLinear
+      ? `float h = texture(H, c / ${N}.0).r;`
+      : `vec2 g = c - 0.5; ivec2 i = ivec2(floor(g)); vec2 f = g - vec2(i);
+    float a = texelFetch(H, i, 0).r, b = texelFetch(H, min(i + ivec2(1, 0), ivec2(${N - 1})), 0).r;
+    float d = texelFetch(H, min(i + ivec2(0, 1), ivec2(${N - 1})), 0).r, e = texelFetch(H, min(i + ivec2(1, 1), ivec2(${N - 1})), 0).r;
+    float h = mix(mix(a, b, f.x), mix(d, e, f.x), f.y);`}
+    return edge >= 300.0 ? h : mix(far(w), h, smoothstep(0.0, 300.0, edge));
+  }
+
+  /* The 2 m residual on top, faded out over the last 80 m of its box. */
+  float hgt(vec2 w) {
+    float h = base(w);
+    vec2 t = vec2(w.x + DORG.x, DORG.y - w.y);
+    float edge = min(min(t.x, t.y), min(3100.0 - t.x, 3100.0 - t.y));
+    if (edge <= 0.0) return h;
+    float r = (texture(D, t / 3100.0).r * 255.0 - 128.0) * 0.5;
+    return h + r * smoothstep(0.0, 80.0, edge);
+  }
+
+  vec3 nrm(vec2 w, float e) {
+    return normalize(vec3(hgt(w - vec2(e, 0.0)) - hgt(w + vec2(e, 0.0)),
+                          hgt(w - vec2(0.0, e)) - hgt(w + vec2(0.0, e)),
+                          2.0 * e));
+  }
+
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+  }
+  float fbm(vec2 p) {
+    float s = 0.0, a = 0.5;
+    for (int i = 0; i < 4; i++) { s += a * vnoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
+    return s;
+  }
+  /* Rock blocks: a Voronoi cell for each block. x is the distance to the
+     nearest border (the crack), y a random tone for the block. */
+  vec2 blocks(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    float d1 = 9.0, d2 = 9.0, id = 0.0;
+    for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+      vec2 g = vec2(x, y), c = i + g;
+      vec2 o = vec2(hash(c), hash(c + 7.3)) * 0.8 + 0.1;
+      float d = length(g + o - f);
+      if (d < d1) { d2 = d1; d1 = d; id = hash(c + 3.7); } else if (d < d2) d2 = d;
+    }
+    return vec2(d2 - d1, id);
+  }
+  /* The same, filtered: fw is how much of p one pixel covers. An octave
+     finer than the pixel cannot be drawn, only aliased — it glitters as the
+     camera moves — so it fades to its mean before it gets there. */
+  float fbmF(vec2 p, float fw) {
+    float s = 0.0, a = 0.5, w = 1.0;
+    for (int i = 0; i < 4; i++) {
+      float k = 1.0 - smoothstep(0.3, 0.8, fw / w);
+      s += a * mix(0.5, vnoise(p), k);
+      p = p * 2.03 + 17.1; a *= 0.5; w /= 2.03;
+    }
+    return s;
+  }
+
+  /* The rock's own pattern at plan or face coordinates c: x and y two
+     noise fields for tone and the snow's edge, z the wall rock — blocks,
+     each a flat tone, cut by thin dark cracks, stretched a little up the
+     face the way the rock is jointed, each scale fading to its mean before
+     it is finer than a pixel can hold. */
+  vec3 rockAt(vec2 c, float fp) {
+    float f1 = fbmF(c / 9.0, fp / 9.0);
+    float f2 = fbmF(c / 60.0 + 3.0, fp / 60.0);
+    float fw = fbmF(c / 18.0, fp / 18.0);
+    /* Warped and stretched so no block is a tidy polygon; tone and cracks
+       held low, so it reads as rock in light, not as paving. Only where
+       the coarse field says the rock is broken do the small cracks show. */
+    float k1 = 1.0 - smoothstep(0.06, 0.2, fp / 26.0), k2 = 1.0 - smoothstep(0.08, 0.25, fp / 8.0);
+    /* Past where the blocks can be seen, they are not worked out at all. */
+    if (k1 <= 0.0) return vec3(f1, f2, 0.75 + 0.5 * fw);
+    vec2 bq = (c + (vec2(f1, fw) - 0.5) * 14.0) * vec2(1.0, 0.55);
+    vec2 b1 = blocks(bq / 26.0), b2 = k2 > 0.0 ? blocks(bq / 8.0 + 13.0) : vec2(1.0, 0.5);
+    float tone = mix(1.0, 0.84 + 0.32 * b1.y, k1) * mix(1.0, 0.92 + 0.16 * b2.y, k2);
+    float broken = smoothstep(0.5, 0.65, fw);
+    float crack = max((1.0 - smoothstep(0.0, 0.04 + fp / 26.0 * 1.5, b1.x)) * k1 * (0.4 + 0.6 * broken),
+                      (1.0 - smoothstep(0.0, 0.05 + fp / 8.0 * 1.5, b2.x)) * 0.6 * k2 * broken);
+    return vec3(f1, f2, (0.75 + 0.5 * fw) * tone * (1.0 - 0.45 * crack));
+  }
+
+  /* foot: how many metres one pixel covers there. Far off, the shadow ray
+     strides to match: a step finer than the pixel is work nobody sees. */
+  float shadow(vec3 p, vec3 L, float foot) {
+    if (L.z < -0.08) return 0.0;
+    float r = 1.0, t = 6.0 + foot;
+    float lo = max(4.0, foot * 1.5);
+    for (int i = 0; i < 64; i++) {
+      vec3 q = p + L * t;
+      if (q.z > 4560.0) break;
+      float h = q.z - hgt(q.xy);
+      r = min(r, 9.0 * h / t);
+      if (r < 0.002) break;
+      t += clamp(h * 0.55, lo, 240.0 + foot * 4.0);
+    }
+    return smoothstep(0.0, 1.0, clamp(r, 0.0, 1.0));
+  }
+
+  /* Cheap occlusion: how far the ground around a point stands above it. */
+  /* Far off, the 22 m ring is smaller than a pixel: only the wide one. */
+  float occl(vec2 w, float h, bool far_) {
+    float o = 0.0;
+    for (int i = 0; i < 6; i++) {
+      float a = float(i) * 1.0472 + 0.4;
+      vec2 d = vec2(cos(a), sin(a));
+      o += far_ ? max(hgt(w + d * 90.0) - h, 0.0) / 90.0 * 1.6 : max(hgt(w + d * 22.0) - h, 0.0) / 22.0 + max(hgt(w + d * 90.0) - h, 0.0) / 90.0 * 0.6;
+    }
+    return clamp(1.0 - o * 0.16, 0.25, 1.0);
+  }
+
+  /* One layer of stars: one chance per cell, set anywhere in it, a point a
+     CSS pixel wide however far the canvas is scaled. Most are faint, few are
+     bright, and their colour runs from warm to cold. */
+  vec3 starLayer(vec3 rd, float cells, float chance, float pix, float salt) {
+    float el = asin(clamp(rd.z, -1.0, 1.0));
+    vec2 g = vec2(atan(rd.y, rd.x), el) * cells;
+    vec2 cell = floor(g);
+    float h = hash(cell + salt);
+    if (h < 1.0 - chance) return vec3(0.0);
+    vec2 at = 0.15 + 0.7 * vec2(hash(cell + salt + 3.1), hash(cell + salt + 5.7));
+    vec2 d = (fract(g) - at) / cells;
+    d.x *= cos(el);
+    float r = length(d) / (pix * dpr);
+    float b = pow(hash(cell + salt + 9.3), 7.0);
+    float c = hash(cell + salt + 1.9);
+    vec3 tint = c < 0.2 ? vec3(1.0, 0.82, 0.62) : c > 0.8 ? vec3(0.72, 0.8, 1.0) : vec3(0.92, 0.93, 1.0);
+    return tint * (0.06 + 1.6 * b) * exp(-r * r * 2.2);
+  }
+
+  vec3 skyAt(vec3 rd, float pix) {
+    float e = clamp(rd.z, 0.0, 1.0);
+    vec3 s = mix(horCol, zenCol, pow(e, 0.42));
+    /* Forward scattering round the sun, and its warmth on the horizon. */
+    float mu = max(dot(rd, sunDir), 0.0);
+    s += sunCol * (0.012 * pow(mu, 6.0) + 0.05 * pow(mu, 60.0)) * (1.0 - e * 0.7);
+    if (stars > 0.0) {
+      vec3 st = starLayer(rd, 260.0, 0.012, pix, 0.0) + starLayer(rd, 620.0, 0.02, pix, 41.0) * 0.35;
+      s += st * 0.3 * stars * smoothstep(0.02, 0.2, rd.z);
+    }
+    return s;
+  }
+
+
+  /* The sun and the moon as bodies, drawn about twice their real size so they
+     read on a phone. The moon is a lit sphere: its bright side faces the sun,
+     so the phase is the true one tonight; the dark side keeps a trace of
+     earthshine. Only on open sky — the mountain hides them for free. */
+  vec3 discs(vec3 rd, float pix, vec2 q) {
+    vec3 c = vec3(0.0);
+    float ds = acos(clamp(dot(rd, sunDir), -1.0, 1.0));
+    float rs = 0.0095;
+    c += sunCol * (14.0 * smoothstep(rs + pix, rs - pix, ds) + 0.35 * exp(-ds * ds / (rs * rs * 9.0)));
+    if (moonVis > 0.0) {
+      /* Lit the way the sun is: a luminous body seen through air, not a cut-out.
+         A slightly soft rim, a soft terminator (the light grazes the rough
+         surface), faint seas, and a glow round it as large as its light —
+         a full moon fills the sky with it, a half moon less. Low down, the
+         air dims it and warms it. */
+      float dm = acos(clamp(dot(rd, moonDir), -1.0, 1.0));
+      float rm = 0.0072;
+      /* Measured on the screen, not on the sky: a wide lens stretches a
+         round body into an egg toward the edges, and a moon has to be round. */
+      float mf = dot(moonDir, fwd);
+      vec2 qm = vec2(dot(moonDir, rgt), dot(moonDir, up)) / max(mf, 0.05);
+      float rq = rm * pow(1.0 + dot(qm, qm), 0.75);
+      vec2 dq = q - qm;
+      float dsq = length(dq) / rq * rm;
+      float disc = mf > 0.05 ? smoothstep(rm + pix * 1.6, rm - pix * 1.2, dsq) : 0.0;
+      float air = exp(-0.06 / max(moonDir.z, 0.03));
+      vec3 tint = mix(vec3(1.0, 0.72, 0.48), vec3(0.93, 0.94, 1.0), air);
+      if (disc > 0.0) {
+        vec3 off = (dq.x * rgt + dq.y * up) / rq;
+        off -= moonDir * dot(off, moonDir);
+        float z = sqrt(max(0.0, 1.0 - dot(off, off)));
+        vec3 nrm = off - moonDir * z;
+        float lit = smoothstep(-0.06, 0.14, dot(nrm, sunDir));
+        vec3 e1 = normalize(cross(moonDir, vec3(0.0, 0.0, 1.0)));
+        vec3 e2 = cross(e1, moonDir);
+        vec2 m = vec2(dot(off, e1), dot(off, e2));
+        float seas = smoothstep(0.4, 0.66, fbm(m * 1.6 + vec2(3.1, 7.4)));
+        float alb = (1.0 - 0.22 * seas) * mix(0.8, 1.0, z);
+        /* Earthshine on the dark side, just enough that the whole round
+           body is there — a soft-edged gibbous alone reads as an egg. */
+        c += tint * disc * moonVis * air * (lit * 1.25 * alb + 0.035 * alb);
+      }
+      float g = moonVis * air * (0.25 + 0.75 * moonPhase);
+      c += tint * g * (0.06 * exp(-dm * dm / (rm * rm * 4.0)) + 0.018 * exp(-dm / (rm * 3.5)) + 0.004 * exp(-dm / (rm * 16.0)));
+    }
+    return c;
+  }
+
+  vec3 aces(vec3 x) {
+    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+  }
+
+  void main() {
+    float tf = tan(fov * 0.5);
+    vec2 q = (uv + jit / res - 0.5) * vec2(res.x / res.y, 1.0) * 2.0 * tf;
+    vec3 rd = normalize(fwd + q.x * rgt + q.y * up);
+    vec3 ro = cam;
+    float pix = 2.0 * tf / res.y;   /* radians per pixel */
+
+    /* From high above, the march starts near the ground: 30 km of open air
+       is no reason to spend the step budget. */
+    float t = 30.0, tmax = 60000.0;
+    if (ro.z > 4600.0 && rd.z < 0.0) t = max(30.0, (ro.z - 4600.0) / -rd.z);
+    bool hit = false;
+    float last = t;
+    for (int i = 0; i < 480; i++) {
+      vec3 p = ro + rd * t;
+      if (p.z > 4600.0 && rd.z > 0.0) break;
+      float d = p.z - hgt(p.xy);
+      if (d < 0.0) {
+        float a = last, b = t;
+        for (int k = 0; k < 7; k++) {
+          float m = 0.5 * (a + b);
+          vec3 pm = ro + rd * m;
+          if (pm.z - hgt(pm.xy) < 0.0) b = m; else a = m;
+        }
+        t = b; hit = true; break;
+      }
+      last = t;
+      float st = d * 0.42;
+      if (d < 90.0) st = min(st, 2.5 + t * pix * (t > 9000.0 ? 2.4 : 1.2));
+      t += max(st, d < 12.0 ? 0.3 + t * pix * 0.35 : 0.5 + t * pix * 0.8);
+      if (t > tmax) break;
+    }
+
+    vec3 col;
+    vec3 sky = skyAt(rd, pix);
+    /* Height of what this pixel sees, for the contour lines; the sky has none. */
+    float hz = 0.0;
+    float onMap = 0.0;
+    if (!hit) {
+      col = sky + discs(rd, pix, q);
+    } else {
+      vec3 p = ro + rd * t;
+      hz = p.z;
+      onMap = 1.0;
+      vec2 mt = vec2((p.x + ORIGIN.x) / PX, (ORIGIN.y - p.y) / PX);
+      float me = min(min(mt.x, mt.y), min(${N}.0 - mt.x, ${N}.0 - mt.y)) * PX;
+      vec2 dt = vec2(p.x + DORG.x, DORG.y - p.y);
+      float de = min(min(dt.x, dt.y), min(3100.0 - dt.x, 3100.0 - dt.y));
+      float texel = mix(mix(70.0, PX * 0.9, smoothstep(0.0, 300.0, me)), DP * 0.9, smoothstep(0.0, 80.0, de));
+      float e = max(max(2.0, t * pix * 1.5), texel);
+      vec3 n = nrm(p.xy, e);
+      vec3 nw = nrm(p.xy, e * 4.0);
+      float wall = smoothstep(0.25, 0.7, 1.0 - nw.z);
+      vec3 nw2 = wall > 0.5 ? nrm(p.xy, e * 9.0) : nw;
+      n = normalize(mix(n, mix(nw, nw2, smoothstep(0.5, 0.9, wall)), wall * 0.95));
+
+      float near = 1.0 - smoothstep(1500.0, 7000.0, t);
+      float fp = t * pix / max(abs(dot(nw, rd)), 0.3);
+      float kf = smoothstep(0.25, 0.6, 1.0 - nw.z);
+      float ax = pow(abs(nw.x), 4.0), ay = pow(abs(nw.y), 4.0);
+      float aw = ax / (ax + ay + 1e-6);
+      float wP = 1.0 - kf, wA = kf * aw, wB = kf * (1.0 - aw);
+      vec3 R = vec3(0.0); float wS = 0.0;
+      if (wP > 0.12) { R += wP * rockAt(p.xy, fp); wS += wP; }
+      if (wA > 0.12) { R += wA * rockAt(vec2(p.y, p.z * 1.4) + 71.0, fp); wS += wA; }
+      if (wB > 0.12) { R += wB * rockAt(vec2(p.x, p.z * 1.4) + 37.0, fp); wS += wB; }
+      R /= max(wS, 1e-4);
+      vec2 th = normalize(vec2(-nw.y, nw.x) + 1e-5);
+      vec2 nc = kf < 0.5 ? p.xy : aw > 0.5 ? vec2(p.y, p.z * 1.4) + 71.0 : vec2(p.x, p.z * 1.4) + 37.0;
+      float f1 = R.x, f2 = R.y;
+      float strata = mix(0.5, vnoise(vec2(p.z / 7.0, (p.x + p.y) / 400.0)), (1.0 - smoothstep(2.0, 5.0, fp)) * (1.0 - wall));
+      vec3 rock = vec3(0.066, 0.067, 0.07) * (0.62 + 0.5 * f2 + 0.25 * (strata - 0.5) * near + 0.35 * (f1 - 0.5) * near);
+      rock = mix(rock, vec3(0.105, 0.098, 0.075), smoothstep(2900.0, 2500.0, p.z));
+      float lip = (f1 - 0.5) * 0.07 * near + (f2 - 0.5) * 0.06;
+      float sw = 0.025 + min(0.06, fp * 0.004);
+      float sT = 0.56 - 0.1 * WINTER;
+      float snow = smoothstep(sT - sw, sT + sw, nw.z + lip) * smoothstep(2150.0, 2650.0, p.z + (f2 - 0.5) * 200.0);
+      if (near > 0.0) {
+        float g0 = fbmF(nc / 5.0, fp / 5.0), gx = fbmF((nc + vec2(0.7, 0.0)) / 5.0, fp / 5.0), gy = fbmF((nc + vec2(0.0, 0.7)) / 5.0, fp / 5.0);
+        vec3 tu = normalize(vec3(th, 0.0)), tv = normalize(cross(n, tu));
+        n = normalize(n + (tu * (g0 - gx) + tv * (g0 - gy)) * 1.4 * near * (1.0 - snow) * (1.0 - 0.8 * wall));
+      }
+      /* Wind on the snow: drifts tens of metres long, so open snowfields
+         are not smooth icing. Filtered like the rock: gone before it would
+         glitter. */
+      float nearD = 1.0 - smoothstep(3000.0, 12000.0, t);
+      if (DRIFT > 0.0 && nearD > 0.0 && snow > 0.05) {
+        vec2 sc = vec2(p.x * 0.8 + p.y * 0.6, -p.x * 0.6 + p.y * 0.8) * vec2(1.0, 2.2);
+        float s0 = fbmF(sc / 22.0, fp / 22.0), sx = fbmF((sc + vec2(2.0, 0.0)) / 22.0, fp / 22.0), sy = fbmF((sc + vec2(0.0, 2.0)) / 22.0, fp / 22.0);
+        n = normalize(n + vec3(s0 - sx, s0 - sy, 0.0) * DRIFT * nearD * snow * (1.0 - wall));
+      }
+      vec2 ot = vec2(p.x + DORG.x, DORG.y - p.y);
+      float oe = min(min(ot.x, ot.y), min(3100.0 - ot.x, 3100.0 - ot.y));
+      float inBox = smoothstep(0.0, 120.0, oe);
+      if (inBox > 0.0) {
+        float olod = orthoN > 1.0 ? max(0.0, log2(t * pix / (3100.0 / orthoN))) : 0.0;
+        vec2 og = textureLod(O, ot / 3100.0, olod).rg;
+        float hp = 1.0 + (og.r * 255.0 - 128.0) / 160.0;
+        float flat_ = 1.0 - wall;
+        rock *= mix(1.0, clamp(hp, 0.35, 1.6), inBox * flat_ * (0.4 + 0.5 * near));
+        float ogs = smoothstep(0.3, 0.6, og.g);
+        snow = mix(snow, max(ogs * smoothstep(0.32, 0.58, nw.z), snow * mix(0.85, 1.0, WINTER)), inBox);
+      }
+      rock *= mix(1.0, R.z, wall * (0.45 + 0.55 * near));
+
+      vec3 alb = mix(rock * ROCK, vec3(0.86, 0.89, 0.93) * SNOW, snow);
+
+      float dif = max(dot(n, sunDir), 0.0);
+      float sh = dif > 0.0 ? shadow(p + nw * (1.5 + 5.0 * wall), sunDir, t * pix) : 0.0;
+      float ao = occl(p.xy, p.z, t * pix > 8.0);
+      vec3 amb = ambCol * (0.55 + 0.45 * n.z) * ao;
+      amb += sunCol * 0.035 * (1.0 - n.z) * ao * (0.3 + 0.7 * snow);
+      vec3 hv = normalize(sunDir - rd);
+      float spec = pow(max(dot(n, hv), 0.0), 60.0) * 0.18 * snow * sh;
+      vec3 sunRock = mix(vec3(dot(sunCol, vec3(0.3, 0.5, 0.2))), sunCol, 0.66);
+      vec3 sunLit = mix(sunRock, sunCol, snow);
+      col = alb * (sunLit * dif * sh + amb) + sunCol * spec;
+      if (fillCol.b > 0.0) {
+        float md = max(dot(n, moonDir), 0.0);
+        float ms = (md > 0.0 && moonCol.b > 0.0) ? shadow(p + n * 1.5, moonDir, t * pix) : 0.0;
+        float fd = max(dot(n, normalize(vec3(0.85, 0.25, 0.62))) * 0.7 + 0.3, 0.0);
+        col += alb * (moonCol * md * ms + fillCol * fd * ao);
+      }
+
+      /* From above, the map: the relief is lit the cartographer's way as
+         well — a soft light from the north-west, the Swiss convention — so
+         the shape reads even where the real sun leaves it in shadow. */
+      if (relief > 0.0) {
+        float hs = max(dot(n, normalize(vec3(-0.55, 0.55, 0.62))), 0.0);
+        vec3 paper = vec3(0.0015, 0.0015, 0.0018) + vec3(0.017, 0.017, 0.016) * pow(hs, 1.5) + snow * 0.002;
+        col = mix(col, paper, relief);
+      }
+
+      float dens = exp(-(0.5 * (min(ro.z, 6000.0) + p.z) - 1600.0) / 2600.0);
+      float fog = (1.0 - exp(-t * dens / 22000.0)) * (1.0 - relief);
+      float mu = max(dot(rd, sunDir), 0.0);
+      vec3 air = horCol * 1.1 + sunCol * 0.02 * pow(mu, 4.0);
+      col = mix(col, air, fog);
+
+      /* The data ends; let it end in the dark. */
+      vec2 w = abs(p.xy) / 20000.0;
+      float down = smoothstep(-0.2, -0.5, rd.z);
+      float rim = mix(smoothstep(0.7, 0.98, max(w.x, w.y)), smoothstep(0.45, 0.9, length(w)), down);
+      col = mix(mix(air, sky * (1.0 - relief), down), col, 1.0 - rim);
+      onMap = 1.0 - rim;
+    }
+
+    /* THE PRINT. Exposure, a filmic curve, then most of the colour taken out:
+       the mountain as a toned silver print, not a render. A trace of the
+       light's colour stays (sat), the shadows lean cool and the lights warm,
+       and the blacks are kept just above black, the way paper holds them. */
+    col = aces(col * 2.2 * expo);
+    float lum = dot(col, vec3(0.2126, 0.7152, 0.0722));
+    col = mix(vec3(lum), col, sat);
+    col *= mix(vec3(0.9, 0.95, 1.04), vec3(1.04, 1.0, 0.94), smoothstep(0.02, 0.5, lum));
+    col = pow(max(col, 0.0), vec3(1.0 / 2.2));
+    col = mix(col, col * col * (3.0 - 2.0 * col), 0.22);
+    col = col * 0.965 + 0.012;
+
+    /* Contours, drawn after the print so they are hairlines of their own:
+       every 100 m, brighter every 500 m, each a pixel wide wherever it is,
+       and gone where they would crowd into a grey. */
+    if (contour > 0.0) {
+      float h1 = hz / 100.0, w1 = fwidth(h1);
+      float d1 = abs(fract(h1 + 0.5) - 0.5) / max(w1, 1e-4);
+      float l1 = (1.0 - smoothstep(0.35, 1.25, d1)) * (1.0 - smoothstep(0.18, 0.45, w1));
+      float h5 = hz / 500.0, w5 = fwidth(h5);
+      float d5 = abs(fract(h5 + 0.5) - 0.5) / max(w5, 1e-4);
+      float l5 = (1.0 - smoothstep(0.45, 1.5, d5)) * (1.0 - smoothstep(0.3, 0.7, w5));
+      float L = max(l1 * 0.13, l5 * 0.38) * onMap;
+      col = mix(col, vec3(0.93, 0.91, 0.86), L * contour);
+    }
+
+    vec2 v = uv - 0.5;
+    col *= 1.0 - vig * dot(v, v) * 1.5;
+    float g = hash(gl_FragCoord.xy + seed) + hash(gl_FragCoord.xy * 1.31 + seed * 1.7) - 1.0;
+    col += g * grain * (0.4 + 0.6 * (1.0 - abs(col.g - 0.45) * 1.8));
+    o = vec4(col, 1.0);
+  }`;
+
+
+  function compile(type: number, src: string) {
+    const s = gl!.createShader(type)!;
+    gl!.shaderSource(s, src);
+    gl!.compileShader(s);
+    if (!gl!.getShaderParameter(s, gl!.COMPILE_STATUS)) throw new Error(gl!.getShaderInfoLog(s) || 'shader');
+    return s;
+  }
+
+  async function pixels(src: string) {
+    const blob = await (await fetch(src)).blob();
+    const bmp = await createImageBitmap(blob, { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+    const c = new OffscreenCanvas(bmp.width, bmp.height);
+    const ctx = c.getContext('2d')!;
+    ctx.drawImage(bmp, 0, 0);
+    return ctx.getImageData(0, 0, bmp.width, bmp.height).data;
+  }
+
+  async function start() {
+    if (!root || !canvas || !gl) throw new Error('no webgl2');
+    const floatLinear = !!gl.getExtension('OES_texture_float_linear');
+    const prog = gl.createProgram()!;
+    gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS));
+    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs(floatLinear)));
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || 'link');
+    gl.useProgram(prog);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, 'p');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+    const fine = matchMedia('(pointer: fine)').matches;
+    const [hp, dp] = await Promise.all([pixels(root.dataset.src!), pixels(root.dataset.detail!)]);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+
+    /* Coarse heights as float: two bytes cannot be filtered as one number. */
+    const h = new Float32Array(N * N);
+    for (let i = 0; i < h.length; i++) h[i] = (hp[i * 4] * 256 + hp[i * 4 + 1]) / 4 + 1500;
+    const texH = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texH);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R32F, N, N, 0, gl.RED, gl.FLOAT, h);
+    const filt = floatLinear ? gl.LINEAR : gl.NEAREST;
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filt);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filt);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    /* Detail residual is one byte, so R8 and the hardware filter is exact. */
+    const d8 = new Uint8Array(ND * ND);
+    for (let i = 0; i < d8.length; i++) d8[i] = dp[i * 4 + 1];
+    const texD = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, texD);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, ND, ND, 0, gl.RED, gl.UNSIGNED_BYTE, d8);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    /* Routes: one row each, x y z and fraction-of-climb per texel. */
+    const R = JSON.parse(root.dataset.routes!) as Record<string, number[][]>;
+    /* Coarse height at a plan point, for keeping the camera off the rock. */
+    const groundAt = (x: number, y: number) => {
+      const tx = Math.min(N - 1.001, Math.max(0, (x + 4048) / (8000 / N) - 0.5));
+      const ty = Math.min(N - 1.001, Math.max(0, (4326 - y) / (8000 / N) - 0.5));
+      const i = Math.floor(ty), j = Math.floor(tx), fy = ty - i, fx = tx - j;
+      const a = h[i * N + j], b = h[i * N + j + 1], c = h[(i + 1) * N + j], d = h[(i + 1) * N + j + 1];
+      return (a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy;
+    };
+    /* The highest rock in each 125 m cell and its neighbours: a ray above it
+       cannot be blocked within a cell's width, so the line-of-sight checks
+       (see `blocker`) can stride through open air. */
+    const RC = N / 16;
+    const roofs = new Float32Array(RC * RC).fill(-1e9);
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      const k = ((i / 16) | 0) * RC + ((j / 16) | 0);
+      if (h[i * N + j] > roofs[k]) roofs[k] = h[i * N + j];
+    }
+    const roofs3 = new Float32Array(RC * RC);
+    for (let a = 0; a < RC; a++) for (let b = 0; b < RC; b++) {
+      let m = -1e9;
+      for (let da = -1; da <= 1; da++) for (let db = -1; db <= 1; db++) {
+        const aa = Math.min(RC - 1, Math.max(0, a + da)), bb = Math.min(RC - 1, Math.max(0, b + db));
+        m = Math.max(m, roofs[aa * RC + bb]);
+      }
+      roofs3[a * RC + b] = m;
+    }
+    const roof = (x: number, y: number) => {
+      const a = Math.min(RC - 1, Math.max(0, ((4326 - y) / 125) | 0)), b = Math.min(RC - 1, Math.max(0, ((x + 4048) / 125) | 0));
+      return roofs3[a * RC + b];
+    };
+    /* A point on the Hörnligrat by fraction of the climb, hut = 0, top = 1. */
+    const ridge = R.hornligrat;
+    const ridgeAt = (f: number): V3 => {
+      f = clamp01(f);
+      let i = 1;
+      while (i < ridge.length - 1 && ridge[i][3] < f) i++;
+      const a = ridge[i - 1], b = ridge[i];
+      const t = (f - a[3]) / Math.max(1e-6, b[3] - a[3]);
+      return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+    };
+    const keys = ['hornligrat', 'zmuttgrat'] as const;
+    /* The orthophoto comes after the first frame: until it lands, a single
+       neutral texel (flat structure, no snow) stands in. */
+    const texO = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, texO);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([128, 0, 0, 255]));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    const loadOrtho = async () => {
+      const blob = await (await fetch(root.dataset.ortho!)).blob();
+      const bmp = await createImageBitmap(blob, { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
+      gl.activeTexture(gl.TEXTURE3);
+      gl.bindTexture(gl.TEXTURE_2D, texO);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bmp);
+      /* Mip levels, picked in the shader by how much ground a pixel covers:
+         without them a far slope samples single texels that change from
+         frame to frame, and the snow line shimmers. */
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.uniform1f(u.orthoN, bmp.width);
+      kick();
+    };
+
+    /* The far heights come after the first frame too: until they land the
+       world past the map is a floor far below, out of sight. Half floats are
+       filterable everywhere WebGL2 runs. */
+    const texF = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D, texF);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, 1, 1, 0, gl.RED, gl.FLOAT, new Float32Array([-9000]));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    const loadFar = async () => {
+      const fp = await pixels(root.dataset.far!);
+      const n = Math.round(Math.sqrt(fp.length / 4));
+      const f = new Float32Array(n * n);
+      for (let i = 0; i < f.length; i++) f[i] = (fp[i * 4] * 256 + fp[i * 4 + 1]) / 2;
+      gl.activeTexture(gl.TEXTURE4);
+      gl.bindTexture(gl.TEXTURE_2D, texF);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, n, n, 0, gl.RED, gl.FLOAT, f);
+      kick();
+    };
+
+    const U = (n: string) => gl.getUniformLocation(prog, n);
+    gl.uniform1i(U('H'), 0);
+    gl.uniform1i(U('D'), 1);
+    gl.uniform1i(U('O'), 3);
+    gl.uniform1i(U('F'), 4);
+    const u = {
+      res: U('res'), orthoN: U('orthoN'), jit: U('jit'), cam: U('cam'), fwd: U('fwd'), rgt: U('rgt'), up: U('up'), fov: U('fov'),
+      sunDir: U('sunDir'), sunCol: U('sunCol'), zenCol: U('zenCol'), horCol: U('horCol'), ambCol: U('ambCol'),
+      moonDir: U('moonDir'), moonCol: U('moonCol'), fillCol: U('fillCol'),
+      stars: U('stars'), moonVis: U('moonVis'), moonPhase: U('moonPhase'), seed: U('seed'), dpr: U('dpr'),
+    };
+    const blocker = (P: number[], cam: number[]) => {
+      const d = [cam[0] - P[0], cam[1] - P[1], cam[2] - P[2]];
+      const L = Math.hypot(d[0], d[1], d[2]);
+      /* Steps no longer than a few cells of the height grid, so a thin
+         ridge in between is never stepped over (a growing step did, and the
+         line showed through the rock). */
+      const end = Math.min(L, 7000);
+      for (let s = 12; s < end; s += Math.min(24, Math.max(6, s * 0.04))) {
+        const x = P[0] + (d[0] / L) * s, y = P[1] + (d[1] / L) * s, z = P[2] + (d[2] / L) * s;
+        if (z > 4490) return null;
+        /* Clear of every rock within 125 m, even at the far end of a stride
+           if the ray sinks: stride on without looking. */
+        if (z + Math.min(0, d[2] / L) * 60 > roof(x, y) + 4) { s += 36; continue; }
+        const g = groundAt(x, y);
+        if (g > z + 4) return { s, at: [x, y, g] };
+      }
+      return null;
+    };
+    const seen = (P: number[], cam: number[]) => !blocker(P, cam);
+    /* The traced line can sit a few metres off the true crest, on the far
+       side of it. Hidden by its own ridge — rock within 60 m — it is drawn on
+       the crest that hides it, which is the skyline the eye reads as the
+       ridge. Hidden by another ridge, it is hidden. */
+    const onRidge = (P: number[], cam: number[]) => {
+      const b = blocker(P, cam);
+      if (!b) return P;
+      if (b.s >= 60) return null;
+      /* The crest it snaps to must itself be in sight; otherwise the snap
+         puts the line on rock behind the mountain, seen through it. */
+      const Q = [b.at[0], b.at[1], b.at[2] + 3];
+      return seen(Q, cam) ? Q : null;
+    };
+    const pointOn = (key: string, f: number) => {
+      const pts = R[key];
+      f = clamp01(f);
+      let i = 1;
+      while (i < pts.length - 1 && pts[i][3] < f) i++;
+      const a = pts[i - 1], b = pts[i];
+      const t = (f - a[3]) / Math.max(1e-6, b[3] - a[3]);
+      return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t + 3];
+    };
+    const v = {
+      expo: U('expo'), ROCK: U('ROCK'), DRIFT: U('DRIFT'), WINTER: U('WINTER'), SNOW: U('SNOW'), sat: U('sat'), contour: U('contour'), relief: U('relief'), grain: U('grain'), vig: U('vig'),
+    };
+    const qs = new URLSearchParams(location.search);
+    const num = (k: string, d: number) => (qs.has(k) ? Number(qs.get(k)) : d);
+    /* The print's settings. `?sat=` and friends are for looking, not for
+       shipping. */
+    const EXPO = num('expo', 1.3), SAT = num('sat', 0.3), GRAIN = num('grain', 0.022), VIG = num('vig', 0.55);
+
+    /* ---- Time ------------------------------------------------------------ */
+    /* The page opens on one light and stays there: no day racing past. The
+       clock can be pressed for the next light of the day. */
+    const nowMin = zermattMinutes(new Date());
+    const minOf = (m: number) => Math.round((((m % 1440) + 1440) % 1440));
+    const midnight = Date.now() - nowMin * 60000;
+    const altAt = (m: number) => sunAt(new Date(midnight + m * 60000)).alt / rad;
+    const crossing = (from: number, to: number, deg: number) => {
+      for (let m = from; m !== to; m += from < to ? 2 : -2) if (altAt(m) < deg !== altAt(m + (from < to ? 2 : -2)) < deg) return m;
+      return from;
+    };
+    let noon = 720;
+    for (let m = 600, best = -99; m < 900; m += 4) { const a = altAt(m); if (a > best) { best = a; noon = m; } }
+    /* Morning, the hour before dusk, dusk, night. */
+    const lights = [crossing(noon, 0, 4), noon, crossing(noon, 1438, 6), crossing(noon, 1438, -1), 23 * 60 + 15];
+    const words = JSON.parse(root.dataset.words ?? '{}') as Record<string, string>;
+    const lightNames = [words.morning, words.day, words.evening, words.dusk, words.night];
+    let li = Number(qs.get('l') ?? 3);
+    let target = lights[li] - nowMin;
+    const pin = qs.get('t')?.match(/^(\d{1,2}):(\d{2})$/);
+    if (pin) target = Number(pin[1]) * 60 + Number(pin[2]) - nowMin;
+    let offset = target;
+    const shown = () => new Date(Date.now() + offset * 60000);
+    const timeEl = root.querySelector<HTMLElement>('.rl-time');
+    const lightEl = root.querySelector<HTMLElement>('.rl-light');
+    const clockBtn = root.querySelector<HTMLButtonElement>('.rl-clock');
+    const nameLight = () => { if (lightEl) lightEl.textContent = pin ? '' : lightNames[li]; };
+    nameLight();
+    clockBtn?.addEventListener('click', () => {
+      li = (li + 1) % lights.length;
+      target = lights[li] - nowMin;
+      nameLight();
+      kick();
+    });
+
+    /* ---- The flight -------------------------------------------------------- */
+    /*
+     * A long lens, from far off: the way the mountain is photographed, not
+     * flown. Distance flattens the 2 m data into a picture; a wide lens close
+     * in shows it for what it is. Each `[data-wp]` on the page is one shot —
+     * bearing from the summit, distance, height, and the point looked at —
+     * reached when that element is centred. Between shots a Catmull–Rom
+     * curve on bearing/distance/height, so the camera circles the mountain
+     * instead of cutting through it. The last two shots crane up until the
+     * mountain lies flat: its own map.
+     */
+    const wps = Array.from(document.querySelectorAll<HTMLElement>('[data-wp]'));
+    const shots: [number, number, number, V3][] = [
+      [46, 8500, 3100, [0, 0, 4000]],
+      [70, 6400, 3150, [520, 380, 3450]],
+      [52, 5600, 3500, [260, 180, 3850]],
+      [32, 5000, 4050, [90, 60, 4150]],
+      [12, 4700, 4500, [0, 0, 4330]],
+      [-4, 5000, 4750, [0, 0, 4300]],
+      [-12, 6000, 6800, [0, 100, 3750]],
+      [-20, 5600, 9800, [100, 250, 3350]],
+    ];
+    const keys3 = shots.slice(0, Math.max(2, wps.length)).map((s) => ({ cam: [s[0], s[1], s[2]] as V3, look: s[3] }));
+    const SUMMIT = 4;
+    const cr = (p0: number, p1: number, p2: number, p3: number, t: number) =>
+      0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t);
+    const along3 = (pick: (k: { cam: V3; look: V3 }) => V3, uu: number): V3 => {
+      const n = keys3.length - 1;
+      const i = Math.min(n - 1, Math.max(0, Math.floor(uu)));
+      const t = clamp01(uu - i);
+      const g = (j: number) => pick(keys3[Math.min(n, Math.max(0, j))]);
+      const a = g(i - 1), b = g(i), c = g(i + 1), d = g(i + 2);
+      return [0, 1, 2].map((k) => cr(a[k], b[k], c[k], d[k], t)) as V3;
+    };
+    let anchors: number[] = [];
+    const measure = () => {
+      anchors = wps.map((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top + scrollY + r.height / 2 - innerHeight / 2;
+      });
+    };
+    const uFromScroll = () => {
+      if (anchors.length < 2) return 0;
+      const y = scrollY;
+      if (y <= anchors[0]) return 0;
+      for (let i = 1; i < anchors.length; i++) {
+        if (y <= anchors[i]) return i - 1 + (y - anchors[i - 1]) / Math.max(1, anchors[i] - anchors[i - 1]);
+      }
+      return anchors.length - 1;
+    };
+    measure();
+    let uT = uFromScroll(), uS = uT;
+    addEventListener('scroll', () => { uT = uFromScroll(); kick(); }, { passive: true });
+    new ResizeObserver(() => { measure(); uT = uFromScroll(); kick(); }).observe(document.body);
+
+    let px = 0, py = 0, pxT = 0, pyT = 0;
+    if (fine) addEventListener('pointermove', (e) => {
+      pxT = (e.clientX / innerWidth - 0.5) * 2;
+      pyT = (e.clientY / innerHeight - 0.5) * 2;
+      kick();
+    }, { passive: true });
+
+    /* ---- Resolution: refined at rest (see Lys for the long story) --------- */
+    const hiScale = Math.min(devicePixelRatio || 1, 2);
+    let scale = Math.min(hiScale, 1.25);
+    let wantHi = false, curScale = 0, settleT = 0;
+    const ACC = 10;
+    let acc = 0;
+    const accTex = gl.createTexture()!, accFb = gl.createFramebuffer()!;
+    const resize = () => {
+      curScale = scale;
+      canvas.width = Math.max(2, Math.round(canvas.clientWidth * scale));
+      canvas.height = Math.max(2, Math.round(canvas.clientHeight * scale));
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.activeTexture(gl.TEXTURE5);
+      gl.bindTexture(gl.TEXTURE_2D, accTex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, accFb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, accTex, 0);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      acc = 0;
+    };
+    resize();
+    const halton = (i: number, b: number) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
+    let lastW = innerWidth;
+    addEventListener('resize', () => {
+      if (!fine && innerWidth === lastW) return;
+      lastW = innerWidth;
+      resize();
+      kick();
+    });
+
+    /* ---- The line and the light at its head --------------------------------- */
+    const svg = root.querySelector<SVGSVGElement>('.rl-route')!;
+    const trail = svg.querySelector<SVGPathElement>('.rl-trail')!;
+    const fresh = svg.querySelector<SVGPathElement>('.rl-fresh')!;
+    const other = svg.querySelector<SVGPathElement>('.rl-other')!;
+    const head = root.querySelector<HTMLElement>('.rl-head')!;
+    const tags = [...root.querySelectorAll<HTMLElement>('.rl-tag')];
+    const altEl = root.querySelector<HTMLElement>('.rl-alt-n');
+    const scaleMark = root.querySelector<HTMLElement>('.rl-scale-mark');
+
+    const xy = (q: number[]) => q[0].toFixed(1) + ' ' + q[1].toFixed(1);
+    /** The visible part of a route from fraction 0 to `to`, as a path. */
+    const path = (key: string, from: number, to: number, cam: number[], proj: (P: number[]) => number[] | null) => {
+      const pts = R[key];
+      let d = '', pen = false, last: number[] | null = null;
+      for (let i = 0; i < pts.length; i++) {
+        let P = [pts[i][0], pts[i][1], pts[i][2] + 2];
+        const f = pts[i][3];
+        if (f < from) continue;
+        if (f > to) {
+          if (i === 0) break;
+          const a = pts[i - 1], t = (to - a[3]) / Math.max(1e-6, f - a[3]);
+          P = [a[0] + (P[0] - a[0]) * t, a[1] + (P[1] - a[1]) * t, a[2] + 2 + (P[2] - a[2] - 2) * t];
+        }
+        const q = proj(P);
+        const V = q && onRidge(P, cam);
+        let qv = V && proj(V);
+        if (qv && q && V !== P && Math.hypot(qv[0] - q[0], qv[1] - q[1]) > 7) qv = null;
+        if (qv) { d += (pen ? 'L' : 'M') + xy(qv); pen = true; last = qv; } else { pen = false; last = null; }
+        if (f > to) break;
+      }
+      return { d, last };
+    };
+
+    function drawOver(cam: number[], fwd: number[], rgt: number[], up: number[], fov: number, prog: number, mapK: number) {
+      const W = canvas!.clientWidth, Hh = canvas!.clientHeight;
+      svg.setAttribute('viewBox', `0 0 ${W} ${Hh}`);
+      const tf = Math.tan(fov / 2), asp = W / Hh;
+      const proj = (P: number[]) => {
+        const d = [P[0] - cam[0], P[1] - cam[1], P[2] - cam[2]];
+        const zf = d[0] * fwd[0] + d[1] * fwd[1] + d[2] * fwd[2];
+        if (zf < 5) return null;
+        const qx = (d[0] * rgt[0] + d[1] * rgt[1] + d[2] * rgt[2]) / zf;
+        const qy = (d[0] * up[0] + d[1] * up[1] + d[2] * up[2]) / zf;
+        return [(qx / (asp * 2 * tf) + 0.5) * W, (0.5 - qy / (2 * tf)) * Hh];
+      };
+      /* The whole way so far, faint; the last stretch, bright; the light. */
+      const all = prog > 0.002 ? path('hornligrat', 0, prog, cam, proj) : { d: '', last: null };
+      trail.setAttribute('d', all.d);
+      fresh.setAttribute('d', prog > 0.002 ? path('hornligrat', Math.max(0, prog - 0.12), prog, cam, proj).d : '');
+      /* The other ridge only on the map, where both are read as lines. */
+      other.setAttribute('d', mapK > 0.01 ? path('zmuttgrat', 0, 1, cam, proj).d : '');
+      other.style.opacity = String(mapK);
+      const atTop = prog >= 0.999;
+      const hp = atTop ? (seen([top[0], top[1], top[2] + 3], cam) ? proj([top[0], top[1], top[2] + 3]) : null) : all.last;
+      head.classList.toggle('on', !!hp && prog > 0.002);
+      head.classList.toggle('top', atTop);
+      if (hp) head.style.transform = `translate(${hp[0].toFixed(1)}px, ${hp[1].toFixed(1)}px)`;
+      /* The map's words: the two ridges and the height of the top, set
+         beside the line the way a map sets them. */
+      for (const el of tags) {
+        const k = el.dataset.at!;
+        const P = k === 'top' ? [top[0], top[1], top[2]] : pointOn(k, Number(el.dataset.f));
+        const q = mapK > 0.01 ? proj(P) : null;
+        el.style.opacity = q ? String(mapK) : '0';
+        if (q) el.style.transform = `translate(${q[0].toFixed(1)}px, ${q[1].toFixed(1)}px)`;
+      }
+    }
+
+    const top = pointOn('hornligrat', 1);
+    const t0 = performance.now();
+    let raf = 0, slow = 0, fast = 0, lastFrame = 0, firstAt = 0;
+    const fmtAlt = (m: number) => Math.round(m).toLocaleString('nb-NO').replace(/ /g, ' ');
+
+    const frame = (now: number) => {
+      raf = 0;
+      const gap = now - (lastFrame || now);
+      const dt = Math.min(0.1, gap / 1000);
+      lastFrame = now;
+      let busy = false;
+      const k = 1 - Math.exp(-dt * 2.2);
+      offset += (target - offset) * (still ? 1 : k);
+      if (Math.abs(target - offset) < 0.5) offset = target; else busy = true;
+      /* The scroll is followed with a slow hand: a camera on a crane, not a
+         cursor. */
+      uS += (uT - uS) * (still ? 1 : 1 - Math.exp(-dt * 5));
+      if (Math.abs(uT - uS) < 0.0015) uS = uT; else busy = true;
+      px += (pxT - px) * (1 - Math.exp(-dt * 1.5));
+      py += (pyT - py) * (1 - Math.exp(-dt * 1.5));
+      if (Math.abs(pxT - px) > 0.002 || Math.abs(pyT - py) > 0.002) busy = true;
+      /* Out of the dark at the start, once. */
+      const expoK = still ? 1 : ss(0, 1, (now - (firstAt || now)) / 2200);
+      if (expoK < 1) busy = true;
+      if (busy) wantHi = false;
+      if (curScale !== scale) resize();
+
+      const portrait = canvas.clientHeight > canvas.clientWidth;
+      const pc = along3((s) => s.cam, uS);
+      const look = along3((s) => s.look, uS);
+      const cam = [Math.sin(pc[0] * rad) * pc[1], Math.cos(pc[0] * rad) * pc[1], pc[2]];
+      /* A phone stands further back, so the same mountain fits the narrow frame. */
+      if (portrait) for (let i = 0; i < 2; i++) cam[i] = look[i] + (cam[i] - look[i]) * 1.15;
+      const mapK = ss(SUMMIT + 0.5, keys3.length - 1.4, uS);
+      const sideV = [Math.cos(pc[0] * rad), -Math.sin(pc[0] * rad)];
+      cam[0] += sideV[0] * px * 60 * (1 - mapK); cam[1] += sideV[1] * px * 60 * (1 - mapK); cam[2] -= py * 30 * (1 - mapK);
+      cam[2] = Math.max(cam[2], groundAt(cam[0], cam[1]) + 120);
+      /* At the top the name takes the left of the screen: the camera trucks
+         sideways so the mountain stands to the right of it (landscape only). */
+      const frameK = portrait ? 0 : ss(SUMMIT - 1, SUMMIT - 0.1, uS);
+      if (frameK > 0) {
+        const W0 = canvas.clientWidth / canvas.clientHeight;
+        const fovR = (25 + mapK * 2) * rad;
+        const d0 = [look[0] - cam[0], look[1] - cam[1]];
+        const dl0 = Math.hypot(d0[0], d0[1]) || 1;
+        const zf0 = Math.hypot(look[0] - cam[0], look[1] - cam[1], look[2] - cam[2]);
+        const sh = 0.3 * W0 * Math.tan(fovR / 2) * zf0 * frameK;
+        const rx = d0[1] / dl0, ry = -d0[0] / dl0;
+        cam[0] -= rx * sh; cam[1] -= ry * sh; look[0] -= rx * sh; look[1] -= ry * sh;
+      }
+      const f = look.map((x, i) => x - cam[i]);
+      const fl = Math.hypot(...f);
+      const fwd = f.map((x) => x / fl);
+      const r0 = [fwd[1], -fwd[0], 0];
+      const rl = Math.hypot(...r0) || 1;
+      const rgt = r0.map((x) => x / rl);
+      const upv = [rgt[1] * fwd[2] - rgt[2] * fwd[1], rgt[2] * fwd[0] - rgt[0] * fwd[2], rgt[0] * fwd[1] - rgt[1] * fwd[0]];
+      /* The long lens, a little wider on the first screen so the sky has room. */
+      const wide = 1 - ss(0, 1, uS);
+      const fovDeg = (portrait ? 34 : 25) + wide * (portrait ? 3 : 5) + mapK * 2;
+
+      const date = shown();
+      const sun = sunAt(date);
+      const L = lightFor(sun.alt / rad);
+      const moon = moonAt(date);
+      const ML = moonFor(sun.alt / rad, moon);
+      gl.uniform2f(u.res, canvas.width, canvas.height);
+      gl.uniform3fv(u.cam, cam);
+      gl.uniform3fv(u.fwd, fwd);
+      gl.uniform3fv(u.rgt, rgt);
+      gl.uniform3fv(u.up, upv);
+      gl.uniform1f(u.fov, fovDeg * rad);
+      gl.uniform3fv(u.sunDir, sun.dir);
+      gl.uniform3fv(u.sunCol, L.sun);
+      gl.uniform3fv(u.zenCol, L.zen);
+      gl.uniform3fv(u.horCol, L.hor);
+      gl.uniform3fv(u.ambCol, L.amb);
+      gl.uniform3fv(u.moonDir, moon.dir);
+      gl.uniform3fv(u.moonCol, ML.moon);
+      gl.uniform3fv(u.fillCol, ML.fill);
+      gl.uniform1f(u.stars, L.stars);
+      gl.uniform1f(u.moonVis, ss(-0.6, 1.5, moon.alt / rad));
+      gl.uniform1f(u.moonPhase, moon.lit);
+      gl.uniform1f(u.dpr, curScale);
+      gl.uniform1f(u.seed, ((now - t0) * 0.0073) % 100);
+      gl.uniform1f(v.expo, (0.15 + 0.85 * expoK) * EXPO);
+      gl.uniform1f(v.sat, SAT);
+      gl.uniform1f(v.contour, mapK);
+      gl.uniform1f(v.relief, mapK);
+      gl.uniform1f(v.grain, GRAIN);
+      gl.uniform1f(v.vig, VIG);
+      gl.uniform1f(v.ROCK, num('rock', 1.7));
+      gl.uniform1f(v.SNOW, num('snow', 0.85));
+      gl.uniform1f(v.DRIFT, num('drift', 3));
+      gl.uniform1f(v.WINTER, num('winter', 0.5));
+
+      const refine = wantHi && acc > 0;
+      if (!(refine && acc >= ACC)) {
+        gl.uniform2f(u.jit, refine ? halton(acc, 2) - 0.5 : 0, refine ? halton(acc, 3) - 0.5 : 0);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, accFb);
+        if (refine) {
+          gl.enable(gl.BLEND);
+          gl.blendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA);
+          gl.blendColor(0, 0, 0, 1 / (acc + 1));
+        }
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.disable(gl.BLEND);
+        acc = refine ? acc + 1 : 1;
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, accFb);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+        gl.blitFramebuffer(0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      }
+
+      const prog = clamp01(uS / SUMMIT);
+      drawOver(cam, fwd, rgt, upv, fovDeg * rad, prog, mapK);
+      if (timeEl) timeEl.textContent = zermattClock(date);
+      const alt = 1608 + (4478 - 1608) * prog;
+      if (altEl) altEl.textContent = fmtAlt(alt);
+      scaleMark?.style.setProperty('--k', ((alt - 1500) / 3000).toFixed(4));
+      /* What the page around it listens to: how near the top, and the map. */
+      const de = document.documentElement.style;
+      de.setProperty('--rl-top', ss(SUMMIT - 0.55, SUMMIT - 0.05, uS).toFixed(3));
+      de.setProperty('--rl-map', mapK.toFixed(3));
+      root.classList.toggle('at-top', uS > SUMMIT - 0.3);
+
+      if (!firstAt) {
+        firstAt = now;
+        requestAnimationFrame(() => root.classList.add('ready'));
+        loadOrtho().catch(() => {});
+        loadFar().catch(() => {});
+        busy = true;
+      }
+      if (!wantHi && gap > 0 && gap < 150) {
+        if (gap > 28) { slow++; fast = 0; } else { slow = Math.max(0, slow - 1); if (gap < 19) fast++; }
+        if (slow > 4 && scale > 0.6) { scale = Math.max(0.6, scale * 0.85); slow = 0; }
+        else if (fast > 45 && scale < hiScale) { scale = Math.min(hiScale, scale * 1.15); fast = 0; }
+      }
+      if (busy) {
+        kick();
+        clearTimeout(settleT);
+        settleT = window.setTimeout(() => { wantHi = true; kick(); }, 160);
+      } else if (wantHi && acc < ACC) kick();
+    };
+
+    const kick = () => { if (!raf && !document.hidden) raf = requestAnimationFrame(frame); };
+    document.addEventListener('visibilitychange', kick);
+    setInterval(kick, 60000);
+    kick();
+  }
+
+  start().catch((err) => {
+    console.error(err);
+    root?.classList.add('ready', 'failed');
+  });
+</script>
