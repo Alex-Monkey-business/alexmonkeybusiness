@@ -834,6 +834,31 @@ const words = lang === 'nb'
   }`;
 
 
+  /* THE DEVELOPER: what the print gets after the picture is done (and,
+     at rest, after its samples are averaged). A light unsharp mask, so the
+     rock reads crisp at any resolution, and the grain — added here, after
+     the averaging, so it stands still when the picture does instead of
+     melting away. */
+  const PS = `#version 300 es
+  precision highp float;
+  in vec2 uv; out vec4 o;
+  uniform sampler2D A;
+  uniform vec2 res;
+  uniform float sharp, grain, seed;
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  void main() {
+    vec2 px = 1.0 / res;
+    vec3 c = texture(A, uv).rgb;
+    vec3 n = texture(A, uv + vec2(px.x, 0.0)).rgb + texture(A, uv - vec2(px.x, 0.0)).rgb
+           + texture(A, uv + vec2(0.0, px.y)).rgb + texture(A, uv - vec2(0.0, px.y)).rgb;
+    vec3 col = c + (c - n * 0.25) * sharp;
+    float l = dot(col, vec3(0.299, 0.587, 0.114));
+    vec2 g0 = floor(gl_FragCoord.xy / max(1.0, res.x / 1800.0));
+    float g = hash(g0 + seed) + hash(g0 * 1.31 + seed * 1.7) - 1.0;
+    col += g * grain * (0.35 + 0.65 * (1.0 - abs(l - 0.42) * 1.7));
+    o = vec4(clamp(col, 0.0, 1.0), 1.0);
+  }`;
+
   function compile(type: number, src: string) {
     const s = gl!.createShader(type)!;
     gl!.shaderSource(s, src);
@@ -857,9 +882,16 @@ const words = lang === 'nb'
     const prog = gl.createProgram()!;
     gl.attachShader(prog, compile(gl.VERTEX_SHADER, VS));
     gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs(floatLinear)));
+    gl.bindAttribLocation(prog, 0, 'p');
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || 'link');
     gl.useProgram(prog);
+    const post = gl.createProgram()!;
+    gl.attachShader(post, compile(gl.VERTEX_SHADER, VS));
+    gl.attachShader(post, compile(gl.FRAGMENT_SHADER, PS));
+    gl.bindAttribLocation(post, 0, 'p');
+    gl.linkProgram(post);
+    if (!gl.getProgramParameter(post, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(post) || 'link post');
 
     const buf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
@@ -1046,7 +1078,7 @@ const words = lang === 'nb'
     const num = (k: string, d: number) => (qs.has(k) ? Number(qs.get(k)) : d);
     /* The print's settings. `?sat=` and friends are for looking, not for
        shipping. */
-    const EXPO = num('expo', 1.3), SAT = num('sat', 0.3), GRAIN = num('grain', 0.022), VIG = num('vig', 0.55);
+    const SHARP = num('sharp', 0.55), EXPO = num('expo', 1.3), SAT = num('sat', 0.3), GRAIN = num('grain', 0.024), VIG = num('vig', 0.55);
 
     /* ---- Time ------------------------------------------------------------ */
     /* The page opens on one light and stays there: no day racing past. The
@@ -1248,7 +1280,9 @@ const words = lang === 'nb'
 
     const top = pointOn('hornligrat', 1);
     const t0 = performance.now();
-    let raf = 0, slow = 0, fast = 0, lastFrame = 0, firstAt = 0;
+    let raf = 0, slow = 0, fast = 0, lastFrame = 0, firstAt = 0, grainSeed = 0;
+    const PL = new Map<string, WebGLUniformLocation | null>();
+    const P = (n: string) => { if (!PL.has(n)) PL.set(n, gl.getUniformLocation(post, n)); return PL.get(n)!; };
     const fmtAlt = (m: number) => Math.round(m).toLocaleString('nb-NO').replace(/ /g, ' ');
 
     const frame = (now: number) => {
@@ -1285,6 +1319,9 @@ const words = lang === 'nb'
       cam[2] = Math.max(cam[2], groundAt(cam[0], cam[1]) + 120);
       /* At the top the name takes the left of the screen: the camera trucks
          sideways so the mountain stands to the right of it (landscape only). */
+      /* On a phone the person takes the lower half: the camera tilts down
+         so the top stands in the upper third. */
+      if (portrait) look[2] -= 1100 * ss(SUMMIT - 1, SUMMIT - 0.1, uS) * (1 - 0.6 * mapK);
       const frameK = portrait ? 0 : ss(SUMMIT - 1, SUMMIT - 0.1, uS);
       if (frameK > 0) {
         const W0 = canvas.clientWidth / canvas.clientHeight;
@@ -1312,6 +1349,7 @@ const words = lang === 'nb'
       const L = lightFor(sun.alt / rad);
       const moon = moonAt(date);
       const ML = moonFor(sun.alt / rad, moon);
+      gl.useProgram(prog);
       gl.uniform2f(u.res, canvas.width, canvas.height);
       gl.uniform3fv(u.cam, cam);
       gl.uniform3fv(u.fwd, fwd);
@@ -1335,7 +1373,7 @@ const words = lang === 'nb'
       gl.uniform1f(v.sat, SAT);
       gl.uniform1f(v.contour, mapK);
       gl.uniform1f(v.relief, mapK);
-      gl.uniform1f(v.grain, GRAIN);
+      gl.uniform1f(v.grain, 0);
       gl.uniform1f(v.vig, VIG);
       gl.uniform1f(v.ROCK, num('rock', 1.7));
       gl.uniform1f(v.SNOW, num('snow', 0.85));
@@ -1354,16 +1392,24 @@ const words = lang === 'nb'
         gl.drawArrays(gl.TRIANGLES, 0, 3);
         gl.disable(gl.BLEND);
         acc = refine ? acc + 1 : 1;
-        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, accFb);
-        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-        gl.blitFramebuffer(0, 0, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.useProgram(post);
+        gl.activeTexture(gl.TEXTURE5);
+        gl.bindTexture(gl.TEXTURE_2D, accTex);
+        gl.uniform1i(P('A'), 5);
+        gl.uniform2f(P('res'), canvas.width, canvas.height);
+        gl.uniform1f(P('sharp'), SHARP * Math.min(1, curScale));
+        gl.uniform1f(P('grain'), GRAIN);
+        /* The grain moves while the picture does and holds when it rests. */
+        if (!refine) grainSeed = ((now - t0) * 0.0073) % 100;
+        gl.uniform1f(P('seed'), grainSeed);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
       }
 
-      const prog = clamp01(uS / SUMMIT);
-      drawOver(cam, fwd, rgt, upv, fovDeg * rad, prog, mapK);
+      const climbed = clamp01(uS / SUMMIT);
+      drawOver(cam, fwd, rgt, upv, fovDeg * rad, climbed, mapK);
       if (timeEl) timeEl.textContent = zermattClock(date);
-      const alt = 1608 + (4478 - 1608) * prog;
+      const alt = 1608 + (4478 - 1608) * climbed;
       if (altEl) altEl.textContent = fmtAlt(alt);
       scaleMark?.style.setProperty('--k', ((alt - 1500) / 3000).toFixed(4));
       /* What the page around it listens to: how near the top, and the map. */
