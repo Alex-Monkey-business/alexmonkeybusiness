@@ -33,6 +33,9 @@ const s = t(lang);
   <section class="pr-wp" data-wp></section>
   <section class="pr-wp" data-wp></section>
   <section class="pr-wp pr-summit" data-wp></section>
+  <section class="pr-wp" data-wp></section>
+  <section class="pr-wp" data-wp></section>
+  <section class="pr-wp pr-end" data-wp></section>
 
     <!-- The sheet the summit opens. The mountain stays behind it. -->
     <div class="veil" hidden></div>
@@ -73,6 +76,7 @@ const s = t(lang);
   .pr-wp { position: relative; min-height: 80svh; pointer-events: none; }
   .pr-start { min-height: 100svh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 72px; }
   .pr-summit { min-height: 100svh; }
+  .pr-end { min-height: 100svh; }
   @media (max-width: 520px) { .pr-start { padding-bottom: 150px; } }
 
   /* A hairline that keeps drawing downward. Gone at the first scroll. */
