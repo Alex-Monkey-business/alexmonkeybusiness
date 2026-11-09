@@ -1,12 +1,14 @@
 ---
 /**
- * THE CLIMB AS A PRINT — lab variant of the front page (7 Nov 2026).
+ * THE CLIMB AS A PRINT — lab variant of the front page (7–8 Nov 2026).
  *
- * The same one scroll up the Hörnligrat as `Climb`, with less on it: the
- * mountain (see `Relieff.astro`), a light going up the ridge, the height.
- * At the top, the person: the name set large and the ways to reach him.
- * Past the top the camera cranes up and the mountain becomes its own map,
- * and the name stays on it.
+ * The front page with less on it. The mountain graded as a print and seen
+ * through a long lens (see `Relieff.astro`), a light going up the
+ * Hörnligrat, and the one point the front page has: «alex monkey business»
+ * on the summit, which opens the person in a sheet over the mountain. The
+ * sheet is the front page's own (`Climb`), word for word.
+ * The light can be held: drag the mountain sideways, the hairline day, or
+ * the clock for the next light.
  */
 import Relieff from '../Relieff.astro';
 import { contact } from '../../data/contact';
@@ -16,6 +18,7 @@ import '../../styles/instrument.css';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
+const nb = lang === 'nb';
 const s = t(lang);
 ---
 
@@ -30,137 +33,425 @@ const s = t(lang);
   <section class="pr-wp" data-wp></section>
   <section class="pr-wp" data-wp></section>
   <section class="pr-wp pr-summit" data-wp></section>
-  <section class="pr-wp" data-wp></section>
-  <section class="pr-wp" data-wp></section>
-  <section class="pr-wp pr-end" data-wp></section>
 
-  <section class="pr-who" aria-labelledby="pr-name">
-    <p class="pr-kicker">alex monkey business</p>
-    <h2 class="pr-name" id="pr-name">Alexander Samnøy</h2>
-    <ul class="pr-ch">
-      {contact.map((c, i) => (
-        <li style={`--i: ${i}`}>
-          <a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined}>
-            <span class="pr-k">{s.about.channels[c.key]}</span>
-            <span class="pr-v">{c.value}</span>
-            <span class="pr-go" aria-hidden="true">{c.external ? '↗' : '→'}</span>
-          </a>
-        </li>
-      ))}
-    </ul>
-    <p class="pr-credit">
-      {credit.kind?.[lang]}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a> · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a> · <a href={cop.source} target="_blank" rel="noopener noreferrer">Copernicus</a>
-    </p>
-  </section>
+    <!-- The sheet the summit opens. The mountain stays behind it. -->
+    <div class="veil" hidden></div>
+    <section class="sheet sheet-who" id="sheet-alex" role="dialog" aria-modal="true" aria-labelledby="h-alex" hidden>
+      <button class="sheet-x" type="button" aria-label={nb ? 'Lukk' : 'Close'}><span></span></button>
+      <!-- The portrait keeps its shadow side and has no frame: the grade is
+           baked in with its edges dissolving. See tools/make-portrait-top.py. -->
+      <div class="who-img rz" data-still="/assets/about/alex-topp.webp">
+        <img src="/assets/about/alex-topp.webp" width="640" height="640" alt="" loading="lazy" decoding="async" />
+        <canvas class="rz-px" width="640" height="640" aria-hidden="true"></canvas>
+        <span class="rz-scan" aria-hidden="true"></span>
+      </div>
+      <h2 class="sheet-name" id="h-alex" data-decode>alexander samnøy</h2>
+      <ul class="channels">
+        {contact.map((c) => (
+          <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined}><span class="ch-k">{s.about.channels[c.key]}</span><span class="ch-v" data-decode>{c.value}</span><span class="ch-go" aria-hidden="true">{c.external ? '↗' : '→'}</span></a></li>
+        ))}
+      </ul>
+      {/* What the menu used to carry: the credit the mountain's data asks
+          for. The language sits top right. */}
+      <p class="who-foot">
+        <span>{credit.kind?.[lang]}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a> · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a></span>
+        <span><a href={cop.source} target="_blank" rel="noopener noreferrer">{cop.text}</a></span>
+      </p>
+    </section>
 </div>
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap');
-
   .pr {
     position: relative;
-    background: #0b0b0c;
-    color: #f2efe8;
+    background: #000;
+    color: var(--fg1);
     font-family: var(--font-inst);
   }
   :global(body:has(.pr) footer) { display: none; }
 
-  /* Length only: each section is one shot of the flight. */
-  .pr-wp { position: relative; min-height: 72svh; pointer-events: none; }
-  .pr-start { min-height: 100svh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 64px; }
+  /* Length only: each section is one shot of the climb. */
+  .pr-wp { position: relative; min-height: 80svh; pointer-events: none; }
+  .pr-start { min-height: 100svh; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 72px; }
   .pr-summit { min-height: 100svh; }
-  .pr-end { min-height: 100svh; }
+  @media (max-width: 520px) { .pr-start { padding-bottom: 150px; } }
 
+  /* A hairline that keeps drawing downward. Gone at the first scroll. */
   .pr-cue {
     width: 1px;
-    height: 48px;
-    background: rgba(242, 239, 232, 0.4);
+    height: 56px;
+    background: var(--fg3);
     transform-origin: top;
-    animation: pr-cue 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-    opacity: calc(1 - var(--rl-top, 0));
+    animation: pr-cue 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    transition: opacity 400ms linear;
   }
+  .pr.moved .pr-cue { opacity: 0; }
   @keyframes pr-cue {
     0% { transform: scaleY(0); opacity: 1; }
     60% { transform: scaleY(1); opacity: 1; }
     100% { transform: scaleY(1); opacity: 0; }
   }
+  @media (prefers-reduced-motion: reduce) { .pr-cue { animation: none; } }
 
-  /* The person, at the top. Bottom left, set like the last page of a book:
-     a large name, four quiet rows, the credit the data asks for. */
-  .pr-who {
-    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55);
+  /* ---- The sheet ------------------------------------------------------- */
+
+  /* A dim over the mountain, not a curtain: the climb is still there. */
+  .veil {
     position: fixed;
-    left: clamp(20px, 5vw, 72px);
-    bottom: clamp(24px, 6vh, 64px);
-    z-index: 2;
-    width: min(460px, calc(100vw - 40px));
-    opacity: var(--rl-top, 0);
-    pointer-events: none;
-    visibility: hidden;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: opacity 400ms linear;
   }
-  :global(.relieff.at-top) ~ .pr-who { pointer-events: auto; visibility: visible; }
-  .pr-kicker {
-    margin: 0 0 14px;
-    font-size: 10px;
-    font-weight: 300;
-    letter-spacing: 0.22em;
-    color: rgba(242, 239, 232, 0.5);
-    translate: 0 calc((1 - var(--rl-top, 0)) * 10px);
+  .veil.open { opacity: 1; }
+
+  /* Up from the bottom, solid, one radius. On a wide screen it is a column
+     at the left, where the points are not. */
+  .sheet {
+    position: fixed;
+    z-index: 41;
+    left: clamp(12px, 4vw, 56px);
+    bottom: clamp(12px, 4vh, 40px);
+    width: min(440px, calc(100vw - 24px));
+    max-height: calc(100svh - 120px);
+    overflow: auto;
+    box-sizing: border-box;
+    padding: 28px 28px 24px;
+    border-radius: 28px;
+    background: #0b0b0d;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    translate: 0 40px;
+    opacity: 0;
+    transition: translate 520ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms linear;
   }
-  .pr-name {
+  .sheet.open { translate: 0 0; opacity: 1; }
+  .sheet-x {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+  }
+  .sheet-x span,
+  .sheet-x span::after {
+    position: absolute;
+    left: 13px;
+    top: 21px;
+    width: 18px;
+    height: 1px;
+    background: var(--fg2);
+    rotate: 45deg;
+  }
+  .sheet-x span::after { content: ''; left: 0; top: 0; rotate: 90deg; }
+  .sheet-x:hover span,
+  .sheet-x:hover span::after,
+  .sheet-x:focus-visible span,
+  .sheet-x:focus-visible span::after { background: var(--signal); }
+  .sheet-x:focus-visible { outline: none; }
+  .sheet-n {
+    display: flex;
+    gap: 1.4em;
+    margin: 0 0 16px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--signal);
+  }
+  .sheet-n span { color: var(--fg3); }
+  .sheet-name {
     margin: 0;
-    font-family: 'Instrument Serif', 'Times New Roman', serif;
-    font-weight: 400;
-    font-size: clamp(46px, 6.2vw, 92px);
-    line-height: 0.95;
-    letter-spacing: -0.015em;
-    color: #f5f2ea;
-    translate: 0 calc((1 - var(--rl-top, 0)) * 18px);
-  }
-  .pr-ch {
-    list-style: none;
-    margin: 30px 0 0;
-    padding: 0;
-    border-top: 1px solid rgba(242, 239, 232, 0.12);
-  }
-  .pr-ch li {
-    border-bottom: 1px solid rgba(242, 239, 232, 0.12);
-    translate: 0 calc((1 - var(--rl-top, 0)) * (14px + var(--i) * 8px));
-  }
-  .pr-ch a {
-    display: grid;
-    grid-template-columns: 6.5em minmax(0, 1fr) auto;
-    align-items: baseline;
-    gap: 14px;
-    padding: 13px 0;
-    font-size: 12px;
+    font-family: var(--font-inst);
     font-weight: 300;
+    font-size: clamp(24px, 3vw, 32px);
+    line-height: 1.15;
     letter-spacing: 0.04em;
-    color: #f2efe8;
+    text-transform: lowercase;
+  }
+  .sheet-media {
+    width: min(220px, 60%);
+    margin-top: 22px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0b0b0b;
+    overflow: hidden;
+  }
+
+  /* A film fills the sheet's width; a phone recording stays phone-sized. */
+  .sheet-media.wide { width: 100%; border-radius: 14px; }
+  /* A device cut from the film brings its own bezel: no frame of ours, and
+     the corners follow its. Big enough to read on a phone. */
+  .sheet-media.device {
+    width: min(260px, 72%);
+    border: 0;
+    border-radius: 15.5% / 7.3%;
+  }
+
+  /* THE RESOLVE, from /about: a picture arrives as information — eight
+     squares across, then finer, nearest-neighbour, with one signal line
+     scanning down it — and then stands still. Every time a sheet opens. */
+  .rz { position: relative; display: block; }
+  .rz > img,
+  .rz > video { display: block; width: 100%; height: auto; }
+  .rz-px {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rz.go .rz-px { opacity: 1; }
+  .rz.wait > img,
+  .rz.wait > video { opacity: 0; }
+  .rz-scan {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: var(--signal);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .rz.go .rz-scan { animation: rz-scan 1050ms cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+  @keyframes rz-scan {
+    0% { top: 0; opacity: 0; }
+    6% { opacity: 1; }
+    92% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+  /* Typing and decoding text: the sheet's own fade stays, the words arrive. */
+  .sheet-go {
+    display: inline-flex;
+    gap: 0.8em;
+    margin-top: 22px;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--fg1);
     text-decoration: none;
   }
-  .pr-k { font-size: 10px; letter-spacing: 0.18em; color: rgba(242, 239, 232, 0.42); }
-  .pr-v { overflow-wrap: anywhere; transition: color 200ms linear; }
-  .pr-go { color: rgba(242, 239, 232, 0.42); transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1), color 200ms linear; }
-  .pr-ch a:hover .pr-v, .pr-ch a:focus-visible .pr-v { color: #ffe8c2; }
-  .pr-ch a:hover .pr-go, .pr-ch a:focus-visible .pr-go { color: #ffe8c2; transform: translate(2px, -2px); }
-  .pr-ch a[href^='mailto']:hover .pr-go, .pr-ch a[href^='tel']:hover .pr-go { transform: translateX(3px); }
-  .pr-ch a:focus-visible { outline: none; }
-  .pr-credit {
-    margin: 18px 0 0;
-    font-size: 9px;
-    line-height: 1.7;
-    letter-spacing: 0.06em;
-    color: rgba(242, 239, 232, 0.32);
-  }
-  .pr-credit a { color: inherit; text-decoration: none; }
-  .pr-credit a:hover, .pr-credit a:focus-visible { color: #f2efe8; outline: none; }
+  .sheet-go:hover,
+  .sheet-go:focus-visible { color: var(--signal); outline: none; }
 
-  @media (max-width: 520px) {
-    .pr-ch a { grid-template-columns: minmax(0, 1fr) auto; }
-    .pr-k { display: none; }
+  .sheet-who { padding-top: 12px; }
+  .who-img {
+    width: clamp(150px, 15vw, 210px);
+    margin: 0 0 -14px -18px;
   }
+  /* The portrait's squares take the sky's colour the way the picture does. */
+  .who-img .rz-px { mix-blend-mode: luminosity; }
+  /* The ways in, as rows: what it is, the address, and the arrow every
+     link on this page carries. A hairline between them. */
+  .channels { list-style: none; margin: 18px 0 0; padding: 0; }
+  .channels li + li { border-top: 1px solid rgba(255, 255, 255, 0.06); }
+  .channels a {
+    display: grid;
+    grid-template-columns: 5.6em minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 0;
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    color: var(--fg1);
+    text-decoration: none;
+  }
+  .ch-k { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg3); }
+  .ch-v { overflow-wrap: anywhere; }
+  .ch-go { color: var(--signal); transition: transform 200ms ease-out; }
+  .channels a:hover .ch-v, .channels a:focus-visible .ch-v { color: var(--signal); }
+  .channels a:hover .ch-go, .channels a:focus-visible .ch-go { transform: translate(2px, -2px); }
+  .channels a[href^='mailto']:hover .ch-go, .channels a[href^='tel']:hover .ch-go { transform: translateX(3px); }
+  .channels a:focus-visible { outline: none; }
+  /* A short phone: the rows close up and the portrait steps back, so the
+     sheet still fits without scrolling. */
+  /* Too narrow for three columns: the addresses say what they are. */
+  @media (max-width: 460px) {
+    .channels a { grid-template-columns: minmax(0, 1fr) auto; font-size: 12px; letter-spacing: 0.02em; }
+    .ch-k { display: none; }
+  }
+  @media (max-height: 640px) {
+    .channels a { padding: 7px 0; }
+    .who-img { width: 120px; }
+  }
+  .who-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin: 18px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    color: var(--fg3);
+    opacity: 0.7;
+  }
+  .who-foot a { color: inherit; text-decoration: none; }
+  .who-foot a:hover, .who-foot a:focus-visible { color: var(--signal); outline: none; }
+
   @media (prefers-reduced-motion: reduce) {
-    .pr-cue { animation: none; }
+    .sheet, .veil { transition: none; }
+    .rz-px, .rz-scan { display: none; }
   }
 </style>
+
+<script>
+  /* One sheet at a time. Opened by a point on the mountain (`lys:open`),
+     closed by its cross, the dim, Escape or the browser's back. Focus goes
+     into the sheet and back to the point it came from. */
+  import { decode, typer, still } from '../../scripts/decode';
+
+  const veil = document.querySelector<HTMLElement>('.veil')!;
+
+  /* The sheet's words arrive the way /about's do: names decode, the line
+     types itself. */
+  const words = (s: HTMLElement) => {
+    s.querySelectorAll<HTMLElement>('[data-decode]').forEach((el, i) => decode(el, { delay: 120 + i * 160, perChar: 30 }));
+    s.querySelectorAll<HTMLElement>('[data-type]').forEach((el) => {
+      const text = (el.dataset.text ??= el.textContent ?? '');
+      el.textContent = '';
+      const t = typer(el);
+      setTimeout(() => t(text, 12), 420);
+    });
+  };
+
+  /* The pictures resolve: a canvas over each draws it at 8 squares across,
+     then 12, 18 … 200, then gets out of the way. */
+  const STEPS = [8, 12, 18, 28, 44, 72, 120, 200];
+  const stills = new Map<string, Promise<HTMLImageElement>>();
+  const load = (src: string) => {
+    if (!stills.has(src)) stills.set(src, new Promise((ok, no) => {
+      const im = new Image();
+      im.onload = () => ok(im);
+      im.onerror = no;
+      im.src = src;
+    }));
+    return stills.get(src)!;
+  };
+  const resolve = async (box: HTMLElement) => {
+    const px = box.querySelector<HTMLCanvasElement>('.rz-px');
+    const g = px?.getContext('2d');
+    if (!px || !g || still()) return;
+    const run = String(Number(box.dataset.run ?? 0) + 1);
+    box.dataset.run = run;
+    box.classList.add('wait');
+    const im = await load(box.dataset.still!).catch(() => null);
+    if (box.dataset.run !== run) return;
+    if (!im) { box.classList.remove('wait'); return; }
+    box.classList.remove('go');
+    void box.offsetWidth;
+    box.classList.add('go');
+    const off = document.createElement('canvas');
+    const og = off.getContext('2d')!;
+    for (const n of STEPS) {
+      if (box.dataset.run !== run) return;
+      const m = Math.max(1, Math.round((n * px.height) / px.width));
+      off.width = n; off.height = m;
+      og.clearRect(0, 0, n, m);
+      og.drawImage(im, 0, 0, n, m);
+      g.imageSmoothingEnabled = false;
+      g.clearRect(0, 0, px.width, px.height);
+      g.drawImage(off, 0, 0, n, m, 0, 0, px.width, px.height);
+      box.classList.remove('wait');
+      await new Promise((ok) => setTimeout(ok, 115));
+    }
+    if (box.dataset.run === run) box.classList.remove('go');
+  };
+  let current: HTMLElement | null = null;
+  let from: HTMLElement | null = null;
+
+  const close = (viaHistory = false) => {
+    if (!current) return;
+    const s = current;
+    current = null;
+    s.classList.remove('open');
+    s.inert = true;
+    veil.classList.remove('open');
+    s.querySelector('video')?.pause();
+    window.setTimeout(() => {
+      if (current !== s) s.hidden = true;
+      if (!current) veil.hidden = true;
+    }, still() ? 0 : 420);
+    from?.focus({ preventScroll: true });
+    if (!viaHistory && history.state?.sheet) history.back();
+  };
+
+  /* No scrolling inside a sheet: when it would run past the screen, the
+     picture gives up the difference — it keeps its shape and the words and
+     the link keep their size. Below a point it stops shrinking and the
+     sheet scrolls instead, on a screen too short to be helped. */
+  const fit = (s: HTMLElement) => {
+    const m = s.querySelector<HTMLElement>('.sheet-media');
+    if (!m) return;
+    m.style.width = '';
+    m.style.height = '';
+    const media = m.querySelector<HTMLElement>('video, img');
+    const ratio = Number(media?.getAttribute('width')) / Number(media?.getAttribute('height')) || 0.46;
+    const over = s.scrollHeight - s.clientHeight;
+    if (over <= 0) return;
+    const h = Math.max(innerHeight < 640 ? 130 : 220, m.offsetHeight - over - 2);
+    m.style.height = h + 'px';
+    m.style.width = h * ratio + 'px';
+  };
+  addEventListener('resize', () => { if (current) fit(current); });
+
+  const open = (id: string, el: HTMLElement | null, viaHistory = false) => {
+    const s = document.getElementById('sheet-' + id);
+    if (!s || current === s) return;
+    const switching = !!current;
+    if (current) close(true);
+    current = s;
+    from = el;
+    veil.hidden = false;
+    s.hidden = false;
+    s.inert = false;
+    requestAnimationFrame(() => { if (current === s) { s.classList.add('open'); veil.classList.add('open'); } });
+    fit(s);
+    words(s);
+    s.querySelectorAll<HTMLElement>('.rz').forEach((b) => resolve(b));
+    if (!still()) s.querySelector<HTMLVideoElement>('video')?.play().catch(() => {});
+    s.querySelector<HTMLElement>('.sheet-x')?.focus({ preventScroll: true });
+    if (!viaHistory) {
+      const state = { ...(history.state ?? {}), sheet: id };
+      if (switching) history.replaceState(state, '');
+      else history.pushState(state, '');
+    }
+  };
+
+  document.addEventListener('lys:open', (e) => {
+    const d = (e as CustomEvent<{ id: string; from: HTMLElement }>).detail;
+    open(d.id, d.from);
+  });
+  document.querySelectorAll('.sheet-x').forEach((b) => b.addEventListener('click', () => close()));
+  veil.addEventListener('click', () => close());
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+    /* Tab stays inside the open sheet. */
+    if (e.key !== 'Tab' || !current) return;
+    const f = [...current.querySelectorAll<HTMLElement>('button, a[href]')];
+    const i = f.indexOf(document.activeElement as HTMLElement);
+    const next = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i === f.length - 1 ? 0 : i + 1);
+    e.preventDefault();
+    f[next]?.focus();
+  });
+  const restoreSheet = () => {
+    const id = history.state?.sheet;
+    if (typeof id === 'string' && document.getElementById('sheet-' + id)) {
+      open(id, document.querySelector<HTMLElement>('.rl-mk'), true);
+    } else close(true);
+  };
+  addEventListener('popstate', restoreSheet);
+  restoreSheet();
+
+
+  const prEl = document.querySelector('.pr');
+  const moved = () => { if (scrollY > 30) { prEl?.classList.add('moved'); removeEventListener('scroll', moved); } };
+  addEventListener('scroll', moved, { passive: true });
+  moved();
+</script>
