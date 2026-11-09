@@ -1471,8 +1471,8 @@ const words = lang === 'nb'
       gl.uniform1f(v.vig, VIG);
       gl.uniform1f(v.ROCK, num('rock', 1.7));
       gl.uniform1f(v.SNOW, num('snow', 0.85));
-      gl.uniform1f(v.DRIFT, num('drift', 3));
-      gl.uniform1f(v.WINTER, num('winter', 0.5));
+      gl.uniform1f(v.DRIFT, num('drift', 0));
+      gl.uniform1f(v.WINTER, num('winter', 0));
 
       const refine = wantHi && acc > 0;
       if (!(refine && acc >= ACC)) {
