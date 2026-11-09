@@ -89,6 +89,12 @@ const s = t(lang);
   }
   @media (prefers-reduced-motion: reduce) { .pr-cue { animation: none; } }
 
+  /* Without the mountain (no script, no WebGL) the person stands open. */
+  :global(html:not(.js)) .sheet-who,
+  :global(.pr:has(.relieff.failed)) .sheet-who { display: block; opacity: 1; translate: 0 0; }
+  :global(html:not(.js)) .sheet-x,
+  :global(.pr:has(.relieff.failed)) .sheet-x { display: none; }
+
   /* ---- The sheet ------------------------------------------------------- */
 
   /* A dim over the mountain, not a curtain: the climb is still there. */
