@@ -17,6 +17,7 @@
  * is still in the shader, switched off.
  */
 import routes from '../data/routes.json';
+import { swisstopoCredit as credit, copernicusCredit as cop } from '../data/photoCredit';
 
 interface Props { lang?: 'nb' | 'en' }
 const { lang = 'nb' } = Astro.props;
@@ -43,7 +44,12 @@ const words = lang === 'nb'
        says what the light is; pressed, it goes to the next one. Dragging
        the mountain sideways moves the day too, for whoever finds it. -->
   <div class="rl-ctl">
-    <p class="rl-where"><span>matterhorn</span><span class="rl-alt">1608 m</span></p>
+    <!-- The credit the data asks for, kept behind the mountain's name. -->
+    <p class="rl-credit" id="rl-credit" hidden>
+      <span>{credit.kind?.[lang]}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a> · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a></span>
+      <span><a href={cop.source} target="_blank" rel="noopener noreferrer">{cop.text}</a></span>
+    </p>
+    <p class="rl-where"><button class="rl-src" type="button" aria-expanded="false" aria-controls="rl-credit">matterhorn</button><span class="rl-alt">1608 m</span></p>
     <button class="rl-light" type="button" aria-label={words.next}>
       <span class="rl-light-dot" aria-hidden="true"></span><span class="rl-light-w">{words.dusk}</span><span class="rl-time">--:--</span>
     </button>
@@ -212,6 +218,42 @@ const words = lang === 'nb'
     color: var(--fg3);
     white-space: nowrap;
   }
+  .rl-src {
+    padding: 8px 0;
+    margin: -8px 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    cursor: pointer;
+    transition: color 160ms linear;
+  }
+  .rl-src:hover, .rl-src:focus-visible, .rl-src[aria-expanded='true'] { color: var(--fg1); outline: none; }
+  .rl-credit {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: min(320px, calc(100vw - 40px));
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(8, 8, 10, 0.8);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    font-family: var(--font-inst);
+    font-size: 9px;
+    line-height: 1.6;
+    letter-spacing: 0.06em;
+    color: var(--fg3);
+    text-align: right;
+    opacity: 0;
+    translate: 0 6px;
+    transition: opacity 220ms linear, translate 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .rl-credit.open { opacity: 1; translate: 0 0; }
+  .rl-credit[hidden] { display: none; }
+  .rl-credit a { color: inherit; text-decoration: none; }
+  .rl-credit a:hover, .rl-credit a:focus-visible { color: var(--fg1); outline: none; }
   .rl-alt { color: var(--fg1); min-width: 6ch; text-align: right; font-variant-numeric: tabular-nums; }
   .rl-light {
     display: flex;
@@ -840,14 +882,15 @@ const words = lang === 'nb'
   precision highp float;
   in vec2 uv; out vec4 o;
   uniform sampler2D A;
-  uniform vec2 res;
+  uniform vec2 res, tex, sub;
   uniform float sharp, grain, seed;
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
   void main() {
-    vec2 px = 1.0 / res;
-    vec3 c = texture(A, uv).rgb;
-    vec3 n = texture(A, uv + vec2(px.x, 0.0)).rgb + texture(A, uv - vec2(px.x, 0.0)).rgb
-           + texture(A, uv + vec2(0.0, px.y)).rgb + texture(A, uv - vec2(0.0, px.y)).rgb;
+    vec2 px = 1.0 / tex;
+    vec2 t = min(uv * sub, sub - 0.5 * px);
+    vec3 c = texture(A, t).rgb;
+    vec3 n = texture(A, t + vec2(px.x, 0.0)).rgb + texture(A, t - vec2(px.x, 0.0)).rgb
+           + texture(A, t + vec2(0.0, px.y)).rgb + texture(A, min(t + vec2(0.0, px.y), sub - 0.5 * px)).rgb;
     vec3 col = c + (c - n * 0.25) * sharp;
     float l = dot(col, vec3(0.299, 0.587, 0.114));
     vec2 g0 = floor(gl_FragCoord.xy / max(1.0, res.x / 1800.0));
@@ -1099,6 +1142,18 @@ const words = lang === 'nb'
     let offset = target;
     const shown = () => new Date(Date.now() + offset * 60000);
     const timeEl = root.querySelector<HTMLElement>('.rl-time');
+    /* The mountain's name opens the credit; anywhere else, or Escape, closes it. */
+    const srcBtn = root.querySelector<HTMLButtonElement>('.rl-src');
+    const creditEl = root.querySelector<HTMLElement>('.rl-credit');
+    const showCredit = (on: boolean) => {
+      if (!srcBtn || !creditEl) return;
+      srcBtn.setAttribute('aria-expanded', String(on));
+      if (on) { creditEl.hidden = false; requestAnimationFrame(() => creditEl.classList.add('open')); }
+      else { creditEl.classList.remove('open'); setTimeout(() => { if (srcBtn.getAttribute('aria-expanded') === 'false') creditEl.hidden = true; }, 240); }
+    };
+    srcBtn?.addEventListener('click', () => showCredit(srcBtn.getAttribute('aria-expanded') !== 'true'));
+    document.addEventListener('pointerdown', (e) => { if (!(e.target as HTMLElement).closest('.rl-credit, .rl-src')) showCredit(false); });
+    addEventListener('keydown', (e) => { if (e.key === 'Escape') showCredit(false); });
     const lightBtn = root.querySelector<HTMLButtonElement>('.rl-light');
     const lightW = root.querySelector<HTMLElement>('.rl-light-w');
     const words = JSON.parse(root.dataset.words ?? '{}') as Record<string, string>;
@@ -1199,33 +1254,53 @@ const words = lang === 'nb'
 
     /* ---- Resolution: refined at rest (see Lys for the long story) --------- */
     const hiScale = Math.min(devicePixelRatio || 1, 2);
+    /* At rest the picture is drawn at the screen's own pixels (up to about
+       six million of them) and refined there: a still frame costs nothing
+       after its ten passes, so there is no reason to show it upscaled. */
+    const restScale = () => Math.max(1, Math.min(devicePixelRatio || 1, 3, Math.sqrt(6e6 / Math.max(1, canvas.clientWidth * canvas.clientHeight))));
     let scale = Math.min(hiScale, 1.25);
     let wantHi = false, curScale = 0, settleT = 0;
     const ACC = 10;
     let acc = 0;
     const accTex = gl.createTexture()!, accFb = gl.createFramebuffer()!;
-    const resize = () => {
-      curScale = scale;
-      canvas.width = Math.max(2, Math.round(canvas.clientWidth * scale));
-      canvas.height = Math.max(2, Math.round(canvas.clientHeight * scale));
-      gl.viewport(0, 0, canvas.width, canvas.height);
+    /* The canvas and the buffer are allocated once at the screen's own
+       resolution (again only when the window changes). Moving, the scene is
+       drawn into a smaller corner of the buffer and stretched over the
+       canvas, so a change of resolution is a viewport, not a reallocation:
+       no frame is lost to it. */
+    let rw = 2, rh = 2;
+    const allocate = () => {
+      const top = restScale();
+      canvas.width = Math.max(2, Math.round(canvas.clientWidth * top));
+      canvas.height = Math.max(2, Math.round(canvas.clientHeight * top));
       gl.activeTexture(gl.TEXTURE5);
       gl.bindTexture(gl.TEXTURE_2D, accTex);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.bindFramebuffer(gl.FRAMEBUFFER, accFb);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, accTex, 0);
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      curScale = 0;
+    };
+    const resize = (sc = scale) => {
+      const top = restScale();
+      curScale = Math.min(sc, top);
+      rw = Math.max(2, Math.min(canvas.width, Math.round(canvas.width * curScale / top)));
+      rh = Math.max(2, Math.min(canvas.height, Math.round(canvas.height * curScale / top)));
       acc = 0;
     };
+    allocate();
     resize();
     const halton = (i: number, b: number) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
     let lastW = innerWidth;
     addEventListener('resize', () => {
       if (!fine && innerWidth === lastW) return;
       lastW = innerWidth;
-      resize();
+      allocate();
+      resize(wantHi ? restScale() : scale);
       kick();
     });
 
@@ -1313,7 +1388,7 @@ const words = lang === 'nb'
 
     const top = pointOn('hornligrat', 1);
     const t0 = performance.now();
-    let raf = 0, slow = 0, fast = 0, lastFrame = 0, firstAt = 0, grainSeed = 0;
+    let raf = 0, slowWin: number[] = [], lastChange = 0, ceil = Math.min(hiScale, 1.5), lastFrame = 0, firstAt = 0, grainSeed = 0;
     const PL = new Map<string, WebGLUniformLocation | null>();
     const P = (n: string) => { if (!PL.has(n)) PL.set(n, gl.getUniformLocation(post, n)); return PL.get(n)!; };
 
@@ -1337,7 +1412,8 @@ const words = lang === 'nb'
       const expoK = still ? 1 : ss(0, 1, (now - (firstAt || now)) / 2200);
       if (expoK < 1) busy = true;
       if (busy) wantHi = false;
-      if (curScale !== scale) resize();
+      const want = Math.min(wantHi ? restScale() : scale, restScale());
+      if (curScale !== want) resize(want);
 
       const portrait = canvas.clientHeight > canvas.clientWidth;
       const pc = along3((s) => s.cam, uS);
@@ -1365,7 +1441,7 @@ const words = lang === 'nb'
       const moon = moonAt(date);
       const ML = moonFor(sun.alt / rad, moon);
       gl.useProgram(prog);
-      gl.uniform2f(u.res, canvas.width, canvas.height);
+      gl.uniform2f(u.res, rw, rh);
       gl.uniform3fv(u.cam, cam);
       gl.uniform3fv(u.fwd, fwd);
       gl.uniform3fv(u.rgt, rgt);
@@ -1402,6 +1478,7 @@ const words = lang === 'nb'
       if (!(refine && acc >= ACC)) {
         gl.uniform2f(u.jit, refine ? halton(acc, 2) - 0.5 : 0, refine ? halton(acc, 3) - 0.5 : 0);
         gl.bindFramebuffer(gl.FRAMEBUFFER, accFb);
+        gl.viewport(0, 0, rw, rh);
         if (refine) {
           gl.enable(gl.BLEND);
           gl.blendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA);
@@ -1415,8 +1492,11 @@ const words = lang === 'nb'
         gl.activeTexture(gl.TEXTURE5);
         gl.bindTexture(gl.TEXTURE_2D, accTex);
         gl.uniform1i(P('A'), 5);
+        gl.viewport(0, 0, canvas.width, canvas.height);
         gl.uniform2f(P('res'), canvas.width, canvas.height);
-        gl.uniform1f(P('sharp'), SHARP * Math.min(1, curScale));
+        gl.uniform2f(P('tex'), canvas.width, canvas.height);
+        gl.uniform2f(P('sub'), rw / canvas.width, rh / canvas.height);
+        gl.uniform1f(P('sharp'), SHARP * (rw / canvas.width));
         gl.uniform1f(P('grain'), GRAIN);
         /* The grain moves while the picture does and holds when it rests. */
         if (!refine) grainSeed = ((now - t0) * 0.0073) % 100;
@@ -1439,10 +1519,19 @@ const words = lang === 'nb'
         loadFar().catch(() => {});
         busy = true;
       }
+      /* Moving, the resolution follows the frame rate: three slow frames in
+         the last forty and it steps down (and remembers not to climb back
+         that far); two seconds without one and it steps up, never past 1.5×
+         — a picture in motion does not show its last pixels. Changes are
+         spaced out, since each one costs a frame. */
       if (!wantHi && gap > 0 && gap < 150) {
-        if (gap > 28) { slow++; fast = 0; } else { slow = Math.max(0, slow - 1); if (gap < 19) fast++; }
-        if (slow > 4 && scale > 0.6) { scale = Math.max(0.6, scale * 0.85); slow = 0; }
-        else if (fast > 45 && scale < hiScale) { scale = Math.min(hiScale, scale * 1.15); fast = 0; }
+        slowWin.push(gap > 21 ? 1 : 0);
+        if (slowWin.length > 40) slowWin.shift();
+        const nSlow = slowWin.reduce((a, b) => a + b, 0);
+        if (now - lastChange > 400) {
+          if (nSlow >= 3 && scale > 0.6) { ceil = Math.max(0.6, Math.min(ceil, scale * 0.97)); scale = Math.max(0.6, scale * 0.85); slowWin = []; lastChange = now; }
+          else if (slowWin.length >= 40 && nSlow === 0 && scale < ceil) { scale = Math.min(ceil, scale * 1.1); slowWin = []; lastChange = now; }
+        }
       }
       if (busy) {
         kick();

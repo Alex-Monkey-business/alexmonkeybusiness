@@ -13,7 +13,6 @@
 import Relieff from '../Relieff.astro';
 import { contact } from '../../data/contact';
 import { t, type Lang } from '../../i18n';
-import { swisstopoCredit as credit, copernicusCredit as cop } from '../../data/photoCredit';
 import '../../styles/instrument.css';
 
 interface Props { lang: Lang }
@@ -54,12 +53,6 @@ const s = t(lang);
           <li><a href={c.href} target={c.external ? '_blank' : undefined} rel={c.external ? 'noopener' : undefined}><span class="ch-k">{s.about.channels[c.key]}</span><span class="ch-v" data-decode>{c.value}</span><span class="ch-go" aria-hidden="true">{c.external ? '↗' : '→'}</span></a></li>
         ))}
       </ul>
-      {/* What the menu used to carry: the credit the mountain's data asks
-          for. The language sits top right. */}
-      <p class="who-foot">
-        <span>{credit.kind?.[lang]}: <a href={credit.source} target="_blank" rel="noopener noreferrer">{credit.author}</a> · <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer">{credit.licence}</a></span>
-        <span><a href={cop.source} target="_blank" rel="noopener noreferrer">{cop.text}</a></span>
-      </p>
     </section>
 </div>
 
@@ -283,21 +276,6 @@ const s = t(lang);
     .channels a { padding: 7px 0; }
     .who-img { width: 120px; }
   }
-  .who-foot {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 8px 16px;
-    margin: 18px 0 0;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    font-size: 9px;
-    letter-spacing: 0.06em;
-    color: var(--fg3);
-    opacity: 0.7;
-  }
-  .who-foot a { color: inherit; text-decoration: none; }
-  .who-foot a:hover, .who-foot a:focus-visible { color: var(--signal); outline: none; }
 
   @media (prefers-reduced-motion: reduce) {
     .sheet, .veil { transition: none; }
