@@ -1313,10 +1313,23 @@ const words = lang === 'nb'
     const mk = root.querySelector<HTMLElement>('.rl-mk')!;
     const mkLabel = mk.querySelector<HTMLElement>('.rl-mk-label')!;
     let mkW = 0, mkLW = 0;
-    mk.addEventListener('click', () => {
+    const openSheet = () => {
       root.classList.add('opened');
       document.dispatchEvent(new CustomEvent('lys:open', { detail: { id: 'alex', from: mk } }));
-    });
+    };
+    mk.addEventListener('click', openSheet);
+    /* Arriving at the top opens the person by itself, once per visit, after a
+       short hold so scrolling straight past does not throw it up. Closed, it
+       stays closed; the point is still there to press. */
+    let topTimer = 0;
+    const atTop = (on: boolean) => {
+      if (!on || root.classList.contains('opened')) { clearTimeout(topTimer); topTimer = 0; return; }
+      if (topTimer) return;
+      topTimer = window.setTimeout(() => {
+        topTimer = 0;
+        if (root.classList.contains('at-top') && !root.classList.contains('opened')) openSheet();
+      }, 450);
+    };
 
     const xy = (q: number[]) => q[0].toFixed(1) + ' ' + q[1].toFixed(1);
     /** The visible part of a route from fraction 0 to `to`, as a path. */
@@ -1510,7 +1523,9 @@ const words = lang === 'nb'
       const alt = 1608 + (4478 - 1608) * climbed;
       if (altEl) altEl.textContent = Math.round(alt) + ' m';
       if (lightW) { const nm = nameFor(minOf(offset + nowMin), sun.alt / rad); if (lightW.textContent !== nm) lightW.textContent = nm; }
-      root.classList.toggle('at-top', uS > SUMMIT - 0.3);
+      const top = uS > SUMMIT - 0.3;
+      root.classList.toggle('at-top', top);
+      atTop(top);
 
       if (!firstAt) {
         firstAt = now;
