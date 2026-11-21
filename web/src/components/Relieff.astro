@@ -1315,6 +1315,7 @@ const words = lang === 'nb'
     let mkW = 0, mkLW = 0;
     mk.addEventListener('click', () => {
       root.classList.add('opened');
+      autoDone = true;
       document.dispatchEvent(new CustomEvent('lys:open', { detail: { id: 'alex', from: mk } }));
     });
 
@@ -1389,6 +1390,7 @@ const words = lang === 'nb'
     const top = pointOn('hornligrat', 1);
     const t0 = performance.now();
     let raf = 0, slowWin: number[] = [], lastChange = 0, ceil = Math.min(hiScale, 1.5), lastFrame = 0, firstAt = 0, grainSeed = 0;
+    let autoT = 0, autoDone = false, autoOpen = false;
     const PL = new Map<string, WebGLUniformLocation | null>();
     const P = (n: string) => { if (!PL.has(n)) PL.set(n, gl.getUniformLocation(post, n)); return PL.get(n)!; };
 
@@ -1511,6 +1513,21 @@ const words = lang === 'nb'
       if (altEl) altEl.textContent = Math.round(alt) + ' m';
       if (lightW) { const nm = nameFor(minOf(offset + nowMin), sun.alt / rad); if (lightW.textContent !== nm) lightW.textContent = nm; }
       root.classList.toggle('at-top', uS > SUMMIT - 0.3);
+      /* Standing on the top, the person opens by themself: once, and only
+         after a pause there, so a scroll that flies past does not set it
+         off. It closes again when the camera moves on. */
+      const off = Math.abs(uS - SUMMIT);
+      if (!autoDone && off < 0.2) {
+        autoT ||= window.setTimeout(() => {
+          autoDone = autoOpen = true;
+          root.classList.add('opened');
+          document.dispatchEvent(new CustomEvent('lys:open', { detail: { id: 'alex', from: mk, auto: true } }));
+        }, 350);
+      } else if (autoT && !autoDone) { clearTimeout(autoT); autoT = 0; }
+      if (autoOpen && off > 0.45) {
+        autoOpen = false;
+        document.dispatchEvent(new CustomEvent('lys:close', { detail: { auto: true } }));
+      }
 
       if (!firstAt) {
         firstAt = now;

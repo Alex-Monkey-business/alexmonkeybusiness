@@ -292,7 +292,10 @@ const s = t(lang);
 <script>
   /* One sheet at a time. Opened by a point on the mountain (`lys:open`),
      closed by its cross, the dim, Escape or the browser's back. Focus goes
-     into the sheet and back to the point it came from. */
+     into the sheet and back to the point it came from.
+     Reaching the top opens it too, once, but as a note beside the mountain
+     and not a dialog: no dim, no focus taken, nothing in the history, and
+     it goes when the scroll moves on (`lys:close`). */
   import { decode, typer, still } from '../../scripts/decode';
 
   const veil = document.querySelector<HTMLElement>('.veil')!;
@@ -353,6 +356,7 @@ const s = t(lang);
   };
   let current: HTMLElement | null = null;
   let from: HTMLElement | null = null;
+  let passive = false;
 
   const close = (viaHistory = false) => {
     if (!current) return;
@@ -366,7 +370,7 @@ const s = t(lang);
       if (current !== s) s.hidden = true;
       if (!current) veil.hidden = true;
     }, still() ? 0 : 420);
-    from?.focus({ preventScroll: true });
+    if (!passive) from?.focus({ preventScroll: true });
     if (!viaHistory && history.state?.sheet) history.back();
   };
 
@@ -389,23 +393,25 @@ const s = t(lang);
   };
   addEventListener('resize', () => { if (current) fit(current); });
 
-  const open = (id: string, el: HTMLElement | null, viaHistory = false) => {
+  const open = (id: string, el: HTMLElement | null, viaHistory = false, auto = false) => {
     const s = document.getElementById('sheet-' + id);
     if (!s || current === s) return;
     const switching = !!current;
     if (current) close(true);
     current = s;
     from = el;
-    veil.hidden = false;
+    passive = auto;
+    veil.hidden = auto;
     s.hidden = false;
     s.inert = false;
-    requestAnimationFrame(() => { if (current === s) { s.classList.add('open'); veil.classList.add('open'); } });
+    s.setAttribute('aria-modal', String(!auto));
+    requestAnimationFrame(() => { if (current === s) { s.classList.add('open'); if (!auto) veil.classList.add('open'); } });
     fit(s);
     words(s);
     s.querySelectorAll<HTMLElement>('.rz').forEach((b) => resolve(b));
     if (!still()) s.querySelector<HTMLVideoElement>('video')?.play().catch(() => {});
-    s.querySelector<HTMLElement>('.sheet-x')?.focus({ preventScroll: true });
-    if (!viaHistory) {
+    if (!auto) s.querySelector<HTMLElement>('.sheet-x')?.focus({ preventScroll: true });
+    if (!viaHistory && !auto) {
       const state = { ...(history.state ?? {}), sheet: id };
       if (switching) history.replaceState(state, '');
       else history.pushState(state, '');
@@ -413,15 +419,16 @@ const s = t(lang);
   };
 
   document.addEventListener('lys:open', (e) => {
-    const d = (e as CustomEvent<{ id: string; from: HTMLElement }>).detail;
-    open(d.id, d.from);
+    const d = (e as CustomEvent<{ id: string; from: HTMLElement; auto?: boolean }>).detail;
+    open(d.id, d.from, false, !!d.auto);
   });
+  document.addEventListener('lys:close', () => { if (passive) close(); });
   document.querySelectorAll('.sheet-x').forEach((b) => b.addEventListener('click', () => close()));
   veil.addEventListener('click', () => close());
   addEventListener('keydown', (e) => {
     if (e.key === 'Escape') close();
     /* Tab stays inside the open sheet. */
-    if (e.key !== 'Tab' || !current) return;
+    if (e.key !== 'Tab' || !current || passive) return;
     const f = [...current.querySelectorAll<HTMLElement>('button, a[href]')];
     const i = f.indexOf(document.activeElement as HTMLElement);
     const next = e.shiftKey ? (i <= 0 ? f.length - 1 : i - 1) : (i === f.length - 1 ? 0 : i + 1);
