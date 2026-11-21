@@ -286,6 +286,8 @@ const words = lang === 'nb'
 </style>
 
 <script>
+  import { loadOrthoTexture } from '../lib/orthoTexture';
+
   const LAT = 45.9763;
   const LNG = 7.6586;
   /* Coarse file: 8000 m square; its top-left texel is 4048 m west and 4326 m
@@ -786,18 +788,22 @@ const words = lang === 'nb'
       vec2 ot = vec2(p.x + DORG.x, DORG.y - p.y);
       float oe = min(min(ot.x, ot.y), min(3100.0 - ot.x, 3100.0 - ot.y));
       float inBox = smoothstep(0.0, 120.0, oe);
+      float snowDetail = 1.0;
       if (inBox > 0.0) {
         float olod = orthoN > 1.0 ? max(0.0, log2(t * pix / (3100.0 / orthoN))) : 0.0;
         vec2 og = textureLod(O, ot / 3100.0, olod).rg;
         float hp = 1.0 + (og.r * 255.0 - 128.0) / 160.0;
-        float flat_ = 1.0 - wall;
-        rock *= mix(1.0, clamp(hp, 0.35, 1.6), inBox * flat_ * (0.4 + 0.5 * near));
+        // The projected photo still contributes on steep faces. The rock
+        // sampled along the wall supplies the detail a top-down photo loses.
+        float photoWeight = mix(1.0, 0.22, wall);
+        rock *= mix(1.0, clamp(hp, 0.35, 1.6), inBox * photoWeight * (0.4 + 0.5 * near));
+        snowDetail = mix(1.0, clamp(hp, 0.65, 1.25), 0.32 * inBox * photoWeight);
         float ogs = smoothstep(0.3, 0.6, og.g);
         snow = mix(snow, max(ogs * smoothstep(0.32, 0.58, nw.z), snow * mix(0.85, 1.0, WINTER)), inBox);
       }
       rock *= mix(1.0, R.z, wall * (0.45 + 0.55 * near));
 
-      vec3 alb = mix(rock * ROCK, vec3(0.86, 0.89, 0.93) * SNOW, snow);
+      vec3 alb = mix(rock * ROCK, vec3(0.86, 0.89, 0.93) * SNOW * snowDetail, snow);
 
       float dif = max(dot(n, sunDir), 0.0);
       float sh = dif > 0.0 ? shadow(p + nw * (1.5 + 5.0 * wall), sunDir, t * pix) : 0.0;
@@ -887,10 +893,12 @@ const words = lang === 'nb'
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
   void main() {
     vec2 px = 1.0 / tex;
-    vec2 t = min(uv * sub, sub - 0.5 * px);
+    vec2 edge = sub - 0.5 * px;
+    vec2 t = min(uv * sub, edge);
     vec3 c = texture(A, t).rgb;
-    vec3 n = texture(A, t + vec2(px.x, 0.0)).rgb + texture(A, t - vec2(px.x, 0.0)).rgb
-           + texture(A, t + vec2(0.0, px.y)).rgb + texture(A, min(t + vec2(0.0, px.y), sub - 0.5 * px)).rgb;
+    vec2 dx = vec2(px.x, 0.0), dy = vec2(0.0, px.y);
+    vec3 n = texture(A, min(t + dx, edge)).rgb + texture(A, t - dx).rgb
+           + texture(A, min(t + dy, edge)).rgb + texture(A, t - dy).rgb;
     vec3 col = c + (c - n * 0.25) * sharp;
     float l = dot(col, vec3(0.299, 0.587, 0.114));
     vec2 g0 = floor(gl_FragCoord.xy / max(1.0, res.x / 1800.0));
@@ -1014,7 +1022,7 @@ const words = lang === 'nb'
     const keys = ['hornligrat', 'zmuttgrat'] as const;
     /* The orthophoto comes after the first frame: until it lands, a single
        neutral texel (flat structure, no snow) stands in. */
-    const texO = gl.createTexture();
+    const texO = gl.createTexture()!;
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, texO);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([128, 0, 0, 255]));
@@ -1022,20 +1030,12 @@ const words = lang === 'nb'
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    const loadOrtho = async () => {
-      const blob = await (await fetch(root.dataset.ortho!)).blob();
-      const bmp = await createImageBitmap(blob, { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
-      gl.activeTexture(gl.TEXTURE3);
-      gl.bindTexture(gl.TEXTURE_2D, texO);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bmp);
-      /* Mip levels, picked in the shader by how much ground a pixel covers:
-         without them a far slope samples single texels that change from
-         frame to frame, and the snow line shimmers. */
-      gl.generateMipmap(gl.TEXTURE_2D);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-      gl.uniform1f(u.orthoN, bmp.width);
+    let orthoSize = 1;
+    const loadOrtho = () => loadOrthoTexture(gl, texO, root.dataset.ortho!, (size) => {
+      orthoSize = size;
+      acc = 0;
       kick();
-    };
+    });
 
     /* The far heights come after the first frame too: until they land the
        world past the map is a floor far below, out of sight. Half floats are
@@ -1056,6 +1056,7 @@ const words = lang === 'nb'
       gl.activeTexture(gl.TEXTURE4);
       gl.bindTexture(gl.TEXTURE_2D, texF);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, n, n, 0, gl.RED, gl.FLOAT, f);
+      acc = 0;
       kick();
     };
 
@@ -1246,7 +1247,7 @@ const words = lang === 'nb'
     new ResizeObserver(() => { measure(); uT = uFromScroll(); kick(); }).observe(document.body);
 
     let px = 0, py = 0, pxT = 0, pyT = 0;
-    if (fine) addEventListener('pointermove', (e) => {
+    if (fine && !still) addEventListener('pointermove', (e) => {
       pxT = (e.clientX / innerWidth - 0.5) * 2;
       pyT = (e.clientY / innerHeight - 0.5) * 2;
       kick();
@@ -1399,7 +1400,9 @@ const words = lang === 'nb'
       const gap = now - (lastFrame || now);
       const dt = Math.min(0.1, gap / 1000);
       lastFrame = now;
-      let busy = false;
+      // With reduced motion, a scroll or light change jumps straight to its
+      // destination. Replace the accumulated image even without easing.
+      let busy = still && (target !== offset || uT !== uS);
       const k = 1 - Math.exp(-dt * (dragX === null ? 2.2 : 10));
       offset += (target - offset) * (still ? 1 : k);
       if (Math.abs(target - offset) < 0.5) offset = target; else busy = true;
@@ -1443,6 +1446,7 @@ const words = lang === 'nb'
       const moon = moonAt(date);
       const ML = moonFor(sun.alt / rad, moon);
       gl.useProgram(prog);
+      gl.uniform1f(u.orthoN, orthoSize);
       gl.uniform2f(u.res, rw, rh);
       gl.uniform3fv(u.cam, cam);
       gl.uniform3fv(u.fwd, fwd);
@@ -1559,7 +1563,7 @@ const words = lang === 'nb'
 
     const kick = () => { if (!raf && !document.hidden) raf = requestAnimationFrame(frame); };
     document.addEventListener('visibilitychange', kick);
-    setInterval(kick, 60000);
+    setInterval(() => { acc = 0; kick(); }, 60000);
     kick();
   }
 

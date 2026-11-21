@@ -805,6 +805,8 @@ const skyWords = lang === 'nb'
 </style>
 
 <script>
+  import { loadOrthoTexture } from '../lib/orthoTexture';
+
   const LAT = 45.9763;
   const LNG = 7.6586;
   /* Coarse file: 8000 m square; its top-left texel is 4048 m west and 4326 m
@@ -1316,7 +1318,7 @@ const skyWords = lang === 'nb'
         vec3 tu = normalize(vec3(th, 0.0)), tv = normalize(cross(n, tu));
         n = normalize(n + (tu * (g0 - gx) + tv * (g0 - gy)) * 1.4 * near * (1.0 - snow) * (1.0 - 0.8 * wall));
       }
-      /* Inside the 2 m box, the orthophoto (swisstopo SWISSIMAGE, summer
+      /* Inside the detail box, the orthophoto (swisstopo SWISSIMAGE, summer
          2023) brings the real rock: its cracks, gullies and bedding, as
          luminance against its own 40 m average, so the shading baked into the
          photo is gone and only structure is left. And it says where snow and
@@ -1325,23 +1327,25 @@ const skyWords = lang === 'nb'
       vec2 ot = vec2(p.x + DORG.x, DORG.y - p.y);
       float oe = min(min(ot.x, ot.y), min(3100.0 - ot.x, 3100.0 - ot.y));
       float inBox = smoothstep(0.0, 120.0, oe);
+      float snowDetail = 1.0;
       if (inBox > 0.0) {
         /* The level from the ground one pixel covers here, as texels. */
         float olod = orthoN > 1.0 ? max(0.0, log2(t * pix / (3100.0 / orthoN))) : 0.0;
         vec2 og = textureLod(O, ot / 3100.0, olod).rg;
         float hp = 1.0 + (og.r * 255.0 - 128.0) / 160.0;
         /* Taken from straight above, the photo smears down a wall: there it
-           fades out, and the wall keeps its own rock. Snow does not hold on a
-           wall either, whatever the photo says. */
-        float flat_ = 1.0 - wall;
-        rock *= mix(1.0, clamp(hp, 0.35, 1.6), inBox * flat_ * (0.4 + 0.5 * near));
+           contributes less, and the wall keeps its own rock. Snow does not
+           hold on a wall either, whatever the photo says. */
+        float photoWeight = mix(1.0, 0.22, wall);
+        rock *= mix(1.0, clamp(hp, 0.35, 1.6), inBox * photoWeight * (0.4 + 0.5 * near));
+        snowDetail = mix(1.0, clamp(hp, 0.65, 1.25), 0.32 * inBox * photoWeight);
         float ogs = smoothstep(0.3, 0.6, og.g);
         snow = mix(snow, max(ogs * smoothstep(0.32, 0.58, nw.z), snow * 0.85), inBox);
       }
       /* Wall rock, the way gneiss breaks (see rockAt). */
       rock *= mix(1.0, R.z, wall * (0.45 + 0.55 * near));
 
-      vec3 alb = mix(rock, vec3(0.86, 0.89, 0.93), snow);
+      vec3 alb = mix(rock, vec3(0.86, 0.89, 0.93) * snowDetail, snow);
 
       float dif = max(dot(n, sunDir), 0.0);
       /* The shadow ray leaves from the smooth surface and, on a wall, a few
@@ -1500,7 +1504,7 @@ const skyWords = lang === 'nb'
     const keys = ['hornligrat', 'zmuttgrat'] as const;
     /* The orthophoto comes after the first frame: until it lands, a single
        neutral texel (flat structure, no snow) stands in. */
-    const texO = gl.createTexture();
+    const texO = gl.createTexture()!;
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, texO);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([128, 0, 0, 255]));
@@ -1508,20 +1512,12 @@ const skyWords = lang === 'nb'
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    const loadOrtho = async () => {
-      const blob = await (await fetch(root.dataset.ortho!)).blob();
-      const bmp = await createImageBitmap(blob, { colorSpaceConversion: 'none', premultiplyAlpha: 'none' });
-      gl.activeTexture(gl.TEXTURE3);
-      gl.bindTexture(gl.TEXTURE_2D, texO);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bmp);
-      /* Mip levels, picked in the shader by how much ground a pixel covers:
-         without them a far slope samples single texels that change from
-         frame to frame, and the snow line shimmers. */
-      gl.generateMipmap(gl.TEXTURE_2D);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-      gl.uniform1f(u.orthoN, bmp.width);
+    let orthoSize = 1;
+    const loadOrtho = () => loadOrthoTexture(gl, texO, root.dataset.ortho!, (size) => {
+      orthoSize = size;
+      acc = 0;
       kick();
-    };
+    });
 
     /* The far heights come after the first frame too: until they land the
        world past the map is a floor far below, out of sight. Half floats are
@@ -1542,6 +1538,7 @@ const skyWords = lang === 'nb'
       gl.activeTexture(gl.TEXTURE4);
       gl.bindTexture(gl.TEXTURE_2D, texF);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, n, n, 0, gl.RED, gl.FLOAT, f);
+      acc = 0;
       kick();
     };
 
@@ -1936,16 +1933,17 @@ const skyWords = lang === 'nb'
       const dt = Math.min(0.1, gap / 1000);
       lastFrame = now;
 
+      const pushT = level === 'work' ? 1 : 0;
+      const jumped = still && (target !== offset || pushT !== push || (climb && uT !== uS));
       const k = 1 - Math.exp(-dt * (dragX === null && !sliding ? 2.4 : 10));
       offset += (target - offset) * (still ? 1 : k);
       if (Math.abs(target - offset) < 0.5) offset = target;
       px += (pxT - px) * (1 - Math.exp(-dt * 2));
       py += (pyT - py) * (1 - Math.exp(-dt * 2));
-      const pushT = level === 'work' ? 1 : 0;
       push += (pushT - push) * (still ? 1 : 1 - Math.exp(-dt * 1.6));
 
       /* Routes. */
-      let busy = Math.abs(target - offset) > 0.01 || Math.abs(pushT - push) > 0.002;
+      let busy = jumped || Math.abs(target - offset) > 0.01 || Math.abs(pushT - push) > 0.002;
       if (climb) {
         uS += (uT - uS) * (still ? 1 : 1 - Math.exp(-dt * 9));
         if (Math.abs(uT - uS) < 0.002) uS = uT;
@@ -1979,7 +1977,7 @@ const skyWords = lang === 'nb'
          scroll is the motion. */
       const animate = !still && !climb && fine;
       if (Math.abs(pxT - px) > 0.002 || Math.abs(pyT - py) > 0.002 || now - shakeAt < 700) busy = true;
-      if (!busy && !wantHi && firstDrawn && now - lastDraw < 41) { if (animate) kick(); return; }
+      if (!busy && !wantHi && firstDrawn && acc > 0 && now - lastDraw < 41) { if (animate) kick(); return; }
       lastDraw = now;
       if (busy || animate) wantHi = false;
       if (curScale !== scale) resize();
@@ -2065,6 +2063,7 @@ const skyWords = lang === 'nb'
       const moon = moonAt(date);
       const ML = moonFor(sun.alt / rad, moon);
 
+      gl.uniform1f(u.orthoN, orthoSize);
       gl.uniform2f(u.res, canvas.width, canvas.height);
       gl.uniform3fv(u.cam, cam);
       gl.uniform3fv(u.fwd, fwd);

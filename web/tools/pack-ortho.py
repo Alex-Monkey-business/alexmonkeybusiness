@@ -1,26 +1,41 @@
-"""Orthophoto -> two channels for the detail box (x -1400..1700, y -1300..1800 from the summit, 1536^2):
+"""Orthophoto -> two channels for the 3100 m square around the summit:
 R = rock structure: luminance high-passed over ~40 m (baked large-scale shading removed), 128 = flat.
 G = snow/ice: bright and grey, or blue in shadow."""
-import sys,io,numpy as np
+import argparse
+from pathlib import Path
+
+import numpy as np
 from PIL import Image, ImageFilter
-S,OUT=sys.argv[1],sys.argv[2]
-m=np.load(S+'/ortho/mosaic.npy').astype(np.float32)/255
-E0,N1=2612000,1096000; SE,SN=2617048,1091674
-X0,X1,Y1=-1400,1700,1800
-c0=(X0+SE-E0)//2; r0=(N1-(Y1+SN))//2; n=(X1-X0)//2
-a=m[r0:r0+n,c0:c0+n]
-im=Image.fromarray((a*255).astype(np.uint8)).resize((1024,1024),Image.BOX)
-a=np.asarray(im).astype(np.float32)/255
-lum=a@np.array([0.299,0.587,0.114],np.float32)
-blur=np.asarray(Image.fromarray((lum*255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(7))).astype(np.float32)/255
-hp=np.clip(lum/(blur+0.03),0,2)
-R=np.clip(128+(hp-1)*160,0,255)
-mx=a.max(2);mn=a.min(2);sat=(mx-mn)/(mx+1e-3)
-blue=a[...,2]-a[...,0]
-snow=np.clip((lum-0.74)/0.1,0,1)*np.clip((0.14-sat)/0.06,0,1)
-shsnow=np.clip((blue-0.11)/0.06,0,1)*np.clip((lum-0.18)/0.12,0,1)
-G=np.clip(np.maximum(snow,shsnow)*255,0,255)
-out=np.dstack([R,G,np.zeros_like(R)]).astype(np.uint8)
-Image.fromarray(out).save(OUT,'WEBP',quality=70,method=6)
-import os;print(os.path.getsize(OUT)//1024,'kB')
-Image.fromarray(out).resize((768,768)).save(S+'/ortho/packed.png')
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("source", type=Path)
+parser.add_argument("output", type=Path)
+parser.add_argument("--high-res", action="store_true", help="Pack the detail mosaic into a 4096 px texture.")
+args = parser.parse_args()
+folder = args.source / "ortho"
+size = 4096 if args.high_res else 1024
+if args.high_res:
+    crop = np.load(folder / "mosaic-detail.npy", mmap_mode="r")
+else:
+    mosaic = np.load(folder / "mosaic.npy", mmap_mode="r")
+    c0 = (2615648 - 2612000) // 2
+    r0 = (1096000 - 1093474) // 2
+    crop = mosaic[r0:r0 + 1550, c0:c0 + 1550]
+im = Image.fromarray(crop).resize((size, size), Image.BOX)
+rgb = np.asarray(im).astype(np.float32) / 255
+r, g, b = rgb.transpose(2, 0, 1)
+lum = 0.299 * r + 0.587 * g + 0.114 * b
+gray = Image.fromarray((lum * 255).astype(np.uint8))
+blur = np.asarray(gray.filter(ImageFilter.GaussianBlur(7 * size / 1024))).astype(np.float32) / 255
+hp = np.clip(lum / (blur + 0.03), 0, 2)
+rock = np.clip(128 + (hp - 1) * 160, 0, 255)
+max_rgb = np.maximum(np.maximum(r, g), b)
+min_rgb = np.minimum(np.minimum(r, g), b)
+sat = (max_rgb - min_rgb) / (max_rgb + 1e-3)
+snow = np.clip((lum - 0.74) / 0.1, 0, 1) * np.clip((0.14 - sat) / 0.06, 0, 1)
+shadow_snow = np.clip((b - r - 0.11) / 0.06, 0, 1) * np.clip((lum - 0.18) / 0.12, 0, 1)
+ice = np.maximum(snow, shadow_snow) * 255
+packed = Image.fromarray(np.dstack([rock, ice, np.zeros_like(rock)]).astype(np.uint8))
+packed.save(args.output, "WEBP", quality=76 if args.high_res else 70, method=6)
+print(f"{size} × {size}, {args.output.stat().st_size:,} bytes")
+packed.resize((768, 768)).save(folder / "packed.png")
