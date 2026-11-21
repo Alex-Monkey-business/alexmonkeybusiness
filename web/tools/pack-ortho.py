@@ -10,10 +10,11 @@ from PIL import Image, ImageFilter
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("source", type=Path)
 parser.add_argument("output", type=Path)
-parser.add_argument("--high-res", action="store_true", help="Pack the detail mosaic into a 4096 px texture.")
+parser.add_argument("--high-res", nargs="?", type=int, const=4096, choices=(2048, 4096),
+                    help="Pack the detail mosaic at the given size (4096 px by default).")
 args = parser.parse_args()
 folder = args.source / "ortho"
-size = 4096 if args.high_res else 1024
+size = args.high_res or 1024
 if args.high_res:
     crop = np.load(folder / "mosaic-detail.npy", mmap_mode="r")
 else:

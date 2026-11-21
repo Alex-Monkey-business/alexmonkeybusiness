@@ -1,5 +1,5 @@
-const detailUrl = '/hero/matterhorn-ortho-4096.webp';
-const detailSize = 4096;
+const mobileDetailSize = 2048;
+const desktopDetailSize = 4096;
 
 export async function loadOrthoTexture(
   gl: WebGL2RenderingContext,
@@ -31,6 +31,10 @@ export async function loadOrthoTexture(
   };
 
   const preview = load(previewUrl, 'auto');
-  if (gl.getParameter(gl.MAX_TEXTURE_SIZE) < detailSize) return preview;
-  await Promise.allSettled([preview, load(detailUrl, 'low')]);
+  const maxSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+  if (maxSize < mobileDetailSize) return preview;
+
+  const touchOnly = matchMedia('(pointer: coarse) and (hover: none)').matches;
+  const detailSize = touchOnly || maxSize < desktopDetailSize ? mobileDetailSize : desktopDetailSize;
+  await Promise.allSettled([preview, load(`/hero/matterhorn-ortho-${detailSize}.webp`, 'low')]);
 }
